@@ -17,8 +17,10 @@ final class AnyTourPublisherBotConnection
     private ProjectClientCredentialStore $vault;
     private $request;
     private $publisherRequest;
+    private $publisherKeyboardPilotRequest;
 
-    public function __construct(?string $root = null, ?callable $request = null, ?callable $publisherRequest = null)
+    public function __construct(?string $root = null, ?callable $request = null, ?callable $publisherRequest = null,
+        ?callable $publisherKeyboardPilotRequest = null)
     {
         $checkout = realpath(dirname(__DIR__));
         if ($checkout === false) throw new RuntimeException('storage_unavailable');
@@ -28,6 +30,8 @@ final class AnyTourPublisherBotConnection
         $this->vault = new ProjectClientCredentialStore($this->root);
         $this->request = $request ?? [TelegramArchiveBotSetup::class, 'network'];
         $this->publisherRequest = $publisherRequest ?? [ChannelPostApiTransport::class, 'publisherButtonRequest'];
+        $this->publisherKeyboardPilotRequest = $publisherKeyboardPilotRequest
+            ?? [ChannelPostApiTransport::class, 'publisherKeyboardPilotRequest'];
     }
 
     public function mayConfigure(int $actor, bool $locked = false): bool
@@ -243,9 +247,44 @@ final class AnyTourPublisherBotConnection
      */
     public function withPublisher(int $actor, int $version, callable $operation, bool $allowWrite = false): array
     {
+        return $this->publisherLease($actor, $version, $operation, $allowWrite,
+            static fn(string $platform, string $method, string $path, array $query, ?array $body, string $botId): bool
+                => self::publisherWrite($platform, $method, $path, $query, $body, $botId), $this->publisherRequest);
+    }
+
+    /**
+     * One exact keyboard request for 1047, separate from the unchanged 1678 API.
+     * The existing HOTEL caller owns the approved preimage, durable once-only
+     * marker and native readback. This lease never changes registry or routing.
+     */
+    public function withPublisherKeyboardPilot(int $actor, int $version, array $exactBody, callable $operation,
+        bool $allowWrite = false): array
+    {
+        if (ChannelPostApiTransport::publisherKeyboardPilotPayload($exactBody) === null)
+            throw new RuntimeException('publisher_operation_forbidden');
+        // PHP array copies can retain references supplied by a caller. Freeze
+        // those values before any callback can change the admitted request.
+        $exactBody = json_decode(json_encode($exactBody, JSON_THROW_ON_ERROR), true, 16, JSON_THROW_ON_ERROR);
+        $check = static function (string $platform, string $method, string $path, array $query, ?array $body,
+            string $botId) use ($exactBody): bool {
+            if ($path === 'editMessageReplyMarkup') {
+                if ($platform !== 'telegram' || $method !== 'POST' || $query !== [] || $body !== $exactBody)
+                    throw new RuntimeException('publisher_operation_forbidden');
+                return true;
+            }
+            // All other admitted operations are the existing bounded reads.
+            return self::publisherWrite($platform, $method, $path, $query, $body, $botId);
+        };
+        return $this->publisherLease($actor, $version, $operation, $allowWrite, $check,
+            $this->publisherKeyboardPilotRequest);
+    }
+
+    private function publisherLease(int $actor, int $version, callable $operation, bool $allowWrite,
+        callable $check, callable $transport): array
+    {
         $initial = $this->publisherContext($actor, $version);
         $result = null;
-        $this->locked(function () use ($actor, $version, $operation, $allowWrite, $initial, &$result): void {
+        $this->locked(function () use ($actor, $version, $operation, $allowWrite, $check, $transport, $initial, &$result): void {
             $row = $this->publisherContext($actor, $version, $initial['bot_id']);
             $secret = $this->vault->open(self::PROJECT, 'telegram:'.$row['bot_id'], $row['envelope']);
             $token = $secret['token'];
@@ -257,15 +296,16 @@ final class AnyTourPublisherBotConnection
             $rights = false;
             $channel = false;
             $request = function (string $platform, string $method, string $path, array $query, ?array $body) use (
-                $actor, $version, $binding, $allowWrite, &$active, &$token, &$writeAttempted, &$identity, &$rights, &$channel
+                $actor, $version, $binding, $allowWrite, $check, $transport, &$active, &$token, &$writeAttempted,
+                &$identity, &$rights, &$channel
             ): array {
                 if (!$active) throw new RuntimeException('publisher_scope_closed');
                 $this->publisherContext($actor, $version, $binding['bot_id']);
-                $write = self::publisherWrite($platform, $method, $path, $query, $body, $binding['bot_id']);
+                $write = $check($platform, $method, $path, $query, $body, $binding['bot_id']);
                 if ($write && (!$allowWrite || $writeAttempted)) throw new RuntimeException('publisher_operation_forbidden');
                 if ($write && (!$identity || !$rights || !$channel)) throw new RuntimeException('publisher_verification_required');
                 if ($write) $writeAttempted = true; // An uncertain attempt must never be repeated in this lease.
-                try { $reply = ($this->publisherRequest)($token, $method, $path, $query, $body); }
+                try { $reply = $transport($token, $method, $path, $query, $body); }
                 catch (Throwable $ignored) { $reply = null; }
                 if (!is_array($reply) || !self::publisherPublicValue($reply, $token)) $reply = [];
                 $response = ['http'=>(int)($reply['http'] ?? 0),

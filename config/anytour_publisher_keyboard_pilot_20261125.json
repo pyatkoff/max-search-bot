@@ -1,0 +1,20 @@
+{
+  "schema": 1,
+  "operation": "hotel_publisher_keyboard_pilot",
+  "execution": "explicit_owner_alternate_publisher_single_attempt",
+  "publisher": "ANYTOURBOT_bot",
+  "channel_id": "-1001845835645",
+  "message_id": "1047",
+  "publication_id": 3847,
+  "parent_run_id": "45567178733",
+  "parent_application_sha": "878c680627d54297c364254687577a03ac5aef6b",
+  "parent_plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+  "parent_receipt_sha256": "776bc30a00f0a81a3782ae6048282f07fc3b8f1c08c8de126725abff48a742c0",
+  "target_caption_sha256": "1d5905b0f0827e9119ac6e93d3278a6d86166ae6fe3f642e6a46e0ad3b6d43a2",
+  "target_photo_marker_sha256": "8a6db8c7d5e110c302e05058d272f7e9ce24e69ab1c07bc4c9b186a3acc38a5a",
+  "target_published_unixtime": 1741936304,
+  "change": "append_arrow_to_first_existing_url_button_label",
+  "label_suffix": " →",
+  "preserve": ["caption", "photo", "date", "message_id", "button_urls", "button_order", "parent_receipt", "reserved_identity"],
+  "full_transfer": false
+}

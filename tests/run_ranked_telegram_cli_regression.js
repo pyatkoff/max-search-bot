@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+const crypto = require('node:crypto');
 const {spawnSync} = require('node:child_process');
 const R = require('../tools/deployment_release');
 const {fixture, receipt} = require('./run_deployment_release_regression');
@@ -32,6 +33,7 @@ function approvedCase(digest) {
 // Only the external read transport is simulated. The child executes the actual CLI,
 // uses the checked-in HOTEL data and parses the original sanitized parent ZIP.
 function offlineFetch(digest) {
+  if (digest === 'publisher-keyboard') return publisherOfflineFetch();
   const {index, branch} = approvedCase(digest);
   const history = fixture(head, receipt(head));
   const run = (id, workflow, ref, sha, status, conclusion) => ({
@@ -102,11 +104,174 @@ function offlineFetch(digest) {
   };
 }
 
+function publisherOfflineFetch() {
+  const branch='ops/anytour-publisher-keyboard-1047-20261125';
+  const history=fixture(head,receipt(head));
+  const current={id:currentId,path:editor,head_branch:branch,head_sha:head,status:'in_progress',conclusion:null,
+    run_attempt:1,created_at:'2026-11-25T21:00:00Z',event:'push',repository,head_repository:repository,
+    actor:owner,triggering_actor:owner};
+  history.runs.set(current.id,current);
+  history.jobs.set(current.id,[{id:100,run_id:current.id,run_attempt:1,head_sha:head,name:'transfer',
+    steps:[],status:'in_progress',conclusion:null}]);
+  return async (address,options) => {
+    assert.equal(options.method,'GET');
+    const url=new URL(address);
+    assert.equal(url.origin,'https://api.github.com');
+    const route=url.pathname.slice(R.API_ROOT.length);
+    let data;
+    if (route==='/contents/config/anytour_publisher_keyboard_pilot_20261125.json') {
+      assert.equal(url.searchParams.get('ref'),head);
+      const file=route.slice('/contents/'.length),bytes=fs.readFileSync(path.join(root,file));
+      data={type:'file',path:file,size:bytes.length,encoding:'base64',content:bytes.toString('base64'),sha:R.gitBlob(bytes)};
+    } else if (route==='/git/ref/heads/'+branch) {
+      data={object:{sha:head}};
+    } else if (url.searchParams.has('branch') && route==='/actions/workflows/'+path.basename(editor)+'/runs') {
+      assert.equal(url.searchParams.get('branch'),branch);
+      data={total_count:1,workflow_runs:[current]};
+    } else {
+      data=await history.api('GET',url.pathname+url.search,undefined,options.headers.Accept.includes('raw'));
+    }
+    return Response.json(data);
+  };
+}
+
+function publisherCliCase(temp,command,field,preload) {
+  const branch='ops/anytour-publisher-keyboard-1047-20261125',ref='refs/heads/'+branch;
+  const digest=crypto.createHash('sha256').update(fs.readFileSync(path.join(root,
+    'config/anytour_publisher_keyboard_pilot_20261125.json'))).digest('hex');
+  const output=path.join(temp,'publisher-output'),eventPath=output+'.json';
+  fs.writeFileSync(eventPath,JSON.stringify({repository,sender:owner,ref,after:head,
+    before:'0'.repeat(40),created:true,deleted:false,forced:false}));
+  const child=spawnSync('bash',['-eu','-c',command],{cwd:root,encoding:'utf8',env:{
+    PATH:process.env.PATH,NODE_OPTIONS:'--require '+JSON.stringify(preload),RANKED_CLI_FIXTURE:'publisher-keyboard',
+    GITHUB_TOKEN:'offline-fixture',GITHUB_OUTPUT:output,GITHUB_EVENT_PATH:eventPath,GITHUB_SHA:head,
+    GITHUB_REPOSITORY:R.REPOSITORY,GITHUB_ACTOR:owner.login,GITHUB_TRIGGERING_ACTOR:owner.login,
+    GITHUB_REF:ref,GITHUB_EVENT_NAME:'push',GITHUB_JOB:'transfer',GITHUB_RUN_ATTEMPT:'1',
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+editor+'@'+ref,GITHUB_RUN_ID:String(currentId)
+  }});
+  assert.equal(child.status,0,child.stderr);
+  const values=Object.fromEntries(fs.readFileSync(output,'utf8').trimEnd().split('\n').map(line=>{
+    const boundary=line.indexOf('=');return [line.slice(0,boundary),line.slice(boundary+1)];
+  }));
+  assert.equal(values[field('PILOT_SHA')],digest);
+  assert.equal(values[field('WRITE_OPERATION')],'hotel_publisher_keyboard_pilot');
+  assert.equal(values[field('READY')],'true');assert.equal(values[field('PERFORM_ACTIONS')],'true');
+  assert.equal(values[field('REPOSITORY_SHA')],head);assert.equal(values[field('APPLICATION_SHA')],head);
+  assert.equal(values[field('INDEX_SHA')],undefined);assert.equal(values[field('NATIVE_ARTIFACT_ID')],undefined);
+  assert.equal(values[field('PARENT_EVIDENCE')],undefined);
+  return digest;
+}
+
+// Execute the actual YAML shell blocks with only the external PHP/SSH boundaries
+// replaced. A pilot must never download a ranked artifact or invoke a second edit.
+function publisherWorkflowCases(temp,workflow,digest) {
+  const branch='ops/anytour-publisher-keyboard-1047-20261125';
+  const script=name=>{
+    const start=workflow.indexOf('      - name: '+name+'\n');assert.ok(start>=0);
+    const end=workflow.indexOf('\n      - name: ',start+1);
+    const block=workflow.slice(start,end<0?workflow.length:end),marker='        run: |\n';
+    assert.ok(block.includes(marker));
+    return block.slice(block.indexOf(marker)+marker.length).split('\n').map(l=>l.startsWith('          ')?l.slice(10):l).join('\n');
+  };
+  const checkScript=script('Require exact APPLY admission before loading credentials');
+  const applyScript=script('Apply the installed editor once and retain its original receipts');
+  const fake=path.join(temp,'pilot-tools');fs.mkdirSync(fake);
+  const executable=(name,source)=>fs.writeFileSync(path.join(fake,name),'#!'+process.execPath+'\n'+source,{mode:0o700});
+  executable('git',"if(process.argv.slice(2).join(' ')!=='rev-parse HEAD')process.exit(81);console.log(process.env.GITHUB_SHA);\n");
+  executable('gh',"require('node:fs').appendFileSync(process.env.CALL_LOG,'ranked-artifact-forbidden\\n');process.exit(82);\n");
+  executable('php',"const fs=require('node:fs');fs.appendFileSync(process.env.CALL_LOG,JSON.stringify({php:process.argv.slice(2)})+'\\n');process.stdout.write(process.env.CHECK_JSON);\n");
+  executable('ssh',"const fs=require('node:fs');fs.appendFileSync(process.env.SSH_LOG,JSON.stringify(process.argv.slice(2))+'\\n');process.stdout.write(process.env.APPLY_JSON);process.exit(Number(process.env.APPLY_EXIT));\n");
+  const checked={ok:true,mode:'offline_plan_check',operation:'hotel_publisher_keyboard_pilot',plan_sha256:digest,
+    message_id:'1047',full_transfer:false,production_writes:0,provider_writes:0};
+  const result={ok:true,operation:'hotel_publisher_keyboard_pilot',plan_sha256:digest,message_id:'1047',full_transfer:false,
+    native_run_id:String(currentId),application_sha:head,provider_write_attempts:1,supplier_requests:0,bot_starts:0,
+    state:'publisher_keyboard_verified',caption_preserved:true,photo_preserved:true,date_preserved:true,button_urls_preserved:true};
+  let sequence=0;
+  const setup=(check=checked,reply=result,exit=0,extra={})=>{
+    const dir=path.join(temp,'pilot-case-'+sequence++);fs.mkdirSync(dir);fs.mkdirSync(path.join(dir,'tmp'));
+    const env={PATH:fake+path.delimiter+process.env.PATH,RUNNER_TEMP:path.join(dir,'tmp'),
+      READY:'true',PERFORM_ACTIONS:'true',WRITE_OPERATION:'hotel_publisher_keyboard_pilot',PILOT_SHA:digest,
+      INDEX_SHA:'',NATIVE_ARTIFACT_ID:'',PARENT_EVIDENCE:'',GITHUB_REF:'refs/heads/'+branch,
+      GITHUB_REF_NAME:branch,REPOSITORY_SHA:head,GITHUB_SHA:head,APPLICATION_SHA:head,GITHUB_RUN_ID:String(currentId),
+      HOST_VALUE:'offline.invalid',USER_VALUE:'offline',CALL_LOG:path.join(dir,'calls'),SSH_LOG:path.join(dir,'ssh'),
+      CHECK_JSON:JSON.stringify(check),APPLY_JSON:typeof reply==='string'?reply:JSON.stringify(reply),APPLY_EXIT:String(exit),...extra};
+    const run=source=>spawnSync('bash',['-eu','-c',source],{cwd:dir,env,encoding:'utf8'});
+    const summary=()=>JSON.parse(fs.readFileSync(path.join(dir,'pub/summary.json')))[digest];
+    return {dir,env,run,summary};
+  };
+  for(const [name,patch,env] of [['wrong MID',{message_id:'1048'},{}],['transfer',{full_transfer:true},{}],
+    ['wrong digest',{plan_sha256:'0'.repeat(64)},{}],['write in check',{provider_writes:1},{}],
+    ['missing boolean',{full_transfer:undefined},{}],['uninstalled editor',{}, {APPLICATION_SHA:'a'.repeat(40)}],
+    ['wrong operation',{}, {WRITE_OPERATION:'hotel_ranked_approved_input'}]]) {
+    const c=setup({...checked,...patch},result,0,env),out=c.run(checkScript);
+    assert.notEqual(out.status,0,'offline pilot gate must reject '+name);
+    assert.equal(fs.existsSync(c.env.SSH_LOG),false,'no SSH before a valid offline control');
+  }
+  for(const [name,reply,exit,accepted] of [
+    ['verified',result,0,true],
+    ['NOT_MODIFIED',{...result,ok:false,state:'publisher_keyboard_not_modified'},2,false],
+    ['UNKNOWN',{...result,ok:false,state:'publisher_keyboard_unknown'},2,false],
+    ['provider reject',{...result,ok:false,state:'provider_rejected_edit'},2,false],
+    ['two attempts',{...result,provider_write_attempts:2},0,false],
+    ['boolean attempts',{...result,provider_write_attempts:true},0,false],
+    ['wrong target',{...result,message_id:'1048'},0,false],
+    ['wrong application',{...result,application_sha:'a'.repeat(40)},0,false],
+    ['missing full-transfer distinction',{...result,full_transfer:undefined},0,false],
+    ['changed photo',{...result,photo_preserved:false},0,false],
+    ['unconfirmed accepted response',{...result,state:'publisher_keyboard_not_modified'},0,false],
+    ['lost result','',255,false]
+  ]) {
+    const c=setup(checked,reply,exit),preflight=c.run(checkScript);
+    assert.equal(preflight.status,0,preflight.stderr);
+    const checks=fs.readFileSync(c.env.CALL_LOG,'utf8').trim().split('\n').map(JSON.parse);
+    assert.deepEqual(checks,[{php:['tools/anytour_existing_post_batch.php','--check-publisher-keyboard-pilot',digest]}]);
+    const out=c.run(applyScript);assert.equal(out.status===0,accepted,name+'\n'+out.stderr);
+    const calls=fs.readFileSync(c.env.SSH_LOG,'utf8').trim().split('\n').map(JSON.parse);
+    assert.equal(calls.length,1,'exactly one external invocation for '+name);
+    assert.ok(calls[0].at(-1).endsWith('php tools/anytour_existing_post_batch.php --apply-publisher-keyboard-pilot '+digest+' '+head+' '+currentId));
+    assert.equal(c.summary().full_transfer,false);
+    if(accepted)assert.equal(c.summary().state,'complete');
+    assert.notEqual(c.run(applyScript).status,0,'local invocation fence refuses replay after '+name);
+    assert.equal(fs.readFileSync(c.env.SSH_LOG,'utf8').trim().split('\n').length,1,'replay cannot reach SSH');
+  }
+}
+
 function runTests() {
   const packetTests = spawnSync('python3', [path.join(__dirname, 'test_ranked_telegram_data_input.py')],
     {cwd: root, stdio: 'inherit'});
   if (packetTests.error) throw packetTests.error;
   assert.equal(packetTests.status, 0, 'Ranked Telegram packet fixtures failed');
+
+  const registryOrder = spawnSync('php', ['-r', String.raw`
+require 'tools/anytour_existing_post_batch.php';
+require 'services/ChannelPostRegistryService.php';
+
+$raw = file_get_contents('config/anytour_ranked_pairs_45754450166.json');
+$row = json_decode($raw, true, 32, JSON_THROW_ON_ERROR)['rows'][0];
+$digest = hash('sha256', $raw);
+$validate = new ReflectionMethod(ChannelPostRegistryService::class, 'telegramHotelTransferRow');
+$registryRow = \AnyTour\ExistingPostBatch\transferRegistryRow($row);
+$validated = $validate->invoke(null, $registryRow, $digest);
+if ($registryRow !== $validated) {
+    throw new RuntimeException('The real JAZ Lamaya packet would fail the strict reservation callback');
+}
+
+$extra = $row + ['unexpected' => 'must not be dropped'];
+$missing = $row;
+unset($missing['price_record_id']);
+$wrongType = array_replace($row, ['source_publication_id' => (string) $row['source_publication_id']]);
+$wrongValue = array_replace($row, ['target_caption_sha256' => str_repeat('f', 64)]);
+foreach ([$extra, $missing, $wrongType, $wrongValue] as $invalid) {
+    try {
+        $validate->invoke(null, \AnyTour\ExistingPostBatch\transferRegistryRow($invalid), $digest);
+    } catch (InvalidArgumentException $expected) {
+        continue;
+    }
+    throw new RuntimeException('A changed registry row passed');
+}
+`], {cwd: root, encoding: 'utf8'});
+  if (registryOrder.error) throw registryOrder.error;
+  assert.equal(registryOrder.status, 0, registryOrder.stderr);
 
   const workflow = fs.readFileSync(path.join(root, editor), 'utf8');
   const command = 'node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"';
@@ -157,6 +322,8 @@ function runTests() {
         assert.equal(values[field('PARENT_EVIDENCE')], undefined);
       }
     }
+    const pilotDigest=publisherCliCase(temp,command,field,preload);
+    publisherWorkflowCases(temp,workflow,pilotDigest);
     for (const invalid of [{bad1:'x'},{'bad-key':'x'},{good:'x\ny'},{good:'x\ry'}]) {
       assert.throws(() => R.outputs(invalid), error => error.code === 'invalid_output');
     }

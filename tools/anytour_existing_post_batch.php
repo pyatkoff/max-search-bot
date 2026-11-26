@@ -357,7 +357,9 @@ function transferCaptionOmitsMonitorPrice(string $caption): bool
 function transferRegistryRow(array $row): array
 {
     unset($row['price_template'], $row['source_photo_marker_sha256']);
-    return $row;
+    // Match the registry's field order without hiding extra or missing keys.
+    $keys = array_fill_keys(AnyTourRankedHotelTransfer46::REGISTRY_FIELDS, null);
+    return array_replace(array_intersect_key($keys, $row), $row);
 }
 
 /** Pure decoding: no runtime bootstrap, reservation, HTTP, or journal creation. */
@@ -1034,6 +1036,317 @@ function transferMessageIdRejected(array $response): bool
         && ($response['data']['description'] ?? null) === 'Bad Request: MESSAGE_ID_INVALID';
 }
 
+const PUBLISHER_KEYBOARD_PLAN = 'config/anytour_publisher_keyboard_pilot_20261125.json';
+const PUBLISHER_KEYBOARD_DIGEST = 'a92092aed3523efd38931a8a32f1b78db3d3946c3e449e7d4d4f0a781d1dbca1';
+
+/** A new owner-authorized publisher experiment, never a replay of the media transfer. */
+function publisherKeyboardPlan(string $root, string $digest): array
+{
+    requirePost(hash_equals(PUBLISHER_KEYBOARD_DIGEST, $digest), 'publisher_pilot_approval_changed');
+    $raw = file_get_contents($root.'/'.PUBLISHER_KEYBOARD_PLAN, false, null, 0, 4097);
+    requirePost(is_string($raw) && hash_equals($digest, hash('sha256', $raw)), 'publisher_pilot_plan_changed');
+    return json_decode($raw, true, 16, JSON_THROW_ON_ERROR);
+}
+
+/** Authenticate the consumed attempt without changing its receipt or reservation. */
+function publisherKeyboardParent(string $raw, array $plan): array
+{
+    requirePost(strlen($raw) <= 3_000_000 && str_ends_with($raw, "\n")
+        && hash_equals($plan['parent_receipt_sha256'], hash('sha256', $raw)), 'publisher_pilot_parent_changed');
+    $events = array_map(static fn(string $line): array => json_decode($line, true, 64, JSON_THROW_ON_ERROR),
+        explode("\n", substr($raw, 0, -1)));
+    requirePost(array_column($events, 'state') === ['intent_saved','identity_reserved','request_prepared',
+        'provider_edit_started','provider_response_saved','provider_message_id_rejected']
+        && ($events[0]['execution']['native_run_id'] ?? null) === $plan['parent_run_id']
+        && ($events[0]['execution']['application_sha'] ?? null) === $plan['parent_application_sha']
+        && ($events[0]['plan_sha256'] ?? null) === $plan['parent_plan_sha256']
+        && ($events[0]['row']['target_message_id'] ?? null) === '1047'
+        && ($events[1]['reservation']['publication_id'] ?? null) === $plan['publication_id']
+        && ($events[1]['reservation']['target_message_id'] ?? null) === '1047'
+        && ($events[3]['provider_write_attempts'] ?? null) === 1
+        && transferMessageIdRejected($events[4]['response'] ?? [])
+        && ($events[5]['provider_write_attempts'] ?? null) === 1, 'publisher_pilot_parent_unconfirmed');
+    return $events[1]['reservation'];
+}
+
+/** Public URL buttons only. Unknown button types/rows are a refusal, not an empty keyboard. */
+function publisherKeyboardPublic(string $archive, string $embedded, array $plan): array
+{
+    $profile = $plan['parent_plan_sha256'];
+    $post = parseTransferPublic($archive, 'anytour', '1047', $profile);
+    $embed = parseTransferPublic($embedded, 'anytour', '1047', $profile);
+    foreach ([$post, $embed] as $observed) {
+        requirePost($observed['single_photo'] === true
+            && $observed['published_unixtime'] === $plan['target_published_unixtime']
+            && $observed['caption_sha256'] === $plan['target_caption_sha256']
+            && $observed['photo_marker_sha256'] === $plan['target_photo_marker_sha256'], 'publisher_pilot_preimage_changed');
+    }
+    $doc = new DOMDocument('1.0', 'UTF-8');
+    requirePost(@$doc->loadHTML('<?xml encoding="UTF-8">'.$archive, LIBXML_NONET | LIBXML_NOERROR | LIBXML_NOWARNING),
+        'publisher_pilot_keyboard_unavailable');
+    $xp = new DOMXPath($doc);
+    $cls = static fn(string $c): string => 'contains(concat(" ",normalize-space(@class)," ")," '.$c.' ")';
+    $nodes = $xp->query('//*[@data-post="anytour/1047"]');
+    requirePost($nodes && $nodes->length === 1, 'publisher_pilot_keyboard_unavailable');
+    $node = $nodes->item(0);
+    $rows = $xp->query('.//*['.$cls('tgme_widget_message_inline_row').']', $node);
+    $all = $xp->query('.//*['.$cls('tgme_widget_message_inline_button').']', $node);
+    requirePost($rows && $rows->length > 0 && $rows->length <= 3
+        && $all && $all->length > 0 && $all->length <= 3, 'publisher_pilot_keyboard_unsupported');
+    $keyboard = []; $count = 0;
+    foreach ($rows as $row) {
+        $buttons = $xp->query('./*['.$cls('tgme_widget_message_inline_button').']', $row);
+        requirePost($buttons && $buttons->length > 0 && $buttons->length <= 3, 'publisher_pilot_keyboard_unsupported');
+        $items = [];
+        foreach ($buttons as $button) {
+            $url = $button->getAttribute('href');
+            $text = trim($button->textContent);
+            // Telegram's public URL button adds this browser-only confirmation.
+            // Preserve the href; never execute JavaScript or accept other handlers.
+            $onclick = $button->hasAttribute('onclick') ? $button->getAttribute('onclick') : null;
+            requirePost(strtolower($button->nodeName) === 'a' && $button->hasAttribute('href')
+                && preg_match('/(?:^|\s)url_button(?:\s|$)/D', $button->getAttribute('class')) === 1
+                && ($onclick === null || $onclick === "return confirm('Open this link?\\n\\n'+this.href);")
+                && $text !== '' && mb_check_encoding($text, 'UTF-8')
+                && mb_strlen($text, 'UTF-8') <= 120 && preg_match('/[\x00-\x1f\x7f]/u', $text) === 0
+                && preg_match('~\Ahttps://[^\s<>"\x00-\x1f]{1,2000}\z~uD', $url) === 1,
+                'publisher_pilot_keyboard_unsupported');
+            $parsed = parse_url($url);
+            requirePost(is_array($parsed) && isset($parsed['host']) && !isset($parsed['user']) && !isset($parsed['pass'])
+                && !isset($parsed['port']), 'publisher_pilot_keyboard_unsupported');
+            $items[] = ['text'=>$text, 'url'=>$url]; $count++;
+        }
+        $keyboard[] = $items;
+    }
+    requirePost($count === $all->length, 'publisher_pilot_keyboard_unsupported');
+    $post['reply_markup'] = ['inline_keyboard'=>$keyboard];
+    return $post;
+}
+
+function publisherKeyboardBody(array $before, array $plan): array
+{
+    $markup = $before['reply_markup'];
+    $text = $markup['inline_keyboard'][0][0]['text'];
+    requirePost(!str_ends_with($text, $plan['label_suffix']), 'publisher_pilot_already_changed');
+    $markup['inline_keyboard'][0][0]['text'] = $text.$plan['label_suffix'];
+    return ['chat_id'=>'-1001845835645', 'message_id'=>1047, 'reply_markup'=>$markup];
+}
+
+/** A markup result is deliberately not a hotel/media-transfer receipt. */
+function publisherKeyboardResponse(array $response, array $body, array $plan): string
+{
+    if (transferMessageIdRejected($response)) return 'provider_message_id_rejected';
+    if (($response['transport_error'] ?? null) === false && ($response['http'] ?? null) === 400
+        && ($response['data']['ok'] ?? null) === false && ($response['data']['error_code'] ?? null) === 400
+        && str_starts_with((string)($response['data']['description'] ?? ''), 'Bad Request: message is not modified'))
+        return 'message_not_modified';
+    $message = $response['data']['result'] ?? [];
+    requirePost(($response['http'] ?? null) === 200 && ($response['transport_error'] ?? null) === false
+        && ($response['data']['ok'] ?? null) === true && is_array($message)
+        && (string)($message['chat']['id'] ?? '') === '-1001845835645' && ($message['chat']['type'] ?? '') === 'channel'
+        && strtolower((string)($message['chat']['username'] ?? '')) === 'anytour'
+        && ($message['message_id'] ?? null) === 1047 && ($message['date'] ?? null) === $plan['target_published_unixtime']
+        && is_string($message['caption'] ?? null) && hash('sha256', $message['caption']) === $plan['target_caption_sha256']
+        && !empty($message['photo']) && empty($message['media_group_id']) && !isset($message['video'])
+        && !isset($message['text']) && ($message['reply_markup'] ?? null) === $body['reply_markup'],
+        'publisher_pilot_response_unconfirmed');
+    return 'native_keyboard_edit_accepted';
+}
+
+/** Testable once-only control flow; the caller holds the existing target and PRICE locks. */
+function publisherKeyboardExecute(array $plan, array $before, array $body, array $effects, string $directory): array
+{
+    $base = ['schema'=>1, 'operation'=>$plan['operation'], 'plan_sha256'=>PUBLISHER_KEYBOARD_DIGEST,
+        'message_id'=>'1047', 'url'=>'https://t.me/anytour/1047', 'full_transfer'=>false,
+        'supplier_requests'=>0, 'bot_starts'=>0] + $effects['context'];
+    $record = null; $attempts = 0; $responseSaved = false;
+    try {
+        requirePost($body === publisherKeyboardBody($before, $plan), 'publisher_pilot_payload_changed');
+        requirePost(realpath($directory) === $directory && !is_link($directory), 'publisher_pilot_directory_changed');
+        $path = $directory.'/publisher-keyboard-20261125.jsonl';
+        requirePost(!file_exists($path) && !is_link($path), 'publisher_pilot_previous_attempt_do_not_replay');
+        $effects['assert']();
+        $mask = umask(0077);
+        try { $record = @fopen($path, 'x+b'); } finally { umask($mask); }
+        requirePost(is_resource($record) && flock($record, LOCK_EX | LOCK_NB), 'publisher_pilot_journal_unavailable');
+        transferJournal($record, ['state'=>'intent_saved', 'context'=>$base,
+            'parent_receipt_sha256'=>$plan['parent_receipt_sha256'], 'publisher'=>$effects['publisher'],
+            'preimage'=>$before, 'request'=>$body]);
+        $directoryStream = @fopen($directory, 'rb');
+        requirePost(is_resource($directoryStream), 'publisher_pilot_journal_unavailable');
+        try { requirePost(fsync($directoryStream), 'publisher_pilot_journal_unavailable'); }
+        finally { fclose($directoryStream); }
+        $effects['assert']();
+        transferJournal($record, ['state'=>'provider_edit_started', 'provider_write_attempts'=>1]);
+        $attempts = 1;
+        $response = $effects['request']($body);
+        requirePost(is_array($response), 'publisher_pilot_response_unconfirmed');
+        transferJournal($record, ['state'=>'provider_response_saved', 'response'=>$response]);
+        $responseSaved = true;
+        $state = publisherKeyboardResponse($response, $body, $plan);
+        $after = $effects['readback']();
+        requirePost($after['reply_markup'] === ($state === 'native_keyboard_edit_accepted'
+            ? $body['reply_markup'] : $before['reply_markup']), 'publisher_pilot_public_keyboard_unconfirmed');
+        foreach (['caption_sha256','photo_marker_sha256','published_unixtime'] as $key)
+            requirePost($after[$key] === $before[$key], 'publisher_pilot_public_content_changed');
+        $effects['parent_unchanged']();
+        $ok = $state === 'native_keyboard_edit_accepted';
+        $result = $base + ['ok'=>$ok, 'state'=>$ok ? 'publisher_keyboard_verified' : $state,
+            'provider_write_attempts'=>1, 'publisher'=>$effects['publisher'],
+            'caption_preserved'=>true, 'photo_preserved'=>true, 'date_preserved'=>true,
+            'button_urls_preserved'=>true, 'parent_receipt_preserved'=>true,
+            'before_keyboard'=>$before['reply_markup'], 'after_keyboard'=>$after['reply_markup'],
+            'native_response_sha256'=>hash('sha256', json_encode($response, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR))];
+        transferJournal($record, $result);
+        return $result;
+    } catch (Throwable $error) {
+        $result = $base + ['ok'=>false, 'state'=>$attempts ? ($responseSaved ? 'response_saved_requires_readback'
+            : 'provider_outcome_unknown') : 'held_before_provider', 'reason'=>transferReason($error),
+            'provider_write_attempts'=>$attempts];
+        // A later public read failure must not hide the already classified answer
+        // to this single Telegram edit. Unknown responses remain unclassified.
+        if ($responseSaved && isset($state)) $result['native_state'] = $state;
+        if ($responseSaved && isset($response['data']['error_code']) && is_int($response['data']['error_code'])) {
+            $result['telegram_error_code'] = $response['data']['error_code'];
+            $description = $response['data']['description'] ?? '';
+            if (is_string($description) && mb_check_encoding($description, 'UTF-8') && strlen($description) <= 512
+                && preg_match('/[\x00-\x1f\x7f]/u', $description) === 0) $result['telegram_description'] = $description;
+        }
+        if (is_resource($record)) {
+            try { transferJournal($record, $result); } catch (Throwable $ignored) {}
+        }
+        return $result;
+    } finally { if (is_resource($record)) fclose($record); }
+}
+
+function publisherKeyboardParentFile(string $path, array $plan): array
+{
+    clearstatcache(true, $path);
+    requirePost(realpath($path) === $path && is_file($path) && !is_link($path), 'publisher_pilot_parent_changed');
+    $raw = file_get_contents($path, false, null, 0, 3_000_001);
+    requirePost(is_string($raw), 'publisher_pilot_parent_changed');
+    return publisherKeyboardParent($raw, $plan);
+}
+
+function publisherKeyboardReservation(PDO $pdo, array $reservation): void
+{
+    $q = $pdo->prepare('SELECT id,post_channel_id,source_id,external_message_id,start_payload,current_version_id,observed_revision_ms,telegram_sequence FROM post_publications WHERE post_channel_id=6 AND external_message_id=?');
+    $q->execute(['1047']); $rows = $q->fetchAll(PDO::FETCH_ASSOC); $q->closeCursor();
+    requirePost(count($rows) === 1 && (int)$rows[0]['id'] === 3847
+        && (int)$rows[0]['source_id'] === $reservation['source_id']
+        && $rows[0]['start_payload'] === $reservation['start_payload']
+        && $rows[0]['current_version_id'] === null && $rows[0]['observed_revision_ms'] === null
+        && $rows[0]['telegram_sequence'] === null, 'publisher_pilot_reservation_changed');
+    foreach (['post_versions'=>'publication_id', 'post_observations'=>'publication_id'] as $table=>$column) {
+        $q = $pdo->prepare('SELECT COUNT(*) FROM '.$table.' WHERE '.$column.'=?');
+        $q->execute([3847]); $count = (int)$q->fetchColumn(); $q->closeCursor();
+        requirePost($count === 0, 'publisher_pilot_reservation_changed');
+    }
+}
+
+/** One saved-publisher call, using the installed editor's existing locks and private journal. */
+/** Resolve the explicitly confirmed account only; no fallback to another administrator. */
+function publisherKeyboardActor(PDO $pdo, callable $mayConfigure): int
+{
+    $login = 'manager';
+    $q = $pdo->prepare("SELECT DISTINCT m.id,m.login FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id JOIN projects p ON p.id=mp.project_id WHERE m.login=? AND m.role='admin' AND m.is_active=1 AND p.project_key='anytour' AND p.is_active=1 ORDER BY m.id LIMIT 2");
+    $q->execute([$login]);
+    $actors = $q->fetchAll(PDO::FETCH_ASSOC);
+    $q->closeCursor();
+    requirePost(count($actors) === 1 && $actors[0]['login'] === $login && (int)$actors[0]['id'] > 0,
+        'publisher_pilot_owner_account_unconfirmed');
+    $actor = (int)$actors[0]['id'];
+    requirePost($mayConfigure($actor) === true, 'publisher_pilot_owner_access_unconfirmed');
+    return $actor;
+}
+
+function applyPublisherKeyboardPilot(string $root, string $digest, string $applicationSha, string $nativeRunId): array
+{
+    $plan = publisherKeyboardPlan($root, $digest);
+    requirePost(preg_match('/\A[1-9][0-9]{0,19}\z/D', $nativeRunId) === 1
+        && $nativeRunId !== $plan['parent_run_id'], 'publisher_pilot_run_invalid');
+    transferRuntime($root, $applicationSha);
+    ob_start();
+    try {
+        require_once $root.'/config.php';
+        require_once $root.'/services/AnyTourPublisherBotConnection.php';
+        require_once $root.'/services/ChannelPostRegistryService.php';
+        require_once $root.'/services/ChannelPostButtonTransport.php';
+    } finally { ob_end_clean(); }
+    requirePost(ProjectConfig::projectId() === 'anytour' && realpath(POST_OPS) === POST_OPS,
+        'publisher_pilot_runtime_changed');
+    $directory = POST_OPS.'/anytour-issue1566-historical-tg-media-1047-v1';
+    requirePost(realpath($directory) === $directory && !is_link($directory), 'publisher_pilot_directory_changed');
+    $parentPath = $directory.'/receipt.jsonl';
+    $reservation = publisherKeyboardParentFile($parentPath, $plan);
+    requirePost(!file_exists($directory.'/publisher-keyboard-20261125.jsonl')
+        && !is_link($directory.'/publisher-keyboard-20261125.jsonl'), 'publisher_pilot_previous_attempt_do_not_replay');
+    $read = static function () use ($plan): array {
+        return publisherKeyboardPublic(
+            transferReadBytes('https://t.me/s/anytour?before=1048', $plan['parent_plan_sha256']),
+            transferReadBytes('https://t.me/anytour/1047?embed=1&mode=tme', $plan['parent_plan_sha256']), $plan);
+    };
+    $before = $read();
+    $body = publisherKeyboardBody($before, $plan);
+    $pdo = ConversationDb::connection();
+    requirePost($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' && !$pdo->inTransaction(),
+        'publisher_pilot_native_database_required');
+    $registry = new ChannelPostRegistryService($pdo);
+    $channel = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1001845835645');
+    requirePost(is_array($channel) && (int)$channel['id'] === 6 && (int)$channel['config_version'] === 2,
+        'publisher_pilot_channel_changed');
+    $connection = new \AnyTourPublisherBotConnection();
+    // The original owner push is authenticated before SSH; the owner confirmed
+    // the exact account for this pilot. The credential lease rechecks its ACL.
+    $actor = publisherKeyboardActor($pdo, static fn(int $id): bool => $connection->mayConfigure($id));
+    $status = $connection->status($actor);
+    requirePost($status['configured'] === true && $status['username'] === 'ANYTOURBOT_bot', 'publisher_pilot_not_configured');
+    $pricePath = POST_OPS.'/monitor-price-after-collection-v1.jsonl';
+    requirePost(realpath($pricePath) === $pricePath && is_file($pricePath) && !is_link($pricePath), 'publisher_pilot_price_lease_unknown');
+    $price = fopen($pricePath, 'rb');
+    requirePost(is_resource($price), 'publisher_pilot_price_lease_unknown');
+    $locked = false;
+    try {
+        requirePost(flock($price, LOCK_EX | LOCK_NB), 'publisher_pilot_content_editor_busy');
+        $q = $pdo->prepare('SELECT GET_LOCK(?,0)');
+        $q->execute(['anytour-issue1566-historical-tg-media-1047-v1']);
+        $locked = transferTargetLockAcquired($q->fetchColumn()); $q->closeCursor();
+        requirePost($locked, 'publisher_pilot_target_editor_busy');
+        $assert = static function () use ($root, $applicationSha, $pdo, $registry, $channel, $parentPath, $plan, $reservation): void {
+            transferRuntime($root, $applicationSha);
+            requirePost(publisherKeyboardParentFile($parentPath, $plan) === $reservation, 'publisher_pilot_parent_changed');
+            requirePost($registry->channel('anytour', 'telegram', 'anyru_bot', '-1001845835645') === $channel,
+                'publisher_pilot_channel_changed');
+            publisherKeyboardReservation($pdo, $reservation);
+        };
+        $assert();
+        return $connection->withPublisherKeyboardPilot($actor, (int)$status['version'], $body,
+            static function (array $publisher, callable $request) use ($plan, $before, $body, $read, $assert,
+                $root, $applicationSha, $nativeRunId, $directory, $parentPath, $reservation, $channel): array {
+                $proof = (new ChannelPostButtonTransport($request))->verifyPublisher($channel, $publisher);
+                requirePost(($proof['state'] ?? '') === 'ready' && ($proof['receipt']['write_attempts'] ?? null) === 0,
+                    'publisher_pilot_channel_rights_unconfirmed');
+                $fresh = $read();
+                requirePost($fresh['reply_markup'] === $before['reply_markup'], 'publisher_pilot_keyboard_changed');
+                $effects = ['context'=>['application_sha'=>$applicationSha, 'native_run_id'=>$nativeRunId],
+                    'publisher'=>$publisher, 'assert'=>$assert,
+                    'request'=>static fn(array $payload): array => $request('telegram', 'POST', 'editMessageReplyMarkup', [], $payload),
+                    'readback'=>$read,
+                    'parent_unchanged'=>static function () use ($parentPath, $plan, $reservation, $root, $applicationSha): void {
+                        requirePost(publisherKeyboardParentFile($parentPath, $plan) === $reservation, 'publisher_pilot_parent_changed');
+                        transferRuntime($root, $applicationSha);
+                    }];
+                return publisherKeyboardExecute($plan, $before, $body, $effects, $directory);
+            }, true);
+    } finally {
+        if ($locked) {
+            try { $q = $pdo->prepare('SELECT RELEASE_LOCK(?)'); $q->execute(['anytour-issue1566-historical-tg-media-1047-v1']); $q->closeCursor(); }
+            catch (Throwable $ignored) {}
+        }
+        fclose($price);
+    }
+}
+
 function requireOriginalNextTransferRejection(array $events, array $firstRow, string $digest): void
 {
     requirePost(array_column($events, 'state') === ['intent_saved','identity_reserved','request_prepared',
@@ -1502,6 +1815,7 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     ini_set('display_errors', '0'); ini_set('log_errors', '0');
     $exitCode = 2;
     $command = $argv[1] ?? '';
+    $publisherPilot = in_array($command, ['--check-publisher-keyboard-pilot','--apply-publisher-keyboard-pilot'], true);
     $prewriteResume = $command==='--apply-closed-prewrite-resume';
     $rankedUnreached = in_array($command, ['--check-ranked-unreached','--apply-ranked-unreached'], true);
     $rankedResume = in_array($command, ['--check-ranked-resume','--apply-ranked-resume'], true);
@@ -1516,7 +1830,14 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
         }
         $root = dirname(__DIR__);
         $parent = $rankedUnreached ? rankedUnreachedEvidence() : null;
-        if (count($argv) === 3 && in_array($command, ['--check-transfer-plan','--check-next-transfer-plan','--check-ranked-transfer-plan','--check-remaining-transfer-plan','--check-ranked-continuation','--check-ranked-resume','--check-ranked-unreached'], true)) {
+        if ($publisherPilot && count($argv) === 3 && $command === '--check-publisher-keyboard-pilot') {
+            $plan = publisherKeyboardPlan($root, $argv[2]);
+            $result = ['ok'=>true, 'operation'=>$plan['operation'], 'mode'=>'offline_plan_check',
+                'plan_sha256'=>$argv[2], 'production_writes'=>0, 'provider_writes'=>0,
+                'full_transfer'=>false, 'message_id'=>'1047'];
+        } elseif ($publisherPilot && count($argv) === 5 && $command === '--apply-publisher-keyboard-pilot') {
+            $result = applyPublisherKeyboardPilot($root, $argv[2], $argv[3], $argv[4]);
+        } elseif (count($argv) === 3 && in_array($command, ['--check-transfer-plan','--check-next-transfer-plan','--check-ranked-transfer-plan','--check-remaining-transfer-plan','--check-ranked-continuation','--check-ranked-resume','--check-ranked-unreached'], true)) {
             $planFile = transferProfileFile($next);
             $raw = file_get_contents($root.'/'.$planFile, false, null, 0, 64001);
             requirePost(is_string($raw), 'transfer_plan_unavailable');
@@ -1542,6 +1863,8 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
         $result = ['ok'=>false,'operation'=>$rankedUnreached ? RANKED_UNREACHED_OPERATION : ($rankedResume ? RANKED_RESUME_OPERATION : ($rankedContinuation ? RANKED_CONTINUATION_OPERATION
             : ($remaining ? REMAINING_TRANSFER_OPERATION : transferProfileOperation($next)))),'state'=>'requires_readback',
             'reason'=>transferReason($error)];
+        if ($publisherPilot) $result = ['ok'=>false, 'operation'=>'hotel_publisher_keyboard_pilot',
+            'state'=>'requires_readback', 'full_transfer'=>false, 'message_id'=>'1047', 'reason'=>transferReason($error)];
     }
     echo json_encode($result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), PHP_EOL;
     exit($exitCode);
