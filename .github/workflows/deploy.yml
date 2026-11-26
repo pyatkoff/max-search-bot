@@ -47,6 +47,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: node tools/deploy_hotel_catalogue_scope.js
 
+  # Keep the existing deployment proof job names. The three runners share the
+  # full architecture suite; bounded profiles still run all their architecture here.
   verify-inventory:
     needs: verify-syntax
     runs-on: ubuntu-latest
@@ -61,12 +63,18 @@ jobs:
           php-version: '8.3'
           extensions: mbstring
           coverage: none
-      - name: Verify required inventory and architecture
+      - name: Run assigned architecture checks
         env:
           DEPLOY_CHECK_PROFILE: ${{ needs.verify-syntax.outputs.profile }}
         run: |
-          test -n "$DEPLOY_CHECK_PROFILE"
-          php tests/run_required_group.php architecture "$DEPLOY_CHECK_PROFILE"
+          set -euo pipefail
+          case "$DEPLOY_CHECK_PROFILE" in
+            full) php tests/run_required_group.php architecture ci-apple-coverage ;;
+            hotel-catalogue-data|telegram-public-observer)
+              php tests/run_required_group.php architecture "$DEPLOY_CHECK_PROFILE"
+              ;;
+            *) exit 1 ;;
+          esac
 
   verify-groups:
     needs: verify-syntax
@@ -100,7 +108,9 @@ jobs:
         run: |
           set -euo pipefail
           case "$DEPLOY_CHECK_PROFILE:$DEPLOY_CHECK_LANE" in
-            full:application|full:diagnostics|hotel-catalogue-data:diagnostics|telegram-public-observer:application|telegram-public-observer:diagnostics) ;;
+            full:application) php tests/run_required_group.php architecture ci-architecture-core ;;
+            full:diagnostics) php tests/run_required_group.php architecture ci-apple-device ;;
+            hotel-catalogue-data:diagnostics|telegram-public-observer:application|telegram-public-observer:diagnostics) ;;
             hotel-catalogue-data:application) DEPLOY_CHECK_GROUPS='dialogue website' ;;
             *) exit 1 ;;
           esac
