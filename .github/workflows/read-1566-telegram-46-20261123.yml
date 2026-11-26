@@ -1,4 +1,4 @@
-name: "#1566 Match old Telegram keyboard posts to exact hotel names"
+name: "#1566 Review commercial candidates from the checked Telegram shortlist"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,187 +13,42 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '58b21c8b62794f471568ea86111b83ab05fb2222' &&
-      github.run_attempt == 1
+      github.event.before == '16b928414298b1f4dc59f2f43f79a5a4f710f4fe' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 4
     steps:
-      - name: Check out the exact existing Telegram plans for exclusion
-        uses: actions/checkout@v4
-        with:
-          ref: 43c684f3d220f4808efe898d1ba14608f960fda7
-          path: accepted
-          persist-credentials: false
-      - name: Compare verified archive snapshots with current Telegram offer names
+      - name: Review the already saved captions without re-reading Telegram
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          from collections import Counter, defaultdict
-          import hashlib
-          import html
-          import unicodedata
-          import urllib.request
-          import urllib.error
-          import xml.etree.ElementTree as ET
-          import io
-          import json
-          import os
-          from pathlib import Path
-          import re
-          import subprocess
-          import zipfile
-          
-          repo = os.environ["GITHUB_REPOSITORY"]
-          workflow = ".github/workflows/read-1566-telegram-46-20261123.yml"
-          base = Path("accepted/config")
-          expected = [[45747718941,15083853001,"4a80c9b86444d30462e8371f8be9c854a3aebbe5",711069,"a5f9edd963c476f4e3f003f4f83007644e2b4d607fa9c49a608dad52fcf14d77"],[45747898971,15083559015,"e728c0aff8d2656c8529b299ceb5adfba99e214d",379064,"2c4919e754273a8bee9c63704eff165800e67d118f07c66eeee7f2b09ff6c875"],[45745214387,15082428655,"25147cfb950c4f114df0fc15bc688bd06814e264",303175,"b579c38168e5f79421c4344d95945555cbd25554e6c487d88dca3465eff82a84"]]
-          blocked = {220, 567, 588, 727, 831, 842, 907, 957, 1012, 1016, 1042, 1047,
-                     1058, 1089, 1099, 1103, 1109, 1111, 1136, 1535, 1559, 1584, 1585, 1586,
-                     1620, 1651, 1653, 1654, 1664, 1665, 1679, 1695, 1696}
-          checked_plans = 0
-          for file in sorted(base.glob("anytour*.json")):
-              if file.stat().st_size > 500000:
+          import hashlib, io, json, os, re, subprocess, zipfile
+          repo=os.environ['GITHUB_REPOSITORY']
+          def read(path):
+              return subprocess.check_output(['gh','api',f'repos/{repo}/{path}'],timeout=30)
+          run=json.loads(read('actions/runs/45790642573'))
+          assert run['head_sha']=='16b928414298b1f4dc59f2f43f79a5a4f710f4fe' and run['run_attempt']==1
+          assert run['conclusion']=='success' and run['actor']['id']==226193297 and run['event']=='push'
+          info=json.loads(read('actions/artifacts/15102278365'))
+          digest='e78fdcf0edd83a7c0b6afc0126c8eca386e5861bfc672ef484a3ff8377d95912'
+          assert info['workflow_run']['id']==run['id'] and not info['expired'] and info['digest']=='sha256:'+digest
+          raw=read('actions/artifacts/15102278365/zip')
+          assert len(raw)==info['size_in_bytes']==5567 and hashlib.sha256(raw).hexdigest()==digest
+          with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+              assert archive.namelist()==['legacy-keyboard-shortlist.json'] and archive.testzip() is None
+              assert archive.getinfo(archive.namelist()[0]).file_size<=100000
+              report=json.loads(archive.read(archive.namelist()[0]))
+          assert report['write_admission'] is False and report['feed']['status']=='ok'
+          forbidden=re.compile(r'поздрав|юбиле|с днем|с днём|конкурс|розыгрыш|отзыв|истори[яию] турист|скриншот|победител',re.I)
+          offer_text=re.compile(r'₽|\d\s*руб|стоимость|цен[аы]|вылет|на\s+[1-9][0-9]?\s*ноч',re.I)
+          for row in report['other_commercial_candidates']:
+              caption=row['caption_preview']
+              assert row['native_ready'] is False
+              if row['keyboard_group']!='generic' or not offer_text.search(caption) or forbidden.search(caption):
                   continue
-              data = json.loads(file.read_bytes())
-              if isinstance(data, dict):
-                  for row in data.get("rows", []):
-                      if isinstance(row, dict) and str(row.get("target_message_id", "")).isdigit():
-                          blocked.add(int(row["target_message_id"]))
-                  checked_plans += 1
-          
-          def gh(resource):
-              return subprocess.check_output(["gh", "api", f"repos/{repo}/{resource}"], timeout=50)
-          
-          guard = re.compile(r"отзыв|впечатлен|впечатлён|делимс[яь] впечатлен|наш[аи]? турист|туристы поделил|туристы вернул|"
-                             r"менеджер.{0,12}рассказ|мы (?:отдыхали|побывали)|с дн[её]м|поздравляем|розыгрыш|конкурс|доминикан", re.I)
-          commercial = re.compile(r"\bRUB\b|₽|\d\s*руб|вылет|тур[а-яё]*|путешеств|отел|курорт|отдых", re.I)
-          def normalized(value):
-              value = unicodedata.normalize('NFKC', html.unescape(value)).casefold().replace('ё', 'е')
-              return ' '.join(re.findall(r'[^\W_]+', value, re.UNICODE))
-
-          class NoRedirect(urllib.request.HTTPRedirectHandler):
-              def redirect_request(self, *args, **kwargs):
-                  return None
-
-          def current_feed():
-              opener = urllib.request.build_opener(NoRedirect)
-              link = 'https://app.anytoour.ru/feed/hotel-posts-telegram.xml'
-              try:
-                  with opener.open(urllib.request.Request(link, headers={'User-Agent':'AnyTour-HOTEL-readonly/1.0'}), timeout=25) as response:
-                      raw = response.read(5_000_001)
-                  if not 1000 <= len(raw) <= 5_000_000 or re.search(br'<!\s*(?:DOCTYPE|ENTITY)',raw,re.I):
-                      return {}, {'status':'unexpected_feed_shape'}
-                  offers = ET.fromstring(raw).findall('.//offer')
-                  if not 1 <= len(offers) <= 2500:
-                      return {}, {'status':'unexpected_feed_count'}
-              except urllib.error.HTTPError as error:
-                  return {}, {'status':'feed_http', 'http':error.code, 'retry_after':error.headers.get('Retry-After')}
-              except (OSError, ValueError, ET.ParseError):
-                  return {}, {'status':'feed_unavailable'}
-              aliases = defaultdict(dict)
-              for item in offers:
-                  offer_id = item.get('id','')
-                  if not re.fullmatch(r'tg_[1-9][0-9]{0,8}', offer_id):
-                      continue
-                  name_fields = [item.findtext('name',''), item.findtext('model','')]
-                  description = html.unescape(item.findtext('description',''))
-                  first_line = re.split(r'\r?\n|<(?:br\b[^>]*|/p\s*)>', description, maxsplit=1, flags=re.I)[0]
-                  name_fields.append(re.sub(r'<[^>]{1,80}>',' ',first_line))
-                  link = item.findtext('url','').strip()
-                  source = re.fullmatch(r'https://t\.me/any_toour/([1-9][0-9]{0,9})', link)
-                  for display in name_fields:
-                      display = display.strip()[:180]
-                      name = normalized(display)
-                      if not 9 <= len(name) <= 90 or not 2 <= len(name.split()) <= 10:
-                          continue
-                      if re.search(r'\b(тур из|отдых в|подбор|цена|москва|стоимость|путешествие|любой тур)\b|₽', display, re.I):
-                          continue
-                      aliases[' '+name+' '][offer_id] = {
-                          'offer_id':offer_id,'display_name':display,'source_mid':int(source[1]) if source else None}
-              return aliases, {'status':'ok','sha256':hashlib.sha256(raw).hexdigest(),
-                  'bytes':len(raw),'offers':len(offers),'aliases':len(aliases)}
-
-          aliases, feed = current_feed()
-          seen, source_rows, scope, matches, other_offers = set(), [], {}, {}, {}
-          keyboard_kind = Counter()
-          for run_id, artifact_id, head, size, digest in expected:
-              run = json.loads(gh(f"actions/runs/{run_id}"))
-              assert run["id"] == run_id and run["head_sha"] == head and run["run_attempt"] == 1
-              assert run["conclusion"] == "success" and run["actor"]["id"] == 226193297
-              assert run["event"] == "push" and run["path"] == workflow
-              meta = json.loads(gh(f"actions/artifacts/{artifact_id}"))
-              assert not meta["expired"] and meta["workflow_run"]["id"] == run_id
-              assert meta["size_in_bytes"] == size and meta["digest"] == f"sha256:{digest}"
-              raw = gh(f"actions/artifacts/{artifact_id}/zip")
-              assert len(raw) == size and hashlib.sha256(raw).hexdigest() == digest
-              with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-                  assert archive.testzip() is None
-                  names = [n for n in archive.namelist() if n.rsplit("/", 1)[-1] == "archive-windows.json"]
-                  assert len(names) == 1, (run_id, "missing or ambiguous archive projection", archive.namelist()[:25])
-                  assert archive.getinfo(names[0]).file_size <= 16000000, (run_id, "archive projection too large", archive.getinfo(names[0]).file_size)
-                  document = json.loads(archive.read(names[0]))
-              assert document["native_run_id"] == str(run_id) and document["reader_source_sha"] == head
-              assert document["write_admission"] is False
-              source_rows.append({"run":run_id, "artifact":artifact_id, "rows":len(document["rows"])})
-              for row in document["rows"]:
-                  mid = int(row["target_message_id"])
-                  seen.add(mid)
-                  public = row.get("public", {})
-                  original = 'saved_plan_or_hold' if mid in blocked else 'not_supported_or_parse_unavailable' if not public.get('single_photo') else 'legacy_keyboard' if public.get('buttons') else 'single_photo_empty_keyboard'
-                  scope[mid] = original
-                  if original != 'legacy_keyboard':
-                      continue
-                  caption = public.get("caption", "")
-                  if not isinstance(caption, str) or not caption or guard.search(caption):
-                      continue
-                  buttons = public.get('buttons', [])
-                  if not isinstance(buttons,list) or not all(isinstance(button,dict) for button in buttons):
-                      continue
-                  labels = [str(button.get('text', ''))[:120] for button in buttons]
-                  group = 'generic' if labels and all(re.search(r'связ|менеджер|найти|поиск|заброн|тур|сайт|подобрать', label, re.I) for label in labels) else 'needs_keyboard_review'
-                  keyboard_kind[group] += 1
-                  haystack = ' '+normalized(caption)+' '
-                  identities = {}
-                  for name, offers in aliases.items():
-                      if name in haystack:
-                          for offer_id, hotel in offers.items():
-                              identities[offer_id] = hotel
-                  entry = {'mid':mid,'archive_run':run_id,'caption_preview':caption[:400],
-                           'caption_sha256':public.get('caption_sha256'),'photo_marker_sha256':public.get('photo_marker_sha256'),
-                           'published_at':public.get('published_at'),'keyboard':labels,'keyboard_group':group,
-                           'native_ready':False,'requires_photo_review':True,'requires_button_route_review':True}
-                  if len(identities) == 1:
-                      matches[mid] = {**entry,**next(iter(identities.values()))}
-                  elif len(identities) == 0 and len(caption) >= 80 and commercial.search(caption):
-                      other_offers[mid] = entry
-          
-          # Duplicate offers stay in one evidence group; a match never proves target occupancy or write rights.
-          ranked = sorted(matches.values(),key=lambda row:(row['keyboard_group']!='generic',row['source_mid'] is None,row['mid']))
-          candidates, offer_ids = [], set()
-          for row in ranked:
-              if row['offer_id'] in offer_ids:
-                  continue
-              candidates.append(row)
-              offer_ids.add(row['offer_id'])
-          result = {'source_receipts':source_rows,'observed_unique':len(seen),'plan_files_read':checked_plans,
-                    'blocked_mids':len(blocked),'format_counts':dict(Counter(scope.values())),
-                    'keyboard_kind':dict(keyboard_kind),'feed':feed,'same_hotel_candidate_count':len(candidates),
-                    'other_commercial_candidates_count':len(other_offers),'candidates':candidates[:24],
-                    'other_commercial_candidates':[other_offers[mid] for mid in sorted(other_offers)][:18],
-                    'native_ready':0,'telegram_gets':0,'provider_writes':0,'write_admission':False}
-          Path("pub").mkdir()
-          Path("pub/legacy-keyboard-shortlist.json").write_text(json.dumps(result,ensure_ascii=False))
-          for row in candidates[:24]:
               print(json.dumps(row,ensure_ascii=False))
-          print(json.dumps({k:v for k,v in result.items() if k not in {'candidates','other_commercial_candidates'}},ensure_ascii=False))
+          print(json.dumps({'saved_candidates_reviewed':len(report['other_commercial_candidates']),
+              'authenticated_artifact':15102278365,'full_replacement_only':True,'writes':0,'telegram_requests':0},ensure_ascii=False))
           PY
-      - name: Preserve the checked keyboard shortlist
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: issue-1566-telegram-keyboard-shortlist
-          path: pub/legacy-keyboard-shortlist.json
-          retention-days: 7
-          if-no-files-found: error
