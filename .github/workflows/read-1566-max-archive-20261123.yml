@@ -1,4 +1,4 @@
-name: "Check exact large MAX prices after the morning PRICE operation"
+name: "Read current feed photos, prices and large MAX post revisions"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'db875477815442de172717128b682930ef86710b' &&
+      github.event.before == 'ccd7e8b40fdddf2f9b6d8679ac0193da07ca814f' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
