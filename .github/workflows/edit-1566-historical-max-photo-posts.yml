@@ -11,17 +11,17 @@ permissions:
   issues: read
   pull-requests: read
 env:
-  MAX_PACKET_REF: 719943fc5d339b45128eeeccf4421c31ffa1ebe3
+  MAX_PACKET_REF: ad00561584f5f51d7cba0a51b3f8e9f7c77c368f
   MAX_PACKET_PATH: tools/direct_demand/operations/max-existing-photo/scope-stella-466-20261126.json
-  MAX_PACKET_SHA: 73a5511572d9b42222134f76988df4372ed16ddade00c461328ab7711318f762
-  MAX_REPOSITORY_SHA: e1511db16f24822d1271ab5e444ca859997be31e
+  MAX_PACKET_SHA: db12189a1ae81e904948af83152c49e623523f29f91f232121d135e9e68297bc
+  MAX_REPOSITORY_SHA: ec5332b4ddb0c76ac109d9603f2cdc9c9b42d80b
   MAX_ARCHIVE_ID: '15032515599'
-  MAX_NATIVE_ID: '15157790578'
-  MAX_PREPARED_RUN_ID: '45905321489'
-  MAX_PREPARED_JOB_ID: '140200559142'
-  MAX_PREPARED_ARTIFACT_ID: '15157232663'
-  MAX_PREPARED_SOURCE: a22a869e398a542e710339d872659b3373ceabd3
-  MAX_PREPARED_ZIP_SHA: 93a117db097ab4b0ebd761878d417c63bdfc0122e149f4f1b911fbe9b9426706
+  MAX_NATIVE_ID: '15160340788'
+  MAX_PREPARED_RUN_ID: '45911404198'
+  MAX_PREPARED_JOB_ID: '140220394270'
+  MAX_PREPARED_ARTIFACT_ID: '15160675618'
+  MAX_PREPARED_SOURCE: b0119c938991e82275e770137c3516b92f7f8cde
+  MAX_PREPARED_ZIP_SHA: 2b0cd7e96a7c0df51d40b4403d01dae95805bd6fcd39c94d5574d64a230b41f3
   MAX_ACTIVATION_PATH: tools/direct_demand/operations/max-existing-photo/max-route-readback.json
 jobs:
   validate_source:
@@ -72,8 +72,9 @@ jobs:
             --preparation pub/prepared.zip "$MAX_PREPARED_ZIP_SHA" --route-readback pub/test-route-readback.json
           php -l pub/stage/batch_entry.php
           native_sha="$(sha256sum pub/stage/native-source.json | cut -d' ' -f1)"
+          app="$(python3 -c 'import json; print(json.load(open("pub/stage/scope.json"))["native_source"]["application_sha"])')"
           php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json \
-            "$native_sha" "$MAX_REPOSITORY_SHA" "$MAX_REPOSITORY_SHA" > pub/batch-plan.json
+            "$native_sha" "$MAX_REPOSITORY_SHA" "$app" > pub/batch-plan.json
           python3 - <<'PYTHON'
           import json
           with open('pub/batch-plan.json') as source:
@@ -233,7 +234,10 @@ jobs:
           [[ "$app" =~ ^[a-f0-9]{40}$ ]]
           test "$(git rev-parse HEAD)" = "$app"
           case "$2" in
-            prepare) python3 "$stage/run_batch.py" "$stage" --prepare ;;
+            prepare)
+              python3 "$stage/run_batch.py" "$stage" --prepare
+              test "$(git rev-parse HEAD)" = "$app"
+              ;;
             apply) python3 "$stage/run_batch.py" "$stage" --apply-prepared "$stage/preparation.json" "$3" ;;
             *) exit 2 ;;
           esac
