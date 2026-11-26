@@ -32,10 +32,12 @@ class ProductionSync(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.tools = self.root / "tools"
         self.checkout = self.root / "checkout"
+        self.private = self.root / "max-search-bot-private-logs"
+        self.catalogue_lock = self.private / "hotel-catalogue-releases" / "operation.lock"
         self.journal = self.root / "journal"
         self.calls = self.root / "calls"
         self.bin = self.root / "bin"
-        for directory in (self.tools, self.checkout, self.bin):
+        for directory in (self.tools, self.checkout, self.private, self.bin):
             directory.mkdir()
         self.journal.write_text("one original journal record\n")
         self.calls.touch()
@@ -51,6 +53,8 @@ class ProductionSync(unittest.TestCase):
         lock = (ROOT / "tools/deploy_monitor_lock.sh").read_text()
         self.assertIn(JOURNAL, lock)
         (self.tools / "deploy_monitor_lock.sh").write_text(lock.replace(JOURNAL, str(self.journal)))
+        guard = "deploy_hotel_catalogue_guard.sh"
+        (self.tools / guard).write_bytes((ROOT / "tools" / guard).read_bytes())
         fence = (ROOT / "tools/check_public_runtime_log_fence.sh").read_bytes()
         (self.tools / "check_public_runtime_log_fence.sh").write_bytes(fence)
         self.make_git_checkout()
@@ -107,6 +111,7 @@ class ProductionSync(unittest.TestCase):
                 if [[ "${LOCAL_REMOTE:-}" == 1 ]]; then
                   # A distinct file descriptor cannot acquire this exclusive lock.
                   if flock --nonblock "$LOCAL_JOURNAL" true; then exit 78; fi
+                  if [[ "$1" == reset ]] && flock --nonblock "$CATALOGUE_LOCK" true; then exit 79; fi
                   echo "locked git $*" >> "$CALLS"
                 fi
                 exec "$REAL_GIT" "$@"
@@ -126,7 +131,7 @@ class ProductionSync(unittest.TestCase):
                    RUNNER_TEMP=str(self.root), DEPLOY_USER="local", DEPLOY_HOST="fixture",
                    PREVIOUS_MAIN_SHA=before, EXPECTED_CHECKOUT_SHA=planned, EXPECTED_SHA=self.successor,
                    HTTP_STATUS_SEQUENCE=" ".join(responses or [first, last]), CALLS=str(self.calls),
-                   REAL_GIT=GIT, LOCAL_JOURNAL=str(self.journal))
+                   REAL_GIT=GIT, LOCAL_JOURNAL=str(self.journal), CATALOGUE_LOCK=str(self.catalogue_lock))
         return dict(args=["bash", "-c", self.shell], cwd=self.root, env=env, text=True,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 

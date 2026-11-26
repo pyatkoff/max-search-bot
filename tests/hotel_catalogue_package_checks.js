@@ -48,6 +48,66 @@ function snapshot(directory, ids, changedId = null) {
   return target;
 }
 
+function checkCheckoutGuard() {
+  const app = path.join(root, 'app');
+  const privateRoot = path.join(root, 'max-search-bot-private-logs');
+  const releases = path.join(privateRoot, 'hotel-catalogue-releases');
+  const lock = path.join(releases, 'operation.lock');
+  const supportedReader = path.join(app, 'services/ManagerHotelKnowledge.php');
+  const bin = path.join(root, 'bin');
+  const guard = path.resolve(__dirname, '../tools/deploy_hotel_catalogue_guard.sh');
+  for (const folder of [privateRoot, path.dirname(supportedReader), bin]) fs.mkdirSync(folder, {recursive:true});
+  const env = {...process.env, PATH:bin + path.delimiter + process.env.PATH};
+  fs.writeFileSync(path.join(bin, 'php'), [
+    '#!/bin/bash',
+    '[[ "$1" == tools/hotel_catalogue_compatibility.php && "$2" == "$PWD" ]] || exit 1',
+    'if [[ "$(cat "$3")" != "approved reader" ]]; then echo incompatible_reader >&2; exit 1; fi',
+    'echo compatible',
+  ].join('\n') + '\n', {mode:0o700});
+  const git = (...args) => {
+    const result = spawnSync('git', args, {cwd:app, encoding:'utf8', timeout:5000});
+    assert.equal(result.status, 0, result.stderr);
+    return result.stdout.trim();
+  };
+  const commitReader = text => {
+    fs.writeFileSync(supportedReader, text);
+    git('add', 'services/ManagerHotelKnowledge.php');
+    git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.invalid', 'commit', '-qm', text);
+    return git('rev-parse', 'HEAD');
+  };
+  git('init', '-q', '--object-format=sha1');
+  const accepted = commitReader('approved reader');
+  const incompatible = commitReader('different reader');
+  git('reset', '--hard', accepted);
+  const switchTo = (sha, expected, diagnostic) => {
+    const command = `set -euo pipefail
+source "$1"
+deploy_hotel_catalogue_guard "$PWD" "$2"
+if flock --nonblock "$3" true; then exit 42; fi
+git reset --hard "$2"`;
+    const noSwitch = git('rev-parse', 'HEAD');
+    const result = spawnSync('bash', ['-c', command, 'test', guard, sha, lock], {
+      cwd:app, env, encoding:'utf8', timeout:5000,
+    });
+    assert.ifError(result.error);
+    assert.equal(result.status, expected, result.stderr);
+    assert.match(result.stdout + result.stderr, diagnostic);
+    assert.equal(git('rev-parse', 'HEAD'), expected === 0 ? sha : noSwitch);
+    ++checks;
+  };
+  switchTo(incompatible, 0, /hotel_catalogue_guard=bundled/);
+  fs.symlinkSync(path.join(releases, 'test-only'), path.join(releases, 'current'));
+  switchTo(accepted, 0, /compatible/);
+  switchTo(incompatible, 1, /incompatible_reader/);
+  const pending = path.join(releases, 'pending.json');
+  fs.writeFileSync(pending, '{}');
+  switchTo(accepted, 1, /release_pending/);
+  fs.unlinkSync(pending);
+  fs.renameSync(lock, lock + '.original');
+  fs.symlinkSync(lock + '.original', lock);
+  switchTo(accepted, 1, /invalid_lock/);
+}
+
 try {
   fs.writeFileSync(reader, '<?php // fixture reader v1');
   fs.writeFileSync(otherReader, '<?php // fixture reader v2');
@@ -127,6 +187,7 @@ try {
   fs.unlinkSync(extra);
   fs.symlinkSync(path.join(base, 'anytour-10-fixture.json'), extra);
   assertCommand(['build', base, reader, candidate, secondPackage], /invalid_package_file/);
+  checkCheckoutGuard();
   console.log('Hotel catalogue sealed package: ' + checks + ' CLI cases passed');
 } finally {
   fs.rmSync(root, {recursive:true, force:true});

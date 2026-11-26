@@ -135,7 +135,6 @@ with their exact source bytes. Use the approved deployed reader file as
 
 ```sh
 node tools/hotel_catalogue_package.js build "$CURRENT" "$READER" "$STAGED" "$PACKAGE"
-node tools/hotel_catalogue_package.js verify "$CURRENT" "$READER" "$PACKAGE" "$EXPECTED_SHA256"
 node tools/hotel_catalogue_package.js stage "$CURRENT" "$READER" "$PACKAGE" "$EXPECTED_SHA256" "$RELEASES"
 ```
 
@@ -147,8 +146,9 @@ pin and recomputes the append-only decision against the supplied current
 snapshot. It checks the same file and size boundaries on input and on the
 received package. It needs neither a Git checkout nor the staging directory.
 
-Stage verifies the archive against the same current snapshot and reader bytes
-before creating a version in the existing private `RELEASES` directory. It
+Stage runs the same verification before creating a version in the existing
+private `RELEASES` directory. Use the separate `verify CURRENT READER PACKAGE
+EXPECTED_SHA256` command to inspect a package without placing it. Stage
 preserves each member byte, reserves the version without replacing an existing
 directory, and writes the readiness seal after the members. A duplicate stage
 fails with `EEXIST`. The active pointer is untouched.
@@ -192,10 +192,12 @@ php tools/hotel_catalogue_compatibility.php "$APPLICATION_ROOT" "$CANDIDATE_READ
 The check uses the same active pointer, receipt and index verification as the
 serving reader. It admits the bundled state or exact reader bytes and returns a
 failure for a corrupted active package or incompatible reader. It reads files
-only and does not change the active selection. The stand-alone check is a
-rehearsal prerequisite. Production use requires the shared installer to verify
-the candidate source and repeat the check while holding the publication lock
-through the core switch.
+only and does not change the active selection. The shared installer takes the
+catalogue publisher's `operation.lock` before inspecting the active version and
+holds it through the core switch. The bundled state skips the PHP compatibility
+check. An independent version requires checking the exact candidate reader
+from the verified Git bundle. A pending catalogue operation, an incompatible
+reader or an invalid active version stops the core switch.
 
 ## Verification
 

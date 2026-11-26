@@ -165,6 +165,10 @@ class DeployMonitorLockRegression(unittest.TestCase):
                 work.mkdir()
                 (work / "tools").mkdir()
                 (work / "tools/deploy_monitor_lock.sh").write_text(self.guard())
+                if workflow == "deploy.yml":
+                    catalogue_guard = (ROOT / "tools/deploy_hotel_catalogue_guard.sh").read_bytes()
+                    (work / "tools/deploy_hotel_catalogue_guard.sh").write_bytes(catalogue_guard)
+                    (work.parent / "max-search-bot-private-logs").mkdir()
                 fence = (ROOT / "tools/check_public_runtime_log_fence.sh").read_bytes()
                 (work / "tools/check_public_runtime_log_fence.sh").write_bytes(fence)
                 binary = work / "bin"
@@ -214,6 +218,9 @@ class DeployMonitorLockRegression(unittest.TestCase):
                     fcntl.flock(monitor, fcntl.LOCK_UN)
                     self.wait_for(entered.exists, output)
                     self.assert_locked()
+                    if workflow == "deploy.yml":
+                        catalogue_lock = work.parent / "max-search-bot-private-logs/hotel-catalogue-releases/operation.lock"
+                        self.assert_locked(catalogue_lock)
                     release.touch()
                     self.finish(process, output)
                 self.assert_unlocked()
