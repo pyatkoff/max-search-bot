@@ -1,0 +1,28 @@
+{
+  "schema": 1,
+  "native_preflight": {
+    "run_id": "45800935744",
+    "run_attempt": 1,
+    "artifact_id": 15106044843,
+    "artifact_zip_sha256": "966a33b6f110cb4896b640ad354c21c9b31d6ec8836a8c74e3f3b57bf8a736b6",
+    "registry_sha256": "6c63c976a77a323cf7a199ce2724abcde340100c4669653e13846a47c252f75d",
+    "checkpoint_sha256": "5faf26bc965558214728db475d5dffd82cc4f9c11984933bcf829f0c3ac071a6",
+    "repository_sha": "61e05da2e6bcf88082a9a6bb46858d05040a603f",
+    "application_sha": "61e05da2e6bcf88082a9a6bb46858d05040a603f"
+  },
+  "native_source": {
+    "head_sha": "3f482747a53b2aef309e9617a9b9ad35a2737b1f",
+    "job_id": 139843657024,
+    "step": "Read source 718 and commercial post 957 without provider writes",
+    "artifact_name": "issue-1566-telegram-ranked-preflight"
+  },
+  "native_zip_bytes": 6433,
+  "plans": [
+    {
+      "path": "config/anytour_ranked_pairs_45800935744.json",
+      "bytes": 2483,
+      "git_blob": "1df2110a44d43217fd86dc977984bbf137db1cf7",
+      "sha256": "479b29a67ff6b3420c6bc6674bb1cbd5c68231128e6fe5629dddefe19a772703"
+    }
+  ]
+}

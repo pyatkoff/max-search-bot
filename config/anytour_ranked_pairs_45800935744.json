@@ -1,0 +1,41 @@
+{
+  "schema": 1,
+  "operation": "anytour_hotel_transfer_ranked_45800935744",
+  "execution": "explicit_owner_apply_only",
+  "native_preflight": {
+    "run_id": "45800935744",
+    "run_attempt": 1,
+    "artifact_id": 15106044843,
+    "artifact_zip_sha256": "966a33b6f110cb4896b640ad354c21c9b31d6ec8836a8c74e3f3b57bf8a736b6",
+    "registry_sha256": "6c63c976a77a323cf7a199ce2724abcde340100c4669653e13846a47c252f75d",
+    "checkpoint_sha256": "5faf26bc965558214728db475d5dffd82cc4f9c11984933bcf829f0c3ac071a6",
+    "repository_sha": "61e05da2e6bcf88082a9a6bb46858d05040a603f",
+    "application_sha": "61e05da2e6bcf88082a9a6bb46858d05040a603f"
+  },
+  "monitor_source_url": null,
+  "price_policy": "omit_previous_price_keep_hotel_calculation_button",
+  "rows": [
+    {
+      "hotel_id": 42647,
+      "source_message_id": "718",
+      "source_publication_id": 1580,
+      "source_version_id": 14507,
+      "source_content_hash": "8fc59c7c05fb3df8febed237435411175f75481f7937ab451c4196077a1a1b49",
+      "source_caption_sha256": "53471ef3ed625121fcdb4d74428c701f0641e94dc80a989eca9d853ad6c8533d",
+      "source_file_id_sha256": "28c750d55f700e424013f2b82cd0889df8a895033e3a6248a8d2b9c8e11b5b8c",
+      "source_file_unique_id_sha256": "167870c93d128bb4289d8e13a5235b3d6a7d4ef5efe39cef188b9996b2623723",
+      "source_photo_marker_sha256": "2fc8a4867357511d02f943ee14a7abe300195e1872e9fce0ae7101a50b2639a8",
+      "target_message_id": "957",
+      "target_published_unixtime": 1734269426,
+      "target_caption_sha256": "726b58da499a96df4dd7252bc4acae7f29081a935fada66720afdce0fa21d91e",
+      "target_photo_marker_sha256": "272c55af095ca3369ffb945ce6a98907ba63703707ce09c9ec55a747ff5a536a",
+      "target_config_version": 2,
+      "next_caption": "Amilla Maldives\n\nАтолл Баа, Мальдивы. Просторные виллы и резиденции с бассейнами, песчаный пляж и домашний риф. Для тех, кто ценит личное пространство и хочет познакомиться с подводным миром Мальдив.\n\nНажмите кнопку под постом — рассчитаем тур на ваши даты.",
+      "next_caption_sha256": "7de4a2520739b13daacc5391ebec306bfb7a744df05e4b2f7a8d8fc12733c38c",
+      "button_text": "✈️ Рассчитать на мои даты",
+      "bot_url": "https://t.me/anyru_bot",
+      "price_template": "",
+      "price_record_id": null
+    }
+  ]
+}
