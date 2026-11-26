@@ -19,7 +19,8 @@ jobs:
        (github.ref == 'refs/heads/ops/anytour-hotel-ranked-after-45372056681' && github.event.created == false &&
         github.event.forced == false && github.event.before == 'dca4085f9a63ac1e7a5179c2a9b1b20febce4f82') ||
        (github.ref == 'refs/heads/ops/anytour-publisher-keyboard-1047-20261125' && github.event.created == false &&
-        github.event.forced == false && github.event.before == '58f15d1a147353a4b807f122525d75e1f4f35c1c')) &&
+        github.event.forced == false && (github.event.before == '58f15d1a147353a4b807f122525d75e1f4f35c1c' ||
+        github.event.before == 'c1a445f48fd514b9a4f883faecd20e5ecf1bc4fb'))) &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 130

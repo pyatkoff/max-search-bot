@@ -2024,6 +2024,41 @@ $pilotRefuses = static function (string $label, callable $call, string $reason):
 $pilotRefuses('publisher pilot refuses a different approval',
     static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardPlan(dirname(__DIR__), str_repeat('0',64)),
     'publisher_pilot_approval_changed');
+// The real account reader must select the approved login even when other
+// administrators are active. The database is an isolated in-memory fixture.
+$pilotActorDb = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$pilotActorDb->exec("CREATE TABLE managers(id INTEGER PRIMARY KEY,login TEXT COLLATE NOCASE,role TEXT,is_active INTEGER);
+    CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,is_active INTEGER);
+    CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);
+    INSERT INTO managers VALUES (1,'other_admin','admin',1),(2,'manager','admin',1),(3,'elsewhere','admin',1);
+    INSERT INTO projects VALUES (1,'anytour',1),(2,'apple',1);
+    INSERT INTO manager_projects VALUES (1,1),(2,1),(3,2)");
+$pilotActorDb->exec('PRAGMA query_only=ON');
+$pilotAclIds = [];
+$pilotAcl = static function(int $id) use (&$pilotAclIds): bool { $pilotAclIds[]=$id; return $id===2; };
+channelPostCheck('publisher pilot selects only the confirmed owner among multiple administrators',
+    AnyTour\ExistingPostBatch\publisherKeyboardActor($pilotActorDb,$pilotAcl),2);
+channelPostCheck('publisher pilot validates only the selected account ACL',$pilotAclIds,[2]);
+$pilotRefuses('publisher pilot rejects an account whose current ACL is absent',
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardActor($pilotActorDb,static fn(int $id):bool=>false),
+    'publisher_pilot_owner_access_unconfirmed');
+foreach (["UPDATE managers SET is_active=0 WHERE id=2",
+    "UPDATE managers SET role='manager' WHERE id=2",
+    "DELETE FROM manager_projects WHERE manager_id=2",
+    "UPDATE managers SET login='MANAGER' WHERE id=2",
+    "UPDATE projects SET is_active=0 WHERE id=1",
+    "INSERT INTO managers VALUES (4,'manager','admin',1); INSERT INTO manager_projects VALUES (4,1)"] as $invalidActorSql) {
+    $pilotActorDb->exec('PRAGMA query_only=OFF');
+    $pilotActorDb->beginTransaction();
+    $pilotActorDb->exec($invalidActorSql);
+    $pilotActorDb->exec('PRAGMA query_only=ON');
+    $pilotRefuses('publisher pilot never substitutes another administrator: '.$invalidActorSql,
+        static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardActor($pilotActorDb,static fn(int $id):bool=>true),
+        'publisher_pilot_owner_account_unconfirmed');
+    $pilotActorDb->exec('PRAGMA query_only=OFF');
+    $pilotActorDb->rollBack();
+}
+$pilotActorDb->exec('PRAGMA query_only=ON');
 $pilotPublicPlan = $pilotPlan;
 $pilotCaption = 'Old Lusso Sorgun offer, unchanged by this keyboard experiment.';
 $pilotPhotoClass = 'tgme_widget_message_photo_wrap 123456789';
