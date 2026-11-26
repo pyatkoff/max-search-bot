@@ -76,7 +76,8 @@ async function inspect(args, api) {
   const mainPath = R.API_ROOT + '/git/ref/heads/main';
   const main = (await api('GET', mainPath))?.object?.sha;
   R.requireValue(R.sha(main), 'max_main_unavailable');
-  const installed = await R.resolveCurrent(api, {sha: main}, await R.readRecord(api));
+  const release = await R.readRecord(api);
+  const installed = await R.resolveCurrent(api, {sha: main}, release);
   R.requireValue(installed.ready === true && installed.repository_sha === main
     && installed.repository_sha === native.repository_sha && installed.application_sha === native.application_sha,
     'max_installed_release_changed');
@@ -97,9 +98,11 @@ async function inspect(args, api) {
       '--data-source-sha', dataSha,
       '--scope-sha256', scopeDigest, '--archive', archiveFile, '--native-source', sourceFile, '--registry-zips'],
     {encoding: 'utf8', maxBuffer: 64_000, timeout: 30_000, stdio: ['ignore', 'pipe', 'pipe']}));
+    const [finalMain, finalRelease] = await Promise.all([api('GET', mainPath), R.readRecord(api)]);
     R.requireValue(proof.evidence_only === true && proof.write_admission === false
-      && (await api('GET', mainPath))?.object?.sha === main, 'max_release_or_proof_changed');
-    return {...proof, repository_sha: main, original_artifacts_verified: true};
+      && finalMain?.object?.sha === main && finalRelease.record_digest === release.record_digest,
+      'max_release_or_proof_changed');
+    return {...proof, release_record_sha256: release.record_digest, original_artifacts_verified: true};
   } finally {
     fs.rmSync(directory, {recursive: true, force: true});
   }
