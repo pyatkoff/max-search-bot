@@ -97,7 +97,7 @@ final class PromotedHotelPriceWriter
     }
 
     /** Validate the entire plan before the first native edit, including hotels held for lack of a price. */
-    public static function jobsForPlan(array $plan, string $feedHash, string $targetBytes): array
+    public static function jobsForPlan(array $plan, string $feedHash, string $targetBytes, ?int $maxPublicationId = null): array
     {
         self::need(($plan['targets_sha256'] ?? null) === hash('sha256', $targetBytes)
             && ($plan['feed_sha256'] ?? null) === $feedHash, 'price_plan_mismatch');
@@ -152,15 +152,20 @@ final class PromotedHotelPriceWriter
             unset($targets[$hotel]);
         }
         self::need($targets === [], 'price_plan_mismatch');
+        if ($maxPublicationId !== null) {
+            $jobs = array_values(array_filter($jobs, static fn(array $job): bool =>
+                $job['platform'] === 'max' && $job['publication'] === $maxPublicationId));
+            self::need(count($jobs) === 1, 'max_publication_price_not_eligible');
+        }
         return $jobs;
     }
 
-    public function run(array $plan, string $feedHash, bool $apply): array
+    public function run(array $plan, string $feedHash, bool $apply, ?int $maxPublicationId = null): array
     {
         $targetBytes = file_get_contents(self::TARGET_FILE);
         self::need(is_string($targetBytes), 'promoted_targets_unavailable');
         $out = [];
-        foreach (self::jobsForPlan($plan, $feedHash, $targetBytes) as $item) {
+        foreach (self::jobsForPlan($plan, $feedHash, $targetBytes, $maxPublicationId) as $item) {
             $block = $item['price_block'];
             unset($item['price_block']);
             $attempted = false;
@@ -381,7 +386,7 @@ final class PromotedHotelPriceWriter
     {
         if ($platform === 'max') {
             self::need(preg_match('~\Ahttps://max\.ru/anytour/[A-Za-z0-9_-]{11}\z~D', $url) === 1, 'max_public_url_invalid');
-            return ['caption'=>self::maxPublicCaption(self::publicBytes($url)),'buttons'=>[]];
+            return ['caption'=>self::maxPublicCaption(self::publicBytes($url), $url),'buttons'=>[]];
         }
         self::need(preg_match('~\Ahttps://t\.me/anytour/([1-9][0-9]{0,9})\z~D', $url, $match) === 1, 'telegram_public_url_invalid');
         $mid = $match[1];
@@ -405,10 +410,28 @@ final class PromotedHotelPriceWriter
         return ['caption'=>$caption,'buttons'=>$buttons];
     }
 
-    public static function maxPublicCaption(string $html): string
+    public static function maxPublicCaption(string $html, ?string $expectedUrl = null): string
     {
-        self::need(preg_match('~message:\{text:("(?:[^"\\\\]|\\\\.)*")~', $html, $match) === 1, 'max_public_caption_unavailable');
-        $caption = json_decode($match[1], true, 16, JSON_THROW_ON_ERROR);
+        $encoded = null;
+        if ($expectedUrl !== null) {
+            // Current MAX pages put the public link and timestamps before the caption.
+            $quoted = '"(?:[^"\\\\]|\\\\.)*"';
+            $pattern = '~\bmessage:\{id:[1-9][0-9]{0,19},link:('.$quoted.'),createdAt:'.$quoted
+                .',updatedAt:(?:'.$quoted.'|null),text:('.$quoted.')(?=[,}])~';
+            $count = preg_match_all($pattern, $html, $messages, PREG_SET_ORDER);
+            self::need($count !== false, 'max_public_caption_unavailable');
+            if ($count > 0) {
+                $matches = array_values(array_filter($messages, static fn(array $message): bool =>
+                    json_decode($message[1], true, 16, JSON_THROW_ON_ERROR) === $expectedUrl));
+                self::need(count($matches) === 1, 'max_public_caption_unavailable');
+                $encoded = $matches[0][2];
+            }
+        }
+        if ($encoded === null) {
+            self::need(preg_match('~message:\{text:("(?:[^"\\\\]|\\\\.)*")~', $html, $match) === 1, 'max_public_caption_unavailable');
+            $encoded = $match[1];
+        }
+        $caption = json_decode($encoded, true, 16, JSON_THROW_ON_ERROR);
         // The MAX public renderer stores an HTML-escaped text value in its data block.
         return html_entity_decode($caption, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }

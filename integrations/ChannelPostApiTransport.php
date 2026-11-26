@@ -40,6 +40,98 @@ final class ChannelPostApiTransport
         return $allowed ? self::postRequest('telegram', $method, $path, $query, $body, false, $token) : $denied;
     }
 
+    /** Pure shape check for the separately authorized, URL-only keyboard pilot. */
+    public static function publisherKeyboardPilotPayload(array $body): ?array
+    {
+        if (array_keys($body) !== ['chat_id', 'message_id', 'reply_markup']
+            || $body['chat_id'] !== '-1001845835645' || !in_array($body['message_id'], [1047, '1047'], true)
+            || !is_array($body['reply_markup']) || array_keys($body['reply_markup']) !== ['inline_keyboard']) return null;
+        $rows = $body['reply_markup']['inline_keyboard'];
+        if (!is_array($rows) || !array_is_list($rows) || count($rows) < 1 || count($rows) > 3) return null;
+        $buttons = 0;
+        foreach ($rows as $row) {
+            if (!is_array($row) || !array_is_list($row) || count($row) < 1 || ($buttons += count($row)) > 3) return null;
+            foreach ($row as $button) {
+                if (!is_array($button) || array_keys($button) !== ['text', 'url']
+                    || !is_string($button['text']) || trim($button['text']) === ''
+                    || !mb_check_encoding($button['text'], 'UTF-8') || mb_strlen($button['text'], 'UTF-8') > 128
+                    || preg_match('/[\x00-\x1f\x7f-\x{009f}]/u', $button['text']) !== 0
+                    || !is_string($button['url']) || strlen($button['url']) > 2048
+                    || !str_starts_with($button['url'], 'https://')
+                    || preg_match('/[\x00-\x20\x7f]/', $button['url']) !== 0
+                    || filter_var($button['url'], FILTER_VALIDATE_URL) === false) return null;
+                $url = parse_url($button['url']);
+                if (!is_array($url) || ($url['scheme'] ?? null) !== 'https' || empty($url['host'])
+                    || isset($url['user']) || isset($url['pass'])) return null;
+            }
+        }
+        return $body;
+    }
+
+    /** The pilot never admits the legacy target, media, captions or a new message. */
+    public static function publisherKeyboardPilotRequest(#[\SensitiveParameter] string $token, string $method, string $path, array $query, ?array $body): array
+    {
+        $denied = ['http' => 0, 'data' => null, 'transport_error' => true];
+        if ($path !== 'editMessageReplyMarkup') {
+            return in_array($path, ['getMe', 'getChat', 'getChatMember'], true)
+                ? self::publisherButtonRequest($token, $method, $path, $query, $body) : $denied;
+        }
+        if (!preg_match('/\A[1-9][0-9]{4,18}:[A-Za-z0-9_-]{20,200}\z/D', $token)
+            || $method !== 'POST' || $query !== [] || !is_array($body)
+            || self::publisherKeyboardPilotPayload($body) === null) return $denied;
+        return self::postRequest('telegram', $method, $path, $query, $body, false, $token);
+    }
+
+    /** Exact saved-publisher media capability. File IDs and remote upload URLs are excluded. */
+    public static function publisherMediaPilotPayload(array $body): ?array
+    {
+        if (array_keys($body) !== ['chat_id', 'message_id', 'media', 'reply_markup', 'photo']
+            || $body['chat_id'] !== '-1001845835645' || $body['message_id'] !== '1058') return null;
+        $media = $body['media'];
+        if (!is_array($media) || array_keys($media) !== ['type', 'media', 'caption', 'caption_entities']
+            || $media['type'] !== 'photo' || $media['media'] !== 'attach://hotel_photo'
+            || !is_string($media['caption']) || trim($media['caption']) === ''
+            || !mb_check_encoding($media['caption'], 'UTF-8')
+            || strlen(mb_convert_encoding($media['caption'], 'UTF-16LE', 'UTF-8')) > 2048
+            || preg_match('/[\x00-\x09\x0b-\x1f\x7f-\x{009f}]/u', $media['caption']) !== 0
+            || $media['caption_entities'] !== []) return null;
+        $markup = $body['reply_markup'];
+        $rows = is_array($markup) ? ($markup['inline_keyboard'] ?? null) : null;
+        $button = is_array($rows) ? ($rows[0][0] ?? null) : null;
+        if (!is_array($markup) || array_keys($markup) !== ['inline_keyboard']
+            || !is_array($rows) || array_keys($rows) !== [0]
+            || !is_array($rows[0]) || array_keys($rows[0]) !== [0]
+            || !is_array($button) || array_keys($button) !== ['text', 'url']
+            || $button['text'] !== '✈️ Рассчитать на мои даты'
+            || !is_string($button['url'])
+            || preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{24}\z~D', $button['url']) !== 1) return null;
+        $photo = $body['photo'];
+        if (!is_array($photo) || array_keys($photo) !== ['base64', 'sha256']
+            || !is_string($photo['base64']) || strlen($photo['base64']) > 13981016
+            || !is_string($photo['sha256']) || preg_match('/\A[a-f0-9]{64}\z/D', $photo['sha256']) !== 1) return null;
+        $bytes = base64_decode($photo['base64'], true);
+        if (!is_string($bytes) || strlen($bytes) < 256 || strlen($bytes) > 10485760
+            || base64_encode($bytes) !== $photo['base64'] || !hash_equals($photo['sha256'], hash('sha256', $bytes))) return null;
+        $size = @getimagesizefromstring($bytes);
+        if (!$size || ($size[2] ?? null) !== IMAGETYPE_JPEG || $size[0] < 1 || $size[1] < 1
+            || $size[0] + $size[1] > 10000 || max($size[0], $size[1]) > 20 * min($size[0], $size[1])) return null;
+        return $body;
+    }
+
+    /** One multipart edit through the same fixed-host transport and saved credential lease. */
+    public static function publisherMediaPilotRequest(#[\SensitiveParameter] string $token, string $method, string $path, array $query, ?array $body): array
+    {
+        $denied = ['http' => 0, 'data' => null, 'transport_error' => true];
+        if (in_array($path, ['getMe', 'getChat', 'getChatMember'], true))
+            return self::publisherButtonRequest($token, $method, $path, $query, $body);
+        if ($path !== 'editMessageMedia' || $method !== 'POST' || $query !== []
+            || !preg_match('/\A[1-9][0-9]{4,18}:[A-Za-z0-9_-]{20,200}\z/D', $token)
+            || !is_array($body) || self::publisherMediaPilotPayload($body) === null) return $denied;
+        $bytes = base64_decode($body['photo']['base64'], true);
+        unset($body['photo']);
+        return self::postRequest('telegram', $method, $path, $query, $body, false, $token, true, $bytes);
+    }
+
     /** Caption edits of already bound posts. Attachments and publish calls are excluded. */
     public static function captionRequest(string $platform, string $channelId, string $messageId, array $body): array
     {
@@ -132,9 +224,12 @@ final class ChannelPostApiTransport
             : self::postRequest('telegram', 'POST', 'editMessageMedia', [], $payload, false, null, true);
     }
 
-    private static function postRequest(string $platform, string $method, string $path, array $query, ?array $body, bool $caption, #[\SensitiveParameter] ?string $publisherToken = null, bool $hotelMedia = false): array
+    private static function postRequest(string $platform, string $method, string $path, array $query, ?array $body, bool $caption, #[\SensitiveParameter] ?string $publisherToken = null, bool $hotelMedia = false, ?string $uploadBytes = null): array
     {
-        if ($hotelMedia && ($platform !== 'telegram' || $caption || $publisherToken !== null)) {
+        $publisherUpload = $hotelMedia && $platform === 'telegram' && !$caption
+            && $publisherToken !== null && $uploadBytes !== null && $path === 'editMessageMedia';
+        if (($uploadBytes !== null && !$publisherUpload)
+            || ($hotelMedia && ($platform !== 'telegram' || $caption || ($publisherToken !== null && !$publisherUpload)))) {
             return ['http' => 0, 'data' => null, 'transport_error' => true];
         }
         if (!extension_loaded('curl')) return ['http' => 0, 'data' => null, 'transport_error' => true];
@@ -154,12 +249,19 @@ final class ChannelPostApiTransport
             && ($hotelMedia ? $path === 'editMessageMedia'
                 : ($caption ? $path === 'editMessageCaption' : in_array($path, ['getMe', 'getChat', 'getChatMember', 'editMessageReplyMarkup'], true)))) {
             $url = 'https://api.telegram.org/bot' . $token . '/' . $path;
-            $headers = ['Accept: application/json', 'Content-Type: application/json'];
+            $headers = $publisherUpload ? ['Accept: application/json'] : ['Accept: application/json', 'Content-Type: application/json'];
             $tls = [CURLOPT_SSL_VERIFYPEER => true, CURLOPT_SSL_VERIFYHOST => 2];
         } else return ['http' => 0, 'data' => null, 'transport_error' => true];
         if ($query) $url .= '?' . http_build_query($query, '', '&', PHP_QUERY_RFC3986);
         $encoded = $body === null ? null : json_encode($body, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if ($body !== null && (!is_string($encoded) || strlen($encoded) > 1048576)) return ['http' => 0, 'data' => null, 'transport_error' => true];
+        if ($publisherUpload) {
+            if (!class_exists('CURLStringFile')) return ['http' => 0, 'data' => null, 'transport_error' => true];
+            $encoded = ['chat_id'=>$body['chat_id'], 'message_id'=>$body['message_id'],
+                'media'=>json_encode($body['media'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
+                'reply_markup'=>json_encode($body['reply_markup'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR),
+                'hotel_photo'=>new CURLStringFile($uploadBytes, 'hotel.jpg', 'image/jpeg')];
+        }
         $raw = ''; $ch = curl_init($url);
         $options = $tls + [
             CURLOPT_RETURNTRANSFER => false, CURLOPT_FOLLOWLOCATION => false,

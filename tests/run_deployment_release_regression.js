@@ -274,6 +274,8 @@ async function gitBridge(){
     await hotelRegistryReadConsumer(f, a, a);
     await max2HoldPairReadConsumer(f, a, a);
     await hotelFourTransferConsumer(f, a, a);
+    await hotelPublisherKeyboardConsumer(f, a, a);
+    await hotelPublisherMediaConsumer(f, a, a);
     await hotelMaxTransferConsumer(f, a, a);
     await remainingTransferOriginalProof();
     const nextRun={...context,event:'push'};
@@ -332,6 +334,8 @@ async function gitBridge(){
     await hotelRegistryReadConsumer(f, r, a);
     await max2HoldPairReadConsumer(f, r, a);
     await hotelFourTransferConsumer(f, r, a);
+    await hotelPublisherKeyboardConsumer(f, r, a);
+    await hotelPublisherMediaConsumer(f, r, a);
     await hotelMaxTransferConsumer(f, r, a);
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
@@ -864,6 +868,380 @@ async function hotelFourTransferConsumer(f,repositorySha,applicationSha){
     const closer=f.wave.own,oldStatus=closer.status,oldConclusion=closer.conclusion;
     closer.status='in_progress';closer.conclusion=null;
     await refuses(resolve,'release_pending','an unclosed release cannot enable the editor');
+    closer.status=oldStatus;closer.conclusion=oldConclusion;
+  }finally{f.hook=null;f.runs.delete(run.id);f.jobs.delete(run.id);f.main=repositorySha;}
+}
+const PUBLISHER_ACTOR_REFUSAL_FIXTURE={
+  run:45724986458,job:139592437693,sha:'c1a445f48fd514b9a4f883faecd20e5ecf1bc4fb',
+  artifact:15074131951,size:1101,digest:'sha256:36bbd6257202d88dbee445b67b24c32282892d37b4db02762967aceb9bc69dc2'};
+function publisherKeyboardPrewriteFixture(source,id=45716283535,pin={
+  run:45716283534,job:139563054439,sha:'58f15d1a147353a4b807f122525d75e1f4f35c1c',
+  artifact:15070650654,size:1094,digest:'sha256:0412466a22de61baaeae4849c6d52d9ee9f74542014e6a4df495f5ddbdc23c9b'}){
+  const branch='ops/anytour-publisher-keyboard-1047-20261125',sha=pin.sha;
+  const owner={id:226193297,login:'pyatkoff'},repository={id:1342493152,full_name:R.REPOSITORY};
+  const prior={id:pin.run,head_sha:sha,head_branch:branch,path:R.PREFIX+'edit-1566-ranked-46-historical-telegram.yml',
+    event:'push',run_attempt:1,status:'completed',conclusion:'failure',created_at:T,
+    repository:copy(repository),head_repository:copy(repository),actor:copy(owner),triggering_actor:copy(owner)};
+  const next={...copy(prior),id,head_sha:source,status:'in_progress',conclusion:null};
+  const originalJob={id:pin.job,run_id:prior.id,head_sha:sha,run_attempt:1,name:'transfer',status:'completed',conclusion:'failure',
+    steps:[step('Check out the native run source'),step('Resolve accepted repository and application'),
+      step('Require exact APPLY admission before loading credentials'),step('Pin established SSH host continuity and authentication identity'),
+      step('Apply the installed editor once and retain its original receipts','failure'),
+      step('Save the original sanitized transfer result'),step('Remove runner connection material')]};
+  const artifact={id:pin.artifact,name:'issue-1566-hotel-ranked-46-transfer',expired:false,size_in_bytes:pin.size,
+    digest:pin.digest,
+    workflow_run:{id:prior.id,head_sha:sha,head_branch:branch,repository_id:repository.id,head_repository_id:repository.id}};
+  const p=R.API_ROOT+'/actions/runs/'+prior.id;
+  const paths={jobs:p+'/attempts/1/jobs?per_page=100',artifacts:p+'/artifacts?per_page=100',
+    ancestry:R.API_ROOT+'/compare/'+sha+'...'+source+'?per_page=1'};
+  const f={prior,next,job:originalJob,artifact,runs:[next,prior],paths,calls:[],
+    jobs:{total_count:1,jobs:[originalJob]},artifacts:{total_count:1,artifacts:[artifact]},
+    ancestry:{status:'ahead',merge_base_commit:{sha}}};
+  f.api=async(method,route)=>{
+    f.calls.push({method,path:route});if(method!=='GET')throw Error('unexpected publisher proof writer');
+    if(route===paths.jobs)return f.jobs;if(route===paths.artifacts)return f.artifacts;
+    if(route===paths.ancestry)return f.ancestry;throw Error('unexpected publisher proof path '+route);
+  };
+  return f;
+}
+async function publisherKeyboardPrewriteProofCases(){
+  const current={id:'45716283535',sha:H('installed publisher keyboard parser correction')},first=publisherKeyboardPrewriteFixture(current.sha);
+  equal(await R.provePublisherKeyboardPrewriteHistory(first.api,first.runs,current),first.next,
+    'only the pinned original preflight refusal can precede one new original keyboard run');
+  equal(first.calls.every(c=>c.method==='GET'),true,'continuation proof reads the original evidence without writing');
+  for(const [label,change,code] of [
+    ['missing original',f=>f.runs.pop(),'publisher_keyboard_prewrite_history_changed'],
+    ['third branch run',f=>f.runs.push({...f.next,id:45716283536}),'publisher_keyboard_prewrite_history_changed'],
+    ['original rerun',f=>f.prior.run_attempt=2,'untrusted_workflow_run'],
+    ['different old source',f=>f.prior.head_sha=H('other stopped source'),'untrusted_workflow_run'],
+    ['different old branch',f=>f.prior.head_branch='ops/foreign','untrusted_workflow_run'],
+    ['successful old operation',f=>f.prior.conclusion='success','producer_not_successful'],
+    ['foreign owner',f=>f.prior.actor.id=1,'publisher_keyboard_prewrite_origin_changed'],
+    ['foreign triggering login',f=>f.prior.triggering_actor.login='other','publisher_keyboard_prewrite_origin_changed'],
+    ['foreign source repository',f=>f.prior.head_repository.id=1,'publisher_keyboard_prewrite_origin_changed'],
+    ['new attempt2',f=>f.next.run_attempt=2,'publisher_keyboard_prewrite_origin_changed'],
+    ['new source mismatch',f=>f.next.head_sha=H('uninstalled source'),'publisher_keyboard_prewrite_origin_changed'],
+    ['incomplete original jobs',f=>f.jobs.total_count=2,'publisher_keyboard_prewrite_jobs_changed'],
+    ['different original job',f=>f.job.id++,'publisher_keyboard_prewrite_proof_changed'],
+    ['old job attempt2',f=>f.job.run_attempt=2,'publisher_keyboard_prewrite_proof_changed'],
+    ['wrong old job source',f=>f.job.head_sha=H('foreign old job'),'publisher_keyboard_prewrite_proof_changed'],
+    ['old apply not failed',f=>f.job.steps[4].conclusion='success','publisher_keyboard_prewrite_steps_changed'],
+    ['old result not preserved',f=>f.job.steps[5].conclusion='skipped','publisher_keyboard_prewrite_steps_changed'],
+    ['duplicate old apply step',f=>f.job.steps.push(copy(f.job.steps[4])),'publisher_keyboard_prewrite_steps_changed'],
+    ['incomplete artifact list',f=>f.artifacts.total_count=2,'publisher_keyboard_prewrite_artifacts_changed'],
+    ['expired original',f=>f.artifact.expired=true,'publisher_keyboard_prewrite_artifact_changed'],
+    ['different artifact ID',f=>f.artifact.id++,'publisher_keyboard_prewrite_artifact_changed'],
+    ['different ZIP bytes',f=>f.artifact.size_in_bytes++,'publisher_keyboard_prewrite_artifact_changed'],
+    ['different failure or unknown result',f=>f.artifact.digest='sha256:'+D('different original result'),'publisher_keyboard_prewrite_artifact_changed'],
+    ['artifact from another run',f=>f.artifact.workflow_run.id++,'publisher_keyboard_prewrite_artifact_changed'],
+    ['artifact from another source',f=>f.artifact.workflow_run.head_sha=H('foreign artifact'),'publisher_keyboard_prewrite_artifact_changed'],
+    ['foreign artifact repository',f=>f.artifact.workflow_run.repository_id=1,'publisher_keyboard_prewrite_artifact_changed'],
+    ['diverged correction',f=>f.ancestry.status='diverged','unpublished_diagnostics_proof']]){
+    const bad=publisherKeyboardPrewriteFixture(current.sha);change(bad);
+    await refuses(()=>R.provePublisherKeyboardPrewriteHistory(bad.api,bad.runs,current),code,label);
+  }
+  const unchanged=publisherKeyboardPrewriteFixture(first.prior.head_sha);
+  await refuses(()=>R.provePublisherKeyboardPrewriteHistory(unchanged.api,unchanged.runs,{...current,sha:first.prior.head_sha}),
+    'publisher_keyboard_prewrite_history_changed','the failed source cannot run again');
+}
+function publisherMediaEvidenceFixture(currentSha){
+  const owner={id:226193297,login:'pyatkoff'},repo={id:1342493152,full_name:R.REPOSITORY};
+  const pins=[
+    {run:45567178733,job:139044728610,sha:'878c680627d54297c364254687577a03ac5aef6b',
+      branch:'ops/anytour-hotel-ranked-plan-c8a4b60e6b9fd340f08b94faae3ae048d5a3cbc2ba3148aba82591315bf39141',
+      workflow:'edit-1566-ranked-46-historical-telegram.yml',name:'transfer',conclusion:'failure',
+      artifact:15000950069,size:2690,artifactName:'issue-1566-hotel-ranked-46-transfer',
+      digest:'sha256:9c910eea8d09bc86d7a17a807d34d662820a0b17098342593698c7e36b2c6c42',
+      steps:[step('Resolve accepted repository and application'),step('Require exact APPLY admission before loading credentials'),
+        step('Pin established SSH host continuity and authentication identity'),
+        step('Apply the installed editor once and retain its original receipts','failure'),
+        step('Save the original sanitized transfer result'),step('Remove runner connection material')]},
+    {run:45781107685,job:139776508251,sha:'7e9e591c56d4839e0f843aa691ce5349702cf0dc',
+      branch:'ops/1566-telegram-46-native-read-20261123',workflow:'read-1566-telegram-46-20261123.yml',
+      name:'registry',conclusion:'success',artifact:15098640815,size:3523,artifactName:'issue-1566-telegram-ranked-preflight',
+      digest:'sha256:9ee64987657aa7d09bde0390675f261e4826523290902e71e6e354a730df3fcc',
+      steps:[step('Authenticate original1737 terminal before bounded host observation'),
+        step('Bind immutable packet to the admitted release and native run'),step('Pin established SSH host continuity and authentication identity'),
+        step('Read existing2514 source429, target1058 and prior rejected journal without writes'),
+        step('Preserve the original bounded pair observation')]},
+    {run:45781368978,job:139777380374,sha:'f26b7a38577a9ddd5120bae96debf6756bd14b3b',
+      branch:'ops/1566-telegram-46-native-read-20261123',workflow:'read-1566-telegram-46-20261123.yml',
+      name:'registry',conclusion:'success',artifact:15098636191,size:228029,artifactName:'issue-1566-telegram-ranked-preflight',
+      digest:'sha256:035b1274ca5c433bb33ba9fd6f6749f0dc23eff8d2b83f1dfc7983cccf7180d4',
+      steps:[step('Read four actual archive windows without enumerating nonexistent message IDs'),
+        step('Preserve the independent public result and actual photos')]}
+  ];
+  const routes=new Map(),proofs=[];
+  for(const p of pins){
+    const run={id:p.run,head_sha:p.sha,head_branch:p.branch,path:R.PREFIX+p.workflow,
+      event:'push',run_attempt:1,status:'completed',conclusion:p.conclusion,created_at:T,
+      repository:copy(repo),head_repository:copy(repo),actor:copy(owner),triggering_actor:copy(owner)};
+    const originalJob={id:p.job,run_id:p.run,head_sha:p.sha,run_attempt:1,name:p.name,status:'completed',conclusion:p.conclusion,steps:p.steps};
+    const artifact={id:p.artifact,name:p.artifactName,expired:false,size_in_bytes:p.size,digest:p.digest,
+      workflow_run:{id:p.run,head_sha:p.sha,head_branch:p.branch,repository_id:repo.id,head_repository_id:repo.id}};
+    const base=R.API_ROOT+'/actions/runs/'+p.run;
+    const jobs={total_count:1,jobs:[originalJob]},artifacts={total_count:1,artifacts:[artifact]};
+    routes.set(base,run);routes.set(base+'/attempts/1/jobs?per_page=100',jobs);routes.set(base+'/artifacts?per_page=100',artifacts);
+    proofs.push({run,job:originalJob,artifact,jobs,artifacts});
+  }
+  const ancestry={status:'ahead',merge_base_commit:{sha:pins[0].sha}};
+  routes.set(R.API_ROOT+'/compare/'+pins[0].sha+'...'+currentSha+'?per_page=1',ancestry);
+  const f={routes,proofs,ancestry,calls:[]};
+  f.api=async(method,route)=>{f.calls.push({method,path:route});
+    if(method!=='GET'||!routes.has(route))throw Error('unexpected media evidence request '+method+' '+route);
+    return routes.get(route);
+  };
+  return f;
+}
+function publisherMediaWorkflowResultCases(){
+  const workflow=fs.readFileSync(path.join(__dirname,'../.github/workflows/edit-1566-ranked-46-historical-telegram.yml'),'utf8');
+  const marker='            python3 - "$digest" "$status" <<\'PY\'\n';
+  const start=workflow.indexOf(marker),end=workflow.indexOf('\n          PY',start+marker.length);
+  equal(start>=0&&end>start,true,'media result tests execute the actual existing workflow validator');
+  const script=workflow.slice(start+marker.length,end).replace(/^ {10}/gm,'');
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'publisher-media-workflow-'));
+  const digest='9369f02e77625e5e37308861980694f835d383f473cf7a6ea38dc23a31951feb',sha=H('media applied exact source');
+  const env={...process.env,GITHUB_REF:'refs/heads/ops/anytour-publisher-media-1058-20261126',
+    GITHUB_RUN_ID:'45850000003',APPLICATION_SHA:sha};
+  const valid={ok:true,operation:'hotel_publisher_media_pilot',plan_sha256:digest,message_id:'1058',hotel_id:2514,
+    full_transfer_requested:true,full_transfer:true,application_sha:sha,native_run_id:env.GITHUB_RUN_ID,
+    supplier_requests:0,bot_starts:0,provider_write_attempts:1,state:'native_and_registry_verified',
+    hotel_id_verified:true,photo_caption_button_verified:true,original_message_id_and_date_preserved:true};
+  const check=(result,status)=>{
+    fs.mkdirSync(path.join(directory,'pub'),{recursive:true});
+    fs.writeFileSync(path.join(directory,'pub/summary.json'),JSON.stringify({[digest]:{
+      state:'invoked_requires_readback',message_ids:['1058'],operation:'hotel_publisher_media_pilot',full_transfer:false}}));
+    fs.writeFileSync(path.join(directory,'pub/result-'+digest+'.json'),JSON.stringify(result));
+    const run=spawnSync('python3',['-c',script,digest,String(status)],{cwd:directory,env,encoding:'utf8'});
+    if(run.error)throw run.error;
+    return {status:run.status,state:JSON.parse(fs.readFileSync(path.join(directory,'pub/summary.json')))[digest]};
+  };
+  try{
+    const accepted=check(valid,0);equal([accepted.status,accepted.state.state,accepted.state.full_transfer],
+      [0,'complete',true],'only complete native and registry acceptance completes the media workflow');
+    const pending=check({...valid,ok:false,full_transfer:false,state:'response_saved_requires_readback',
+      native_state:'native_media_edit_accepted'},1);
+    equal([pending.status!==0,pending.state.state,pending.state.provider_write_attempts,pending.state.full_transfer],
+      [true,'held_requires_readback',1,false],'an accepted provider response pending readback is retained without a successful whole transfer');
+    for(const patch of [{message_id:'1047'},{native_run_id:'45850000004'},{provider_write_attempts:2},
+      {provider_write_attempts:0},{full_transfer:false},{hotel_id_verified:false},{application_sha:H('other runtime')}]){
+      equal(check({...valid,...patch},0).status!==0,true,'media workflow refuses a contradictory success receipt');
+    }
+  }finally{fs.rmSync(directory,{recursive:true,force:true});}
+}
+async function publisherMediaEvidenceCases(){
+  const current={id:'45850000001',sha:H('installed exact saved publisher media editor')};
+  const f=publisherMediaEvidenceFixture(current.sha),result=await R.provePublisherMediaEvidence(f.api,current);
+  equal([result.message_id,result.hotel_id,result.historical_preflight_write_admission,result.originals.map(x=>x.run_id)],
+    ['1058',2514,false,['45567178733','45781107685','45781368978']],
+    'media admission authenticates three originals without pretending the old negative preflight permitted a write');
+  equal(f.calls.every(c=>c.method==='GET'),true,'media evidence authentication performs reads only');
+  for(const [label,change,code] of [
+    ['final refusal was relabelled success',f=>f.proofs[0].run.conclusion='success','producer_not_successful'],
+    ['parent rerun',f=>f.proofs[0].run.run_attempt=2,'untrusted_workflow_run'],
+    ['another original source',f=>f.proofs[0].run.head_sha=H('other source'),'untrusted_workflow_run'],
+    ['native reader from another repository',f=>f.proofs[1].run.repository.id=1,'publisher_media_evidence_origin_changed'],
+    ['foreign photo reader owner',f=>f.proofs[2].run.actor.id=1,'publisher_media_evidence_origin_changed'],
+    ['incomplete native jobs',f=>f.proofs[1].jobs.total_count=2,'publisher_media_evidence_jobs_changed'],
+    ['wrong original job',f=>f.proofs[0].job.id++,'publisher_media_evidence_job_changed'],
+    ['native observation skipped',f=>f.proofs[1].job.steps[3].conclusion='skipped','publisher_media_evidence_steps_changed'],
+    ['extra photo-reader failure',f=>f.proofs[2].job.steps.push(step('Unexpected failure','failure')),'publisher_media_evidence_steps_changed'],
+    ['incomplete artifact list',f=>f.proofs[0].artifacts.total_count=2,'publisher_media_evidence_artifacts_changed'],
+    ['changed parent refusal result',f=>f.proofs[0].artifact.digest='sha256:'+D('another result'),'publisher_media_evidence_artifact_changed'],
+    ['expired native read',f=>f.proofs[1].artifact.expired=true,'publisher_media_evidence_artifact_changed'],
+    ['changed actual photo bytes',f=>f.proofs[2].artifact.size_in_bytes++,'publisher_media_evidence_artifact_changed'],
+    ['artifact from another read source',f=>f.proofs[2].artifact.workflow_run.head_sha=H('other source'),'publisher_media_evidence_artifact_changed'],
+    ['installed editor not descendant of original',f=>f.ancestry.status='diverged','unpublished_diagnostics_proof']]){
+    const bad=publisherMediaEvidenceFixture(current.sha);change(bad);
+    await refuses(()=>R.provePublisherMediaEvidence(bad.api,current),code,label);
+  }
+  await refuses(()=>R.provePublisherMediaEvidence(f.api,{...current,id:'45567178733'}),'publisher_media_evidence_context_changed',
+    'an old provider attempt cannot identify itself as a new media intent');
+}
+async function hotelPublisherMediaConsumer(f,repositorySha,applicationSha){
+  const branch='ops/anytour-publisher-media-1058-20261126',ref='refs/heads/'+branch;
+  const workflow=R.PREFIX+'edit-1566-ranked-46-historical-telegram.yml',owner={id:226193297,login:'pyatkoff'};
+  const run={...copy(f.wave.parent),id:45850000002,path:workflow,event:'push',head_branch:branch,
+    repository:{id:1342493152,full_name:R.REPOSITORY},head_repository:{id:1342493152,full_name:R.REPOSITORY},
+    status:'in_progress',conclusion:null,actor:copy(owner),triggering_actor:copy(owner)};
+  f.runs.set(run.id,run);
+  const own={...job('transfer',run,[],null),status:'in_progress'};f.jobs.set(run.id,[own]);
+  const env={...consumerEnv(run,workflow,'push','transfer'),GITHUB_REF:ref,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+ref,GITHUB_ACTOR:owner.login,GITHUB_TRIGGERING_ACTOR:owner.login};
+  const event={repository:{full_name:R.REPOSITORY,id:1342493152},sender:copy(owner),ref,
+    after:repositorySha,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  const planPath='config/anytour_publisher_media_pilot_20261126.json',bytes=fs.readFileSync(path.join(__dirname,'..',planPath));
+  const plan=JSON.parse(bytes),originalPlan={type:'file',path:planPath,sha:R.gitBlob(bytes),size:bytes.length,encoding:'base64',content:bytes.toString('base64')};
+  equal([bytes.length,originalPlan.sha,D(bytes)],[1694,'132f0a237b36f955a6558e932596dd4cc2de410b',
+    '9369f02e77625e5e37308861980694f835d383f473cf7a6ea38dc23a31951feb'],'only the exact reviewed 1058 plan reaches the media editor');
+  equal([plan.operation,plan.target_message_id,plan.publication_id,plan.hotel_id,plan.parent_run_id],
+    ['hotel_publisher_media_pilot','1058',3848,2514,'45567178733'],'media scope preserves the old target reservation and original failure lineage');
+  let inventory=[run],nativePlan=copy(originalPlan),branchHead=repositorySha;
+  const evidence=publisherMediaEvidenceFixture(repositorySha);
+  const inventoryPath=R.API_ROOT+'/actions/workflows/'+path.basename(workflow)+'/runs?branch='+encodeURIComponent(branch)+'&per_page=100';
+  f.hook=({path:route})=>{
+    if(route===inventoryPath)return {total_count:inventory.length,workflow_runs:inventory};
+    if(route===R.API_ROOT+'/contents/'+planPath+'?ref='+repositorySha)return nativePlan;
+    if(route===R.API_ROOT+'/git/ref/heads/'+branch)return {object:{sha:branchHead}};
+    if(evidence.routes.has(route))return evidence.api('GET',route);
+  };
+  const resolve=()=>R.resolveConsumer({env,event,api:f.api});
+  try{
+    if(repositorySha!==applicationSha){await refuses(resolve,'publisher_media_editor_not_installed',
+      'a repository-only release cannot execute media with an older installed backend');return;}
+    const result=await resolve();
+    equal([result.repository_sha,result.application_sha,result.ready,result.perform_actions,result.write_operation,result.publisher_pilot_digest],
+      [repositorySha,repositorySha,true,true,'hotel_publisher_media_pilot',D(bytes)],'first original media push is bound to the installed application and exact plan');
+    equal(JSON.parse(result.parent_evidence).historical_preflight_write_admission,false,'historical readiness remains honestly false');
+    equal(['ranked_index_digest','ranked_artifact_id'].some(k=>Object.hasOwn(result,k)),false,'media admission never reopens the fifteen-row ranked APPLY');
+    const before=f.calls.length;
+    for(const patch of [{created:false},{before:H('previous media branch')},{forced:true},{deleted:true},{after:H('foreign source')}])
+      await refuses(()=>R.resolveConsumer({env,event:{...event,...patch},api:f.api}),'untrusted_hotel_four_transfer');
+    for(const patch of [{GITHUB_RUN_ATTEMPT:'2'},{GITHUB_JOB:'registry'},{GITHUB_EVENT_NAME:'workflow_dispatch'},
+      {GITHUB_ACTOR:'other'},{GITHUB_TRIGGERING_ACTOR:'other'}])
+      await refuses(()=>R.resolveConsumer({env:{...env,...patch},event,api:f.api}),'untrusted_hotel_four_transfer');
+    equal(f.calls.length,before,'invalid media replays stop before all authenticated API reads');
+    inventory=[run,{...copy(run),id:run.id-1,status:'completed',conclusion:'failure'}];
+    await refuses(resolve,'hotel_transfer_replay_forbidden','a previous failed or unknown media branch prevents a new attempt');inventory=[run];
+    for(const patch of [{sha:H('other plan')},{size:bytes.length+1},{content:Buffer.from(bytes.toString().replace('1058','1059')).toString('base64')}]){
+      nativePlan={...originalPlan,...patch};await refuses(resolve,'hotel_transfer_plan_changed');
+    }
+    nativePlan=copy(originalPlan);branchHead=H('moved media branch');await refuses(resolve,'hotel_transfer_branch_changed');branchHead=repositorySha;
+    f.main=H('new main');await refuses(resolve,'main_changed');f.main=repositorySha;
+    const prior=evidence.proofs[0].artifact.digest;evidence.proofs[0].artifact.digest='sha256:'+D('unapproved final result');
+    await refuses(resolve,'publisher_media_evidence_artifact_changed');evidence.proofs[0].artifact.digest=prior;
+    const closer=f.wave.own,oldStatus=closer.status,oldConclusion=closer.conclusion;
+    closer.status='in_progress';closer.conclusion=null;await refuses(resolve,'release_pending');
+    closer.status=oldStatus;closer.conclusion=oldConclusion;
+  }finally{f.hook=null;f.runs.delete(run.id);f.jobs.delete(run.id);f.main=repositorySha;}
+}
+async function hotelPublisherKeyboardConsumer(f,repositorySha,applicationSha){
+  const branch='ops/anytour-publisher-keyboard-1047-20261125',ref='refs/heads/'+branch;
+  const workflow=R.PREFIX+'edit-1566-ranked-46-historical-telegram.yml',owner={id:226193297,login:'pyatkoff'};
+  const run={...copy(f.wave.parent),id:45724986459,path:workflow,event:'push',head_branch:branch,
+    repository:{id:1342493152,full_name:R.REPOSITORY},head_repository:{id:1342493152,full_name:R.REPOSITORY},
+    status:'in_progress',conclusion:null,actor:copy(owner),triggering_actor:copy(owner)};
+  f.runs.set(run.id,run);
+  const own={...job('transfer',run,[],null),status:'in_progress'};f.jobs.set(run.id,[own]);
+  const env={...consumerEnv(run,workflow,'push','transfer'),GITHUB_REF:ref,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+ref,GITHUB_ACTOR:owner.login,GITHUB_TRIGGERING_ACTOR:owner.login};
+  const event={repository:{full_name:R.REPOSITORY,id:1342493152},sender:copy(owner),ref,
+    after:repositorySha,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  const planPath='config/anytour_publisher_keyboard_pilot_20261125.json';
+  const bytes=fs.readFileSync(path.join(__dirname,'..',planPath)),plan=JSON.parse(bytes);
+  const originalPlan={type:'file',path:planPath,sha:R.gitBlob(bytes),size:bytes.length,encoding:'base64',content:bytes.toString('base64')};
+  equal([bytes.length,originalPlan.sha,D(bytes)],
+    [1026,'72453334d2ca09dfbe690ba8310e72f6b4e168df','a92092aed3523efd38931a8a32f1b78db3d3946c3e449e7d4d4f0a781d1dbca1'],
+    'publisher control admits only the separately reviewed immutable 1047 plan');
+  equal([plan.operation,plan.message_id,plan.publisher,plan.full_transfer,plan.label_suffix],
+    ['hotel_publisher_keyboard_pilot','1047','ANYTOURBOT_bot',false,' →'],
+    'the control is a label-only publisher experiment, not a resumed hotel transfer');
+  const inventoryPath=R.API_ROOT+'/actions/workflows/'+path.basename(workflow)+'/runs?branch='+encodeURIComponent(branch)+'&per_page=100';
+  let inventory=[run],total=null,nativePlan=copy(originalPlan),branchHead=repositorySha;
+  const previous=publisherKeyboardPrewriteFixture(repositorySha,run.id);
+  const actorRefusal=publisherKeyboardPrewriteFixture(repositorySha,run.id,PUBLISHER_ACTOR_REFUSAL_FIXTURE);
+  let advanceMain=false,mainReads=0,advanceBranch=false,branchReads=0;
+  f.hook=({path:route})=>{
+    if(route===inventoryPath)return {total_count:total??inventory.length,workflow_runs:inventory};
+    if(route===R.API_ROOT+'/contents/'+planPath+'?ref='+repositorySha)return nativePlan;
+    if(route===R.API_ROOT+'/git/ref/heads/'+branch)return {object:{sha:advanceBranch&&++branchReads>1?H('moved control branch'):branchHead}};
+    if(route===R.API_ROOT+'/git/ref/heads/main'&&advanceMain&&++mainReads>1)return {object:{sha:H('new main after control admission')}};
+    if(Object.values(previous.paths).includes(route))return previous.api('GET',route);
+    if(Object.values(actorRefusal.paths).includes(route))return actorRefusal.api('GET',route);
+  };
+  const resolve=()=>R.resolveConsumer({env,event,api:f.api});
+  const continuationEvent={...event,before:previous.prior.head_sha,created:false};
+  const resume=()=>R.resolveConsumer({env,event:continuationEvent,api:f.api});
+  const actorEvent={...event,before:actorRefusal.prior.head_sha,created:false};
+  const actorResume=()=>R.resolveConsumer({env,event:actorEvent,api:f.api});
+  try{
+    if(repositorySha!==applicationSha){
+      await refuses(resolve,'publisher_keyboard_editor_not_installed',
+        'a repository-only release cannot use an older installed keyboard editor');
+      inventory=[run,previous.prior];
+      await refuses(resume,'publisher_keyboard_editor_not_installed',
+        'the bounded prewrite continuation also requires the corrected editor installed exactly');
+      inventory=[run,previous.prior,actorRefusal.prior];
+      await refuses(actorResume,'publisher_keyboard_editor_not_installed',
+        'the exact actor continuation requires the corrected editor installed');
+      return;
+    }
+    const before=f.calls.length,result=await resolve();
+    equal([result.repository_sha,result.application_sha,result.ready,result.perform_actions,result.write_operation,result.publisher_pilot_digest],
+      [repositorySha,repositorySha,true,true,'hotel_publisher_keyboard_pilot',D(bytes)],
+      'the original owner push resolves the accepted exact application and control digest');
+    equal(['ranked_index_digest','ranked_artifact_id','parent_evidence'].map(k=>Object.hasOwn(result,k)),[false,false,false],
+      'the label control never consumes ranked transfer chunks or reopens the old fifteen operations');
+    equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'publisher admission is read-only');
+    const rejectedBeforeApi=f.calls.length;
+    for(const patch of [{created:false},{before:H('earlier control branch')},{forced:true},{deleted:true},
+      {after:H('other source')},{repository:{full_name:R.REPOSITORY,id:1}},{sender:{id:1,login:owner.login}}]){
+      await refuses(()=>R.resolveConsumer({env,event:{...event,...patch},api:f.api}),'untrusted_hotel_four_transfer');
+    }
+    for(const patch of [{GITHUB_RUN_ATTEMPT:'2'},{GITHUB_JOB:'registry'},{GITHUB_EVENT_NAME:'workflow_dispatch'},
+      {GITHUB_ACTOR:'other'},{GITHUB_TRIGGERING_ACTOR:'other'},
+      {GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.PREFIX+'read-1566-main-hotel-registry.yml@'+ref}]){
+      await refuses(()=>R.resolveConsumer({env:{...env,...patch},event,api:f.api}),'untrusted_hotel_four_transfer');
+    }
+    equal(f.calls.length,rejectedBeforeApi,'invalid control envelopes cannot reach runtime or credentials');
+    for(const [patch,code] of [[{head_sha:H('foreign control')},'untrusted_workflow_run'],
+      [{run_attempt:2},'untrusted_workflow_run'],[{status:'completed',conclusion:'success'},'workflow_not_active'],
+      [{actor:{id:1,login:owner.login}},'foreign_hotel_transfer_actor'],
+      [{triggering_actor:{id:1,login:owner.login}},'foreign_hotel_transfer_actor']]){
+      const original=copy(run);Object.assign(run,patch);await refuses(resolve,code);Object.assign(run,original);
+    }
+    const oldJob=copy(own);own.name='registry';
+    await refuses(resolve,'hotel_transfer_job_unconfirmed');Object.assign(own,oldJob);
+    total=2;await refuses(resolve,'hotel_transfer_inventory_incomplete');total=null;
+    inventory=[run,{...copy(run),id:run.id-1,status:'completed',conclusion:'failure'}];
+    await refuses(resolve,'hotel_transfer_replay_forbidden','even an earlier failed branch run prevents recreation');inventory=[run];
+    for(const patch of [{type:'symlink'},{path:'config/other.json'},{sha:H('different control plan')},
+      {size:bytes.length+1},{encoding:'none'},{content:'!invalid-base64'},
+      {content:Buffer.from(bytes.toString().replace('"1047"','"1048"')).toString('base64')}]){
+      nativePlan={...originalPlan,...patch};await refuses(resolve,'hotel_transfer_plan_changed');
+    }
+    nativePlan=copy(originalPlan);branchHead=H('changed control branch');
+    await refuses(resolve,'hotel_transfer_branch_changed');branchHead=repositorySha;advanceBranch=true;branchReads=0;
+    await refuses(resolve,'hotel_transfer_branch_changed');advanceBranch=false;
+    f.main=H('new main before control');await refuses(resolve,'main_changed');f.main=repositorySha;
+    advanceMain=true;mainReads=0;await refuses(resolve,'main_changed');advanceMain=false;
+    const closer=f.wave.own,oldStatus=closer.status,oldConclusion=closer.conclusion;
+    closer.status='in_progress';closer.conclusion=null;await refuses(resolve,'release_pending');
+    closer.status=oldStatus;closer.conclusion=oldConclusion;
+    inventory=[run,previous.prior];
+    const continued=await resume();
+    equal([continued.repository_sha,continued.application_sha,continued.write_operation,continued.publisher_pilot_digest],
+      [repositorySha,repositorySha,'hotel_publisher_keyboard_pilot',D(bytes)],
+      'one nonforced update after the pinned prewrite refusal retains the same keyboard operation and immutable plan');
+    for(const patch of [{forced:true},{created:true},{before:H('later branch head')},{deleted:true}])
+      await refuses(()=>R.resolveConsumer({env,event:{...continuationEvent,...patch},api:f.api}),
+        'untrusted_hotel_four_transfer','the continuation cannot force, recreate or follow another update');
+    await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_RUN_ATTEMPT:'2'},event:continuationEvent,api:f.api}),
+      'untrusted_hotel_four_transfer','the continuation is not a workflow rerun');
+    await refuses(resolve,'hotel_transfer_replay_forbidden','deleting and recreating the old branch cannot repeat the pilot');
+    inventory.push({...copy(run),id:run.id+1});
+    await refuses(resume,'publisher_keyboard_prewrite_history_changed','a third branch run cannot use the first recovery');
+    inventory=[run,previous.prior,actorRefusal.prior];
+    const actorContinued=await actorResume();
+    equal([actorContinued.repository_sha,actorContinued.application_sha,actorContinued.write_operation,actorContinued.publisher_pilot_digest],
+      [repositorySha,repositorySha,'hotel_publisher_keyboard_pilot',D(bytes)],
+      'both authenticated prewrite refusals admit only the exact actor continuation');
+    await refuses(resume,'publisher_keyboard_prewrite_history_changed','the first forward cannot be replayed');
+    inventory=[run,actorRefusal.prior];
+    await refuses(actorResume,'publisher_keyboard_prewrite_history_changed','both originals must be present');
+    inventory=[run,previous.prior,actorRefusal.prior];
+    const savedDigest=actorRefusal.artifact.digest;actorRefusal.artifact.digest='sha256:'+D('unrelated refusal');
+    await refuses(actorResume,'publisher_keyboard_prewrite_artifact_changed','the actor refusal must retain the exact artifact');
+    actorRefusal.artifact.digest=savedDigest;
+    const savedConclusion=actorRefusal.prior.conclusion;actorRefusal.prior.conclusion='success';
+    await refuses(actorResume,'producer_not_successful','an accepted edit cannot be repeated');
+    actorRefusal.prior.conclusion=savedConclusion;
+    inventory.push({...copy(run),id:run.id+1});
+    await refuses(actorResume,'publisher_keyboard_prewrite_history_changed','no fourth branch run is admitted');
+    inventory=[run,previous.prior,actorRefusal.prior];
+    await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_RUN_ATTEMPT:'2'},event:actorEvent,api:f.api}),'untrusted_hotel_four_transfer');
+    closer.status='in_progress';closer.conclusion=null;await refuses(actorResume,'release_pending');
+    inventory=[run,previous.prior];await refuses(resume,'release_pending');
     closer.status=oldStatus;closer.conclusion=oldConclusion;
   }finally{f.hook=null;f.runs.delete(run.id);f.jobs.delete(run.id);f.main=repositorySha;}
 }
@@ -1911,8 +2289,10 @@ async function gateContinuationCases(){
 
 // The public, immutable original receipts are used as fixed negative/positive
 // boundary input. All API/run/job identities below are synthetic in-memory.
-function unpublishedTerminalFixture(){
-  const pending={"bundle":"success","diagnostics":"success","diagnostics_attempt":1,"install_attempt":1,"install_checks":"success","key":"success","max_webhook":"success","metrika_cron":"success","migration":"success","provenance":"success","reported_at":"2026-11-13T16:00:56Z","repository_release":{"application_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","baseline":null,"baseline_eligible":false,"closure":null,"content":{"candidate_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","classification":"unconfirmed","installed_sha":"5fbb61990706ae4289e539df2c26c60e409032f4","policy":"anytour-development-content-v1","release_path":"full_required","runtime_fingerprint":null},"intent_scan":{"checked_commits":5,"coverage":"registered_markers_and_reserved_families","matched_commits":[],"status":"no_registered_intent"},"kind":"installed","observation":null,"observation_producer":null,"phase":"pending_closure","release":{"event":"push","run_attempt":1,"run_id":"43456259794"},"repository_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","schema":1,"stages":{"bundle":{"execution":"performed","result":"success"},"diagnostics":{"execution":"performed","result":"success"},"install_checks":{"execution":"performed","result":"success"},"key":{"execution":"performed","result":"success"},"max_webhook":{"execution":"performed","result":"success"},"metrika_cron":{"execution":"performed","result":"success"},"migration":{"execution":"performed","result":"success"},"provenance":{"execution":"performed","result":"success"},"smoke":{"execution":"performed","result":"success"},"sync":{"execution":"performed","result":"success"}}},"run_id":"43456259794","schema":2,"sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","smoke":"success","smoke_attempt":1,"sync":"success"},terminal={"bundle":"success","diagnostics":"success","diagnostics_attempt":1,"install_attempt":1,"install_checks":"success","key":"success","max_webhook":"success","metrika_cron":"success","migration":"success","provenance":"success","reported_at":"2026-11-13T16:00:56Z","repository_release":{"application_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","baseline":null,"baseline_eligible":false,"closure":{"binding":{"comment_id":6775467253,"head_sha":"51a900b316cad03a41b07c6a79e36e6ee322c029","owner_id":226193297,"pr":1529,"updated_at":"2026-11-13T15:47:04Z"},"expected_terminal":"PR1529: установлено, выпуск свободен","gates":[{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/deploy.yml","run_attempt":1,"run_id":"43456259794"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/retired-domain-guard.yml","run_attempt":1,"run_id":"43456259765"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/max-tls-preflight.yml","run_attempt":1,"run_id":"43458415792"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/max-production-health.yml","run_attempt":1,"run_id":"43458412674"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/telegram-production-health.yml","run_attempt":1,"run_id":"43458412715"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/publish-conversation-diagnostics.yml","run_attempt":1,"run_id":"43458415744"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/live-session-diagnostics.yml","run_attempt":1,"run_id":"43458412698"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/tour-selection-host.yml","run_attempt":1,"run_id":"43458412489"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/modeled-conversion-monitor.yml","run_attempt":1,"run_id":"43458412487"},{"conclusion":"skipped","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/modeled-pipeline-monitor-activation.yml","run_attempt":1,"run_id":"43458573580"}],"job":"release-slot","run_attempt":1,"run_id":"43458412572","terminal_step":"Release only the admitted publisher after all original mandatory gates"},"content":{"candidate_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","classification":"unconfirmed","installed_sha":"5fbb61990706ae4289e539df2c26c60e409032f4","policy":"anytour-development-content-v1","release_path":"full_required","runtime_fingerprint":null},"intent_scan":{"checked_commits":5,"coverage":"registered_markers_and_reserved_families","matched_commits":[],"status":"no_registered_intent"},"kind":"installed","observation":{"application_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","components":{"editor":null,"public":null},"configuration_key_id":null,"core_digest":null,"digest":null,"mode":"all","protocol":"anytour-deployment-runtime-v1","reason_code":"configuration_loader_unsupported","schema":1,"status":"unknown"},"observation_producer":{"run_attempt":1,"run_id":"43458412489"},"phase":"pending_terminal","release":{"event":"push","run_attempt":1,"run_id":"43456259794"},"repository_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","schema":1,"stages":{"bundle":{"execution":"performed","result":"success"},"diagnostics":{"execution":"performed","result":"success"},"install_checks":{"execution":"performed","result":"success"},"key":{"execution":"performed","result":"success"},"max_webhook":{"execution":"performed","result":"success"},"metrika_cron":{"execution":"performed","result":"success"},"migration":{"execution":"performed","result":"success"},"provenance":{"execution":"performed","result":"success"},"smoke":{"execution":"performed","result":"success"},"sync":{"execution":"performed","result":"success"}}},"run_id":"43456259794","schema":2,"sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","smoke":"success","smoke_attempt":1,"sync":"success"},p=R.UNPUBLISHED_TERMINAL_RECOVERY;
+function unpublishedTerminalFixture(profile=R.UNPUBLISHED_TERMINAL_RECOVERY){
+  const legacyPending={"bundle":"success","diagnostics":"success","diagnostics_attempt":1,"install_attempt":1,"install_checks":"success","key":"success","max_webhook":"success","metrika_cron":"success","migration":"success","provenance":"success","reported_at":"2026-11-13T16:00:56Z","repository_release":{"application_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","baseline":null,"baseline_eligible":false,"closure":null,"content":{"candidate_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","classification":"unconfirmed","installed_sha":"5fbb61990706ae4289e539df2c26c60e409032f4","policy":"anytour-development-content-v1","release_path":"full_required","runtime_fingerprint":null},"intent_scan":{"checked_commits":5,"coverage":"registered_markers_and_reserved_families","matched_commits":[],"status":"no_registered_intent"},"kind":"installed","observation":null,"observation_producer":null,"phase":"pending_closure","release":{"event":"push","run_attempt":1,"run_id":"43456259794"},"repository_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","schema":1,"stages":{"bundle":{"execution":"performed","result":"success"},"diagnostics":{"execution":"performed","result":"success"},"install_checks":{"execution":"performed","result":"success"},"key":{"execution":"performed","result":"success"},"max_webhook":{"execution":"performed","result":"success"},"metrika_cron":{"execution":"performed","result":"success"},"migration":{"execution":"performed","result":"success"},"provenance":{"execution":"performed","result":"success"},"smoke":{"execution":"performed","result":"success"},"sync":{"execution":"performed","result":"success"}}},"run_id":"43456259794","schema":2,"sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","smoke":"success","smoke_attempt":1,"sync":"success"},legacyTerminal={"bundle":"success","diagnostics":"success","diagnostics_attempt":1,"install_attempt":1,"install_checks":"success","key":"success","max_webhook":"success","metrika_cron":"success","migration":"success","provenance":"success","reported_at":"2026-11-13T16:00:56Z","repository_release":{"application_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","baseline":null,"baseline_eligible":false,"closure":{"binding":{"comment_id":6775467253,"head_sha":"51a900b316cad03a41b07c6a79e36e6ee322c029","owner_id":226193297,"pr":1529,"updated_at":"2026-11-13T15:47:04Z"},"expected_terminal":"PR1529: установлено, выпуск свободен","gates":[{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/deploy.yml","run_attempt":1,"run_id":"43456259794"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/retired-domain-guard.yml","run_attempt":1,"run_id":"43456259765"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/max-tls-preflight.yml","run_attempt":1,"run_id":"43458415792"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/max-production-health.yml","run_attempt":1,"run_id":"43458412674"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/telegram-production-health.yml","run_attempt":1,"run_id":"43458412715"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/publish-conversation-diagnostics.yml","run_attempt":1,"run_id":"43458415744"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/live-session-diagnostics.yml","run_attempt":1,"run_id":"43458412698"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/tour-selection-host.yml","run_attempt":1,"run_id":"43458412489"},{"conclusion":"success","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/modeled-conversion-monitor.yml","run_attempt":1,"run_id":"43458412487"},{"conclusion":"skipped","head_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","path":".github/workflows/modeled-pipeline-monitor-activation.yml","run_attempt":1,"run_id":"43458573580"}],"job":"release-slot","run_attempt":1,"run_id":"43458412572","terminal_step":"Release only the admitted publisher after all original mandatory gates"},"content":{"candidate_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","classification":"unconfirmed","installed_sha":"5fbb61990706ae4289e539df2c26c60e409032f4","policy":"anytour-development-content-v1","release_path":"full_required","runtime_fingerprint":null},"intent_scan":{"checked_commits":5,"coverage":"registered_markers_and_reserved_families","matched_commits":[],"status":"no_registered_intent"},"kind":"installed","observation":{"application_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","components":{"editor":null,"public":null},"configuration_key_id":null,"core_digest":null,"digest":null,"mode":"all","protocol":"anytour-deployment-runtime-v1","reason_code":"configuration_loader_unsupported","schema":1,"status":"unknown"},"observation_producer":{"run_attempt":1,"run_id":"43458412489"},"phase":"pending_terminal","release":{"event":"push","run_attempt":1,"run_id":"43456259794"},"repository_sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","schema":1,"stages":{"bundle":{"execution":"performed","result":"success"},"diagnostics":{"execution":"performed","result":"success"},"install_checks":{"execution":"performed","result":"success"},"key":{"execution":"performed","result":"success"},"max_webhook":{"execution":"performed","result":"success"},"metrika_cron":{"execution":"performed","result":"success"},"migration":{"execution":"performed","result":"success"},"provenance":{"execution":"performed","result":"success"},"smoke":{"execution":"performed","result":"success"},"sync":{"execution":"performed","result":"success"}}},"run_id":"43456259794","schema":2,"sha":"8d6ac35dd17614b2cadb3aa3af7637c74280c01c","smoke":"success","smoke_attempt":1,"sync":"success"},p=profile;
+  const pending=p.pr===1720?JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/release-1720-pending.json'),'utf8')):legacyPending;
+  const terminal=p.pr===1720?JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/release-1720-terminal.json'),'utf8')):legacyTerminal;
   const f=fixture(p.sha,pending),initial=f.head;
   const alias=(from,to,parent=null)=>{const x=f.records.get(from),c=f.commits.get(from);f.records.set(to,x);
     f.commits.set(to,{...copy(c),sha:to,parents:parent?[{sha:parent}]:[]});};
@@ -1931,7 +2311,7 @@ function unpublishedTerminalFixture(){
   f.jobs.set(failed.id,[job('configure',failed,[],'skipped'),failure,job('release-slot-recovery',failed,[],'skipped')]);
   const b={comment_id:p.comment_id,head_sha:p.head_sha,owner_id:p.owner_id,updated_at:p.updated_at};
   f.pr={...f.pr,number:p.pr,head:{sha:p.head_sha,repo:{full_name:R.REPOSITORY}},body:'<!-- release-slot-close:v1 '+JSON.stringify(b)+' -->'};
-  f.comment={...f.comment,id:p.comment_id,user:{id:p.owner_id},updated_at:p.updated_at,body:'PR1529: выпуск занят'};
+  f.comment={...f.comment,id:p.comment_id,user:{id:p.owner_id},updated_at:p.updated_at,body:'PR'+p.pr+': выпуск занят'};
   const source=H('source-checked unpublished1529 completion'),runId=700000;
   const native={...copy(failed),id:runId,head_sha:source,head_branch:p.branch,event:'push',status:'in_progress',conclusion:null,
     actor:{id:p.owner_id}};delete native.display_title;f.runs.set(runId,native);
@@ -1955,6 +2335,50 @@ function unpublishedTerminalFixture(){
   return {f,p,env,event,source,native,own,failure,originalHook,options:()=>({env,event,api:f.api})};
 }
 async function unpublishedTerminalCases(){
+  for(const mutate of [
+    x=>x.env.GITHUB_RUN_ATTEMPT='2',x=>x.event.created=false,x=>x.event.forced=true,
+    x=>x.f.main=H('changed1720main'),x=>x.native.actor.id++,x=>x.f.comment.user.id++,
+    x=>x.f.comment.updated_at='2026-11-25T10:35:19Z',
+    x=>x.f.runs.get(x.native.id+1).conclusion='failure',
+    x=>x.failure.steps[1].conclusion='success',x=>x.failure.steps[2].conclusion='success',
+    x=>x.f.artifacts.set(Number(x.p.run_id),[{id:123}]),
+    x=>x.f.api.jobLog=async()=>Buffer.from(T+' release_slot=held reason=write_unknown\n')
+  ]){
+    const x=unpublishedTerminalFixture(R.UNPUBLISHED_TERMINAL_RECOVERY_1720);mutate(x);
+    let rejected=false;try{await C.resumeUnpublishedTerminal({...x.options(),prepare:true});}catch{rejected=true;}
+    equal(rejected,true,'1720 changed native origin, owner, CI or original evidence refuses');
+    equal(x.f.calls.filter(c=>c.method!=='GET').length,0,'1720 changed proof refuses before every write');
+  }
+  {
+    const x=unpublishedTerminalFixture(R.UNPUBLISHED_TERMINAL_RECOVERY_1720);
+    const proof=await C.resumeUnpublishedTerminal({...x.options(),prepare:true});
+    x.env.PREPARED_RECORD_DIGEST=proof.record_digest;x.own.steps.push(step(R.TERMINAL_BINDING_STEP+proof.record_digest));
+    x.f.hook=async c=>{if(c.method==='PATCH'&&c.path.includes('/issues/comments/'))throw new C.Refusal('api_http_503');return x.originalHook(c);};
+    await refuses(()=>C.resumeUnpublishedTerminal(x.options()),'write_unknown');
+    equal(x.f.calls.filter(c=>c.method==='PATCH'&&c.path.includes('/issues/comments/')).length,1,'1720 unknown terminal PATCH never repeats');
+    equal(x.f.comment.body,'PR1720: выпуск занят','1720 uncertain terminal stays BUSY');
+  }
+
+  //1720 uses its own real receipts and the same native-proof-before-PATCH path.
+  {
+    const x=unpublishedTerminalFixture(R.UNPUBLISHED_TERMINAL_RECOVERY_1720);
+    const original=await R.failedUnpublishedTerminal(x.f.api,x.p);
+    equal(original.record_digest,x.p.record_digest,'1720 original written candidate is read-only reconciled');
+    const proof=await C.resumeUnpublishedTerminal({...x.options(),prepare:true});
+    equal(x.f.comment.body,'PR1720: выпуск занят','1720 preparation retains original BUSY');
+    equal(x.f.calls.filter(c=>c.method==='PATCH'&&c.path.includes('/issues/comments/')).length,0,'1720 proof preparation cannot free');
+    x.env.PREPARED_RECORD_DIGEST=proof.record_digest;
+    await refuses(()=>C.resumeUnpublishedTerminal(x.options()),'publication_step_unconfirmed');
+    x.own.steps.push(step(R.TERMINAL_BINDING_STEP+proof.record_digest));
+    equal(await C.resumeTerminal(x.options()),'released','1720 enters same canonical terminal continuation');
+    equal(x.f.calls.filter(c=>c.method==='PATCH'&&c.path.includes('/issues/comments/')).length,1,'1720 one terminal PATCH');
+    x.native.status='completed';x.native.conclusion='success';x.own.status='completed';x.own.conclusion='success';x.own.steps.push(step(R.TERMINAL_STEP));
+    const location=await R.readRecord(x.f.api);await R.authenticatePublication(x.f.api,location,{closed:true});
+    equal((await R.resolveCurrent(x.f.api,{sha:x.p.sha},location)).application_sha,x.p.sha,'1720 canonical consumer accepts honest lineage');
+    const mixed=copy(x.f.record);mixed.repository_release.closure.recovery.original_run_id=R.UNPUBLISHED_TERMINAL_RECOVERY.run_id;
+    await refuses(()=>R.validateRelease(mixed),'invalid_unpublished_terminal_recovery');
+  }
+
   {
     const x=unpublishedTerminalFixture();const original=await R.failedUnpublishedTerminal(x.f.api);
     equal(original.record_digest,x.p.record_digest,'actual written original is proved without upload or terminal invention');
@@ -2796,6 +3220,9 @@ async function rankedPrewriteProofCases() {
 }
 
 async function rankedParentCases() {
+  publisherMediaWorkflowResultCases();
+  await publisherMediaEvidenceCases();
+  await publisherKeyboardPrewriteProofCases();
   await rankedPrewriteProofCases();
   const seed = 45372056681, child = seed + 10, leaf = child + 1;
   const seedSha = 'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092', head = H('ranked-child');
@@ -2890,14 +3317,50 @@ async function unstarted1704Cases() {
   assertions++;
 }
 
-async function main(){await unstarted1704Cases();await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+async function superseded1701Cases() {
+  const recovery = require('../tools/release_slot_1701_recovery');
+  const branchRef = 'refs/heads/' + recovery.P.branch;
+  const env = {GITHUB_REPOSITORY:R.REPOSITORY, GITHUB_EVENT_NAME:'push', GITHUB_REF:branchRef,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+C.CLOSER+'@'+branchRef, GITHUB_JOB:'release-slot-recovery',
+    GITHUB_RUN_ATTEMPT:'1', GITHUB_ACTOR:'pyatkoff', GITHUB_TRIGGERING_ACTOR:'pyatkoff',
+    GITHUB_SHA:'a'.repeat(40), GITHUB_RUN_ID:'45510000000'};
+  const event = {repository:{full_name:R.REPOSITORY,id:1342493152},sender:{id:recovery.P.owner,login:'pyatkoff'},
+    ref:branchRef,after:env.GITHUB_SHA,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  assert.doesNotThrow(()=>recovery.authorizeEvent(env,event)); assertions++;
+  const calls=[];
+  const api=async (method,url)=>{calls.push([method,url]);throw Error('unexpected API call');};
+  for (const [changedEnv,changedEvent] of [
+    [{...env,GITHUB_RUN_ATTEMPT:'2'},event],
+    [{...env,GITHUB_EVENT_NAME:'workflow_dispatch'},event],
+    [env,{...event,sender:{id:1,login:'pyatkoff'}}],
+    [env,{...event,created:false,before:'b'.repeat(40)}],
+    [env,{...event,forced:true}],
+  ]) await refuses(()=>recovery.resume({env:changedEnv,event:changedEvent,api}), 'untrusted_recovery_event');
+  equal(calls,[],'untrusted recovery event cannot read or modify a publisher');
+  const retry={id:recovery.P.diagnosticRetry,status:'completed',conclusion:'failure',steps:[
+    step(R.RESOLVER_STEP,'failure'),
+    ...['Prepare evidence encryption','Prepare SSH private key','Verify deployed SHA and capture production',
+      'Publish production snapshot','Upload encrypted dialogue evidence','Upload Metrika delivery diagnostic']
+      .map(name=>step(name,'skipped'))]};
+  assert.doesNotThrow(()=>recovery.diagnosticRetry(retry)); assertions++;
+  for(const name of ['Prepare SSH private key','Publish production snapshot']) {
+    const changed=copy(retry);
+    changed.steps.find(s=>s.name===name).conclusion='success';
+    await refuses(()=>recovery.diagnosticRetry(changed),'diagnostic_retry_executed');
+  }
+  await refuses(()=>recovery.diagnosticRetry({...retry,id:1}),'diagnostic_retry_executed');
+}
+
+async function main(){await superseded1701Cases();await unstarted1704Cases();await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
   execFileSync(process.execPath,[path.join(__dirname,'run_ranked_telegram_cli_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1702_forward_regression.js')],{stdio:'inherit'});
+  execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1721_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1662_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_exhausted_verify_1664_forward_regression.js')],{stdio:'inherit'});
   execFileSync('python3',[path.join(__dirname,'run_partial_install_1662_forward_sync.py')],{stdio:'inherit'});
   process.stdout.write('Deployment release regression: '+assertions+' assertions passed\n');}
-module.exports={rankedParentCases,closedPrewriteOriginCases,rankedResumeOriginCases,main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,publisherBodyRecoveryCases,max2HoldPairReadConsumer};
+module.exports={unpublishedTerminalCases,rankedParentCases,closedPrewriteOriginCases,rankedResumeOriginCases,main,fixture,receipt,observation,installed,installNoopJobs,storedZip,terminalContinuationCases,publisherBodyRecoveryCases,max2HoldPairReadConsumer};
 if(require.main===module)main().catch(e=>{process.stderr.write(String(e.stack||e)+'\n');process.exitCode=1;});
+
 
 

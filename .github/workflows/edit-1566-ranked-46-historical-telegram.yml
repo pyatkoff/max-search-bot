@@ -1,7 +1,7 @@
 name: "#1566 Apply approved ranked Telegram hotel transfers"
 on:
   push:
-    branches: [ops/anytour-hotel-ranked-46-apply-20261123, ops/anytour-hotel-ranked-37-continue-20261123, ops/anytour-hotel-ranked-resume-20261124, "ops/anytour-hotel-ranked-after-*", "ops/anytour-hotel-ranked-plan-*"]
+    branches: [ops/anytour-hotel-ranked-46-apply-20261123, ops/anytour-hotel-ranked-37-continue-20261123, ops/anytour-hotel-ranked-resume-20261124, "ops/anytour-hotel-ranked-after-*", "ops/anytour-hotel-ranked-plan-*", "ops/anytour-hotel-ranked-data-*", ops/anytour-publisher-keyboard-1047-20261125, ops/anytour-publisher-media-1058-20261126]
 permissions:
   contents: read
   actions: read
@@ -17,7 +17,10 @@ jobs:
       github.actor == 'pyatkoff' &&
       ((github.event.created == true && github.event.before == '0000000000000000000000000000000000000000') ||
        (github.ref == 'refs/heads/ops/anytour-hotel-ranked-after-45372056681' && github.event.created == false &&
-        github.event.forced == false && github.event.before == 'dca4085f9a63ac1e7a5179c2a9b1b20febce4f82')) &&
+        github.event.forced == false && github.event.before == 'dca4085f9a63ac1e7a5179c2a9b1b20febce4f82') ||
+       (github.ref == 'refs/heads/ops/anytour-publisher-keyboard-1047-20261125' && github.event.created == false &&
+        github.event.forced == false && (github.event.before == '58f15d1a147353a4b807f122525d75e1f4f35c1c' ||
+        github.event.before == 'c1a445f48fd514b9a4f883faecd20e5ecf1bc4fb'))) &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 130
@@ -26,20 +29,38 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Check out the trusted publisher for a data commit
+        if: startsWith(github.ref, 'refs/heads/ops/anytour-hotel-ranked-data-')
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: .trusted-editor
           persist-credentials: false
       - name: Resolve accepted repository and application
         id: release
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-data-* ]]; then
+            node .trusted-editor/tools/resolve_ranked_telegram_packet.js >> "$GITHUB_OUTPUT"
+          else
+            node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"
+          fi
       - name: Require exact APPLY admission before loading credentials
         env:
           READY: ${{ steps.release.outputs.ready }}
           PERFORM_ACTIONS: ${{ steps.release.outputs.perform_actions }}
           WRITE_OPERATION: ${{ steps.release.outputs.write_operation }}
+          PILOT_SHA: ${{ steps.release.outputs.publisher_pilot_digest }}
           GH_TOKEN: ${{ github.token }}
           INDEX_SHA: ${{ steps.release.outputs.ranked_index_digest }}
           NATIVE_ARTIFACT_ID: ${{ steps.release.outputs.ranked_artifact_id }}
+          DATA_SHA: ${{ steps.release.outputs.ranked_data_sha }}
+          DATA_INDEX_PATH: ${{ steps.release.outputs.ranked_data_index_path }}
           PARENT_EVIDENCE: ${{ steps.release.outputs.parent_evidence }}
           REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
           APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
@@ -49,8 +70,14 @@ jobs:
           test "$READY" = true
           test "$PERFORM_ACTIONS" = true
           case "$GITHUB_REF:$WRITE_OPERATION" in
+            refs/heads/ops/anytour-publisher-keyboard-1047-20261125:hotel_publisher_keyboard_pilot)
+              check=--check-publisher-keyboard-pilot ;;
+            refs/heads/ops/anytour-publisher-media-1058-20261126:hotel_publisher_media_pilot)
+              check=--check-publisher-media-pilot ;;
             refs/heads/ops/anytour-hotel-ranked-46-apply-20261123:hotel_ranked_46_transfer|refs/heads/ops/anytour-hotel-ranked-plan-*:hotel_ranked_approved_input)
               check=--check-ranked-transfer-plan ;;
+            refs/heads/ops/anytour-hotel-ranked-data-*:hotel_ranked_approved_input)
+              check=--check-ranked-transfer-data ;;
             refs/heads/ops/anytour-hotel-ranked-37-continue-20261123:hotel_ranked_37_continuation)
               check=--check-ranked-continuation ;;
             refs/heads/ops/anytour-hotel-ranked-resume-20261124:hotel_ranked_resume)
@@ -59,7 +86,14 @@ jobs:
               check=--check-ranked-unreached ;;
             *) exit 2 ;;
           esac
-          test "$REPOSITORY_SHA" = "$GITHUB_SHA"
+          if [[ "$check" == --check-ranked-transfer-data ]]; then
+            test "$DATA_SHA" = "$GITHUB_SHA"
+            [[ "$DATA_INDEX_PATH" =~ ^config/anytour_[a-z0-9_]+\.json$ ]]
+            test "$APPLICATION_SHA" = "$REPOSITORY_SHA"
+            test "$(git -C .trusted-editor rev-parse HEAD)" = "$APPLICATION_SHA"
+          else
+            test "$REPOSITORY_SHA" = "$GITHUB_SHA"
+          fi
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           [[ "$APPLICATION_SHA" =~ ^[a-f0-9]{40}$ ]]
           [[ "$GITHUB_RUN_ID" =~ ^[1-9][0-9]{0,19}$ ]]
@@ -67,12 +101,55 @@ jobs:
           mkdir pub
           # The resolver authenticates this native evidence before SSH credentials are available.
           printf '%s' "$PARENT_EVIDENCE" > "$RUNNER_TEMP/ranked-parent.json"
+          if [[ "$WRITE_OPERATION" == hotel_publisher_keyboard_pilot || "$WRITE_OPERATION" == hotel_publisher_media_pilot ]]; then
+            test "$APPLICATION_SHA" = "$GITHUB_SHA"
+            [[ "$PILOT_SHA" =~ ^[a-f0-9]{64}$ ]]
+            printf '%s\n' "$PILOT_SHA" > "$RUNNER_TEMP/ranked-digests"
+            php tools/anytour_existing_post_batch.php "$check" "$PILOT_SHA" > "pub/check-$PILOT_SHA.json"
+            python3 - <<'PY'
+          import json, os, pathlib
+          digest=os.environ['PILOT_SHA']
+          checked=json.loads(pathlib.Path('pub/check-'+digest+'.json').read_bytes())
+          assert checked.get('ok') is True and checked.get('mode')=='offline_plan_check'
+          operation=os.environ['WRITE_OPERATION']
+          mid='1058' if operation=='hotel_publisher_media_pilot' else '1047'
+          assert checked.get('operation')==operation and checked.get('plan_sha256')==digest
+          assert checked.get('message_id')==mid and checked.get('full_transfer') is False
+          if operation=='hotel_publisher_media_pilot':
+              assert checked.get('full_transfer_requested') is True and checked.get('hotel_id')==2514
+              parent=json.loads(os.environ['PARENT_EVIDENCE'])
+              assert parent.get('kind')=='publisher_media_original_evidence_v1'
+              assert parent.get('historical_preflight_write_admission') is False
+          assert all(type(checked.get(k)) is int and checked[k]==0 for k in ('production_writes','provider_writes'))
+          pathlib.Path('pub/summary.json').write_text(json.dumps({digest:{'state':'not_started',
+              'message_ids':[mid],'operation':operation,'full_transfer':False}}))
+          PY
+            exit 0
+          fi
           [[ "$INDEX_SHA" =~ ^[a-f0-9]{64}$ && "$NATIVE_ARTIFACT_ID" =~ ^[1-9][0-9]{0,19}$ ]]
           gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$NATIVE_ARTIFACT_ID/zip" > "$RUNNER_TEMP/ranked-native.zip"
-          python3 tools/validate_ranked_telegram_input.py "$INDEX_SHA" "$RUNNER_TEMP/ranked-native.zip" > "$RUNNER_TEMP/ranked-chunks.json"
+          if [[ "$check" == --check-ranked-transfer-data ]]; then
+            python3 .trusted-editor/tools/validate_ranked_telegram_input.py "$INDEX_SHA" "$RUNNER_TEMP/ranked-native.zip" \
+              --inspect-root "$PWD" --inspect-index "$DATA_INDEX_PATH" --git-root "$PWD" \
+              --application-sha "$APPLICATION_SHA" --data-source-sha "$DATA_SHA" > "$RUNNER_TEMP/ranked-inspection.json"
+            jq -e '.chunks | select(length==1 and (.[0].hotels | length <= 5))' "$RUNNER_TEMP/ranked-inspection.json" > "$RUNNER_TEMP/ranked-chunks.json"
+            python3 - <<'PY'
+          import base64, json, os, pathlib
+          index = pathlib.Path(os.environ['DATA_INDEX_PATH']).read_bytes()
+          plan = pathlib.Path(json.loads(index)['plans'][0]['path']).read_bytes()
+          encoded = lambda raw: base64.b64encode(raw).decode('ascii')
+          pathlib.Path(os.environ['RUNNER_TEMP'], 'ranked-packet.json').write_text(json.dumps({'index':encoded(index),'plan':encoded(plan)}))
+          PY
+          else
+            python3 tools/validate_ranked_telegram_input.py "$INDEX_SHA" "$RUNNER_TEMP/ranked-native.zip" > "$RUNNER_TEMP/ranked-chunks.json"
+          fi
           jq -er '.[].sha256' "$RUNNER_TEMP/ranked-chunks.json" > "$RUNNER_TEMP/ranked-digests"
           while read -r digest; do
-            php tools/anytour_existing_post_batch.php "$check" "$digest" < "$RUNNER_TEMP/ranked-parent.json" > "pub/check-$digest.json"
+            if [[ "$check" == --check-ranked-transfer-data ]]; then
+              php .trusted-editor/tools/anytour_existing_post_batch.php "$check" "$digest" "$INDEX_SHA" < "$RUNNER_TEMP/ranked-packet.json" > "pub/check-$digest.json"
+            else
+              php tools/anytour_existing_post_batch.php "$check" "$digest" < "$RUNNER_TEMP/ranked-parent.json" > "pub/check-$digest.json"
+            fi
           done < "$RUNNER_TEMP/ranked-digests"
           python3 - <<'PY'
           import json, os, pathlib
@@ -140,6 +217,7 @@ jobs:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
           APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
+          INDEX_SHA: ${{ steps.release.outputs.ranked_index_digest }}
         shell: bash
         run: |
           set -euo pipefail
@@ -150,12 +228,23 @@ jobs:
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
           apply=--apply-ranked-transfer
-          if [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-37-continue-20261123 ]]; then
+          input="$RUNNER_TEMP/ranked-parent.json"
+          suffix=""
+          if [[ "$GITHUB_REF" == refs/heads/ops/anytour-publisher-keyboard-1047-20261125 ]]; then
+            apply=--apply-publisher-keyboard-pilot
+          elif [[ "$GITHUB_REF" == refs/heads/ops/anytour-publisher-media-1058-20261126 ]]; then
+            apply=--apply-publisher-media-pilot
+          elif [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-37-continue-20261123 ]]; then
             apply=--apply-ranked-continuation
           elif [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-resume-20261124 ]]; then
             apply=--apply-ranked-resume
           elif [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-after-* ]]; then
             apply=--apply-ranked-unreached
+          elif [[ "$GITHUB_REF" == refs/heads/ops/anytour-hotel-ranked-data-* ]]; then
+            apply=--apply-ranked-transfer-data
+            [[ "$INDEX_SHA" =~ ^[a-f0-9]{64}$ ]]
+            input="$RUNNER_TEMP/ranked-packet.json"
+            suffix=" $INDEX_SHA"
           fi
           remote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru'
           while read -r digest; do
@@ -168,17 +257,54 @@ jobs:
           p.write_text(json.dumps(summary))
           PY
             status=0
-            ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; php tools/anytour_existing_post_batch.php $apply $digest $APPLICATION_SHA $GITHUB_RUN_ID" < "$RUNNER_TEMP/ranked-parent.json" > "pub/result-$digest.json" || status=$?
+            ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; php tools/anytour_existing_post_batch.php $apply $digest $APPLICATION_SHA $GITHUB_RUN_ID$suffix" < "$input" > "pub/result-$digest.json" || status=$?
             python3 - "$digest" "$status" <<'PY'
           import json, os, pathlib, sys
           digest,status=sys.argv[1],int(sys.argv[2])
           summary=pathlib.Path('pub/summary.json')
           states=json.loads(summary.read_bytes())
           state=states[digest]
-          item={'hotels':state['hotel_ids'],'messages':state['message_ids'],'operation':state['operation']}
           p=pathlib.Path('pub/result-'+digest+'.json')
           assert 0<p.stat().st_size<=1000000,'original_result_missing_or_unbounded_requires_readback'
           d=json.loads(p.read_bytes())
+          if os.environ['GITHUB_REF']=='refs/heads/ops/anytour-publisher-media-1058-20261126':
+              assert state['operation']==d.get('operation')=='hotel_publisher_media_pilot'
+              assert state['message_ids']==['1058'] and state.get('full_transfer') is False
+              assert d.get('plan_sha256')==digest and d.get('message_id')=='1058' and d.get('hotel_id')==2514
+              assert d.get('full_transfer_requested') is True and type(d.get('full_transfer')) is bool
+              assert d.get('native_run_id')==os.environ['GITHUB_RUN_ID'] and d.get('application_sha')==os.environ['APPLICATION_SHA']
+              assert all(type(d.get(k)) is int and d[k]==0 for k in ('supplier_requests','bot_starts'))
+              writes=d.get('provider_write_attempts')
+              assert type(writes) is int and 0<=writes<=1 and type(d.get('ok')) is bool
+              ok=status==0 and d['ok'] is True
+              if ok:
+                  assert writes==1 and d.get('state')=='native_and_registry_verified' and d['full_transfer'] is True
+                  assert all(d.get(k) is True for k in ('hotel_id_verified','photo_caption_button_verified','original_message_id_and_date_preserved'))
+              else:
+                  assert d['full_transfer'] is False
+              state.update(state='complete' if ok else 'held_requires_readback',provider_state=d.get('state'),
+                  provider_write_attempts=writes,full_transfer=d['full_transfer'])
+              summary.write_text(json.dumps(states))
+              print(json.dumps(state))
+              raise SystemExit(0 if ok else 'publisher_media_held_do_not_replay')
+          if os.environ['GITHUB_REF']=='refs/heads/ops/anytour-publisher-keyboard-1047-20261125':
+              assert state['operation']==d.get('operation')=='hotel_publisher_keyboard_pilot'
+              assert state['message_ids']==['1047'] and state.get('full_transfer') is False
+              assert d.get('plan_sha256')==digest and d.get('message_id')=='1047' and d.get('full_transfer') is False
+              assert d.get('native_run_id')==os.environ['GITHUB_RUN_ID'] and d.get('application_sha')==os.environ['APPLICATION_SHA']
+              assert all(type(d.get(k)) is int and d[k]==0 for k in ('supplier_requests','bot_starts'))
+              writes=d.get('provider_write_attempts')
+              assert type(writes) is int and 0<=writes<=1 and type(d.get('ok')) is bool
+              ok=status==0 and d['ok'] is True
+              if ok:
+                  assert writes==1 and d.get('state')=='publisher_keyboard_verified'
+                  assert all(d.get(k) is True for k in ('caption_preserved','photo_preserved','date_preserved','button_urls_preserved'))
+              state.update(state='complete' if ok else 'held_requires_readback',provider_state=d.get('state'),
+                  provider_write_attempts=writes,full_transfer=False)
+              summary.write_text(json.dumps(states))
+              print(json.dumps(state))
+              raise SystemExit(0 if ok else 'publisher_pilot_held_do_not_replay')
+          item={'hotels':state['hotel_ids'],'messages':state['message_ids'],'operation':state['operation']}
           if not isinstance(d.get('results'),list):
               state['state']='requires_original_journals'
               summary.write_text(json.dumps(states))
@@ -194,6 +320,11 @@ jobs:
           confirmed=[]
           held=[]
           isolated_transport_loss=False
+          public_holds={
+              'public_post_missing','public_identity_changed',
+              'transfer_source_public_changed','transfer_target_public_changed',
+              'transfer_target_keyboard_changed',
+          }
           for i,row in enumerate(rows):
               assert row['url']=='https://t.me/anytour/'+item['messages'][i]
               if row.get('ok') is True:
@@ -204,7 +335,7 @@ jobs:
                   assert row.get('ok') is False
                   if i!=len(rows)-1:
                       assert (os.environ['GITHUB_REF'] in {'refs/heads/ops/anytour-hotel-ranked-37-continue-20261123','refs/heads/ops/anytour-hotel-ranked-resume-20261124'}
-                              or os.environ['GITHUB_REF'].startswith(('refs/heads/ops/anytour-hotel-ranked-after-', 'refs/heads/ops/anytour-hotel-ranked-plan-')))
+                              or os.environ['GITHUB_REF'].startswith(('refs/heads/ops/anytour-hotel-ranked-after-', 'refs/heads/ops/anytour-hotel-ranked-plan-', 'refs/heads/ops/anytour-hotel-ranked-data-')))
                       rejected=row['state']=='provider_message_id_rejected' and row['provider_write_attempts']==1
                       stale=(row['state']=='held_before_provider' and row.get('reason')=='transfer_source_revision_advanced'
                              and row['provider_write_attempts']==0 and ('reserved_publication_id' not in row
@@ -216,7 +347,7 @@ jobs:
                       local_hold=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
                                   and 'reserved_publication_id' not in row and row.get('reason') in {
                                   'transfer_target_identity_exists','transfer_hotel_already_in_large_channel','transfer_target_editor_busy',
-                                  'transfer_ranked_source_offer_changed','transfer_ranked_target_in_use','public_identity_changed'})
+                                  'transfer_ranked_source_offer_changed','transfer_ranked_target_in_use'} | public_holds)
                       prior=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
                              and row.get('reason') in {'transfer_current_run_journal_requires_readback','transfer_previous_run_journal_requires_readback'}
                              and (row.get('reason')!='transfer_previous_run_journal_requires_readback' or os.environ['GITHUB_REF']=='refs/heads/ops/anytour-hotel-ranked-resume-20261124')
@@ -224,9 +355,9 @@ jobs:
                              and len(row.get('prior_journal_sha256',''))==64
                              and all(ch in '0123456789abcdef' for ch in row['prior_journal_sha256']))
                       prewrite=(row['state']=='held_before_provider' and row['provider_write_attempts']==0
-                                and row.get('reason')=='public_identity_changed' and row.get('local_prewrite_hold_recorded') is True
+                                and row.get('reason') in public_holds and row.get('local_prewrite_hold_recorded') is True
                                 and type(row.get('reserved_publication_id')) is int and row['reserved_publication_id']>0)
-                      previous_target=(os.environ['GITHUB_REF'].startswith('refs/heads/ops/anytour-hotel-ranked-plan-')
+                      previous_target=(os.environ['GITHUB_REF'].startswith(('refs/heads/ops/anytour-hotel-ranked-plan-', 'refs/heads/ops/anytour-hotel-ranked-data-'))
                                        and row['state']=='held_before_provider' and row['provider_write_attempts']==0
                                        and 'reserved_publication_id' not in row and row.get('reason')=='transfer_previous_operation_do_not_replay')
                       assert rejected or stale or isolated or local_hold or prior or prewrite or previous_target,'nonlocal_error_must_end_batch'
@@ -237,7 +368,7 @@ jobs:
           ok=status==0 and d.get('ok') is True and confirmed==item['hotels'] and not held
           state.update(state='complete' if ok else 'partial_requires_readback',confirmed=confirmed,held=held,unreached=item['hotels'][len(rows):])
           if d.get('state')=='not_started_editor_busy':
-              assert os.environ['GITHUB_REF'].startswith('refs/heads/ops/anytour-hotel-ranked-plan-') and status==2
+              assert os.environ['GITHUB_REF'].startswith(('refs/heads/ops/anytour-hotel-ranked-plan-', 'refs/heads/ops/anytour-hotel-ranked-data-')) and status==2
               assert d.get('ok') is False and d.get('reason')=='transfer_content_editor_busy' and rows==[] and d['provider_write_attempts']==0
               state.update(state='not_started_editor_busy',reason=d['reason'])
           summary.write_text(json.dumps(states))
@@ -257,4 +388,4 @@ jobs:
       - name: Remove runner connection material
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/ranked-parent.json"
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/ranked-parent.json" "$RUNNER_TEMP/ranked-packet.json"

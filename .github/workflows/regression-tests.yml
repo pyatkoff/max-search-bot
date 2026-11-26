@@ -30,6 +30,10 @@ jobs:
         run: php tests/run_required_checks_inventory_regression.php
       - name: Verify complete isolated MySQL groups
         run: python3 tests/check_ci_mysql_groups.py
+      - name: Verify MAX photo batch data and receipt bindings
+        run: |
+          python3 -B tests/test_verify_max_photo_packet.py
+          node --test tests/test_resolve_max_photo_packet.js
 
   php-syntax:
     runs-on: ubuntu-latest
@@ -51,9 +55,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        group: [architecture, dialogue, website, manager, diagnostics]
+        group: [architecture, apple-coverage, apple-device, dialogue, website, manager, diagnostics]
         # Only an exact audited styling profile may omit unchanged server owners.
-        exclude: ${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{"group":"dialogue"},{"group":"website"},{"group":"manager"},{"group":"diagnostics"}]' || '[]') }}
+        exclude: ${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{"group":"dialogue"},{"group":"website"},{"group":"manager"},{"group":"diagnostics"}]' || (needs.change-scope.outputs.backend == 'hotel-catalogue-data' && '[{"group":"manager"},{"group":"apple-coverage"},{"group":"apple-device"}]') || (needs.change-scope.outputs.backend == 'telegram-public-observer' && '[{"group":"apple-coverage"},{"group":"apple-device"}]') || '[]') }}
     runs-on: ubuntu-latest
     name: required / ${{ matrix.group }}
     steps:
@@ -68,7 +72,18 @@ jobs:
       - name: Run required group
         env:
           REQUIRED_CHECK_REPORT: ${{ runner.temp }}/required-check-${{ matrix.group }}.json
-        run: php tests/run_required_group.php "${{ matrix.group }}"
+          REQUIRED_CHECK_GROUP: ${{ matrix.group }}
+          BACKEND_PROFILE: ${{ needs.change-scope.outputs.backend }}
+        run: |
+          if [[ "$REQUIRED_CHECK_GROUP" == architecture && ( "$BACKEND_PROFILE" == hotel-catalogue-data || "$BACKEND_PROFILE" == telegram-public-observer ) ]]; then
+            php tests/run_required_group.php architecture "$BACKEND_PROFILE"
+          elif [[ "$REQUIRED_CHECK_GROUP" == architecture ]]; then
+            php tests/run_required_group.php architecture ci-architecture-core
+          elif [[ "$REQUIRED_CHECK_GROUP" == apple-coverage || "$REQUIRED_CHECK_GROUP" == apple-device ]]; then
+            php tests/run_required_group.php architecture "ci-$REQUIRED_CHECK_GROUP"
+          else
+            php tests/run_required_group.php "$REQUIRED_CHECK_GROUP"
+          fi
       - name: Upload required-check timing report
         if: always()
         uses: actions/upload-artifact@v4
@@ -80,12 +95,13 @@ jobs:
 
   prepared-mysql:
     needs: change-scope
-    if: (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend != 'workspace-style') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
+    if: (needs.change-scope.outputs.mode == 'full' && (needs.change-scope.outputs.backend == 'full' || needs.change-scope.outputs.backend == 'telegram-public-observer')) || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
     # Each matrix job owns a fresh MySQL service and runner. Never run these
     # destructive fixtures concurrently against one shared database.
+    # Start all four existing jobs together and use the short regional job for development fixtures.
     strategy:
       fail-fast: false
-      max-parallel: 3
+      max-parallel: 4
       matrix:
         group: [replies, migrations, queues, regional-access]
     name: prepared-mysql / ${{ matrix.group }}
@@ -135,11 +151,13 @@ jobs:
             queues)
               php tests/mysql/hotel-work-queue.php
               php tests/mysql/hotel-work-events.php
-              php tests/mysql/development-work-queue.php
-              php tests/mysql/development-work-events.php
               ;;
             regional-access)
               php tests/mysql/manager-regional-routing.php --required-native
+              php -r '$pdo = new PDO("mysql:host=127.0.0.1;port=3306;charset=utf8mb4", getenv("PREPARED_REPLY_MYSQL_USER"), getenv("PREPARED_REPLY_MYSQL_PASS"), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]); $pdo->exec("CREATE DATABASE maxbot_prepared_test_development CHARACTER SET utf8mb4");'
+              export PREPARED_REPLY_MYSQL_DSN='mysql:host=127.0.0.1;port=3306;dbname=maxbot_prepared_test_development;charset=utf8mb4'
+              php tests/mysql/development-work-queue.php
+              php tests/mysql/development-work-events.php
               ;;
             *) exit 2 ;;
           esac
@@ -147,7 +165,7 @@ jobs:
   appleservice39-mysql:
     name: AppleService39 pilot native MySQL claims
     needs: change-scope
-    if: (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend != 'workspace-style') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
+    if: (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'full') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
     runs-on: ubuntu-latest
     timeout-minutes: 8
     services:
@@ -175,6 +193,26 @@ jobs:
           APPLESERVICE39_TEST_MYSQL_PASSWORD: as39-test-only
         run: php tests/mysql/appleservice39-publisher.php
 
+  hotel-catalogue:
+    name: Hotel catalogue and authorized readers
+    needs: change-scope
+    if: needs.change-scope.outputs.backend == 'hotel-catalogue-data' || needs.change-scope.outputs.hotel-proof == 'true'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, pdo_sqlite, dom
+          coverage: none
+      - name: Validate catalogue bytes and consumer boundaries
+        run: bash tools/check_hotel_catalogue_scope.sh
+
   oauth:
     needs: change-scope
     if: needs.change-scope.outputs.mode == 'oauth'
@@ -196,7 +234,7 @@ jobs:
 
   regression:
     name: regression
-    needs: [change-scope, inventory, php-syntax, required, prepared-mysql, appleservice39-mysql, oauth]
+    needs: [change-scope, inventory, php-syntax, required, prepared-mysql, appleservice39-mysql, hotel-catalogue, oauth]
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -211,6 +249,8 @@ jobs:
           CI_MODE: ${{ needs.change-scope.outputs.mode }}
           BACKEND_PROFILE: ${{ needs.change-scope.outputs.backend }}
           OAUTH_RESULT: ${{ needs.oauth.result }}
+          HOTEL_RESULT: ${{ needs.hotel-catalogue.result }}
+          HOTEL_PROOF: ${{ needs.change-scope.outputs.hotel-proof }}
           INVENTORY_RESULT: ${{ needs.inventory.result }}
           SYNTAX_RESULT: ${{ needs.php-syntax.result }}
           REQUIRED_RESULT: ${{ needs.required.result }}
@@ -220,6 +260,11 @@ jobs:
           test "$SCOPE_RESULT" = success
           test "$INVENTORY_RESULT" = success
           test "$SYNTAX_RESULT" = success
+          case "$CI_MODE:$BACKEND_PROFILE:$HOTEL_PROOF" in
+            full:hotel-catalogue-data:false|full:full:true) test "$HOTEL_RESULT" = success ;;
+            oauth:full:false|full:full:false|tour-selection:full:false|full:workspace-style:false|tour-selection:selection-style:false|full:telegram-public-observer:false) test "$HOTEL_RESULT" = skipped ;;
+            *) exit 1 ;;
+          esac
           case "$CI_MODE:$BACKEND_PROFILE" in
             oauth:full)
               test "$OAUTH_RESULT" = success
@@ -233,7 +278,13 @@ jobs:
               test "$APPLESERVICE39_MYSQL_RESULT" = success
               test "$OAUTH_RESULT" = skipped
               ;;
-            tour-selection:selection-style|full:workspace-style)
+            full:telegram-public-observer)
+              test "$REQUIRED_RESULT" = success
+              test "$PREPARED_MYSQL_RESULT" = success
+              test "$APPLESERVICE39_MYSQL_RESULT" = skipped
+              test "$OAUTH_RESULT" = skipped
+              ;;
+            tour-selection:selection-style|full:workspace-style|full:hotel-catalogue-data)
               test "$REQUIRED_RESULT" = success
               test "$PREPARED_MYSQL_RESULT" = skipped
               test "$APPLESERVICE39_MYSQL_RESULT" = skipped

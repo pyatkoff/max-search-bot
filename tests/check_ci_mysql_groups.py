@@ -27,16 +27,27 @@ GROUPS = {
     'queues': [
         'tests/mysql/hotel-work-queue.php',
         'tests/mysql/hotel-work-events.php',
+    ],
+    'regional-access': [
+        'tests/mysql/manager-regional-routing.php --required-native',
         'tests/mysql/development-work-queue.php',
         'tests/mysql/development-work-events.php',
     ],
-    'regional-access': ['tests/mysql/manager-regional-routing.php --required-native'],
 }
 CONNECTION = {
     'PREPARED_REPLY_MYSQL_DSN': 'mysql:host=127.0.0.1;port=3306;dbname=maxbot_prepared_test;charset=utf8mb4',
     'PREPARED_REPLY_MYSQL_USER': 'root',
     'PREPARED_REPLY_MYSQL_PASS': 'prepared-fixture-only',
 }
+
+DEVELOPMENT_DSN = CONNECTION['PREPARED_REPLY_MYSQL_DSN'].replace(
+    'dbname=maxbot_prepared_test;', 'dbname=maxbot_prepared_test_development;')
+DEVELOPMENT_SCHEMA = (
+    """-r '$pdo = new PDO("mysql:host=127.0.0.1;port=3306;charset=utf8mb4", """
+    'getenv("PREPARED_REPLY_MYSQL_USER"), getenv("PREPARED_REPLY_MYSQL_PASS"), '
+    '[PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]); '
+    """$pdo->exec("CREATE DATABASE maxbot_prepared_test_development CHARACTER SET utf8mb4");'"""
+)
 
 
 def verify(document):
@@ -51,17 +62,18 @@ def verify(document):
     jobs = document['jobs']
     job = jobs['prepared-mysql']
     check(job['strategy'] == {
-        'fail-fast': False, 'max-parallel': 3,
+        'fail-fast': False, 'max-parallel': 4,
         'matrix': {'group': list(GROUPS)},
     }, 'all four independent groups must execute; no exclusion or ignored matrix failure')
     check(job['runs-on'] == 'ubuntu-latest' and 'container' not in job,
           'each matrix job requires its own hosted runner and service')
     check(job['needs'] == 'change-scope' and job['if'] == (
         "(needs.change-scope.outputs.mode == 'full' && "
-        "needs.change-scope.outputs.backend != 'workspace-style') || "
+        "(needs.change-scope.outputs.backend == 'full' || "
+        "needs.change-scope.outputs.backend == 'telegram-public-observer')) || "
         "(needs.change-scope.outputs.mode == 'tour-selection' && "
         "needs.change-scope.outputs.backend != 'selection-style')"),
-        'existing full/component selection must remain unchanged')
+        'the observer and existing full profiles require all shared MySQL groups')
     check(not job.get('continue-on-error', False), 'a failing MySQL group must remain fatal')
     check(job['services'] == {'mysql': {
         'image': 'mysql:8.0',
@@ -84,7 +96,13 @@ def verify(document):
         'group selector and safe connection must bind directly to the matrix')
     expected = ['set -euo pipefail', 'case "$MYSQL_TEST_GROUP" in']
     for group, commands in GROUPS.items():
-        expected.extend([group + ')', *['php ' + command for command in commands], ';;'])
+        statements = ['php ' + command for command in commands]
+        if group == 'regional-access':
+            statements[1:1] = [
+                'php ' + DEVELOPMENT_SCHEMA,
+                "export PREPARED_REPLY_MYSQL_DSN='" + DEVELOPMENT_DSN + "'",
+            ]
+        expected.extend([group + ')', *statements, ';;'])
     expected.extend(['*) exit 2 ;;', 'esac'])
     script = step['run']
     check([line.strip() for line in script.splitlines() if line.strip()] == expected,
@@ -129,10 +147,16 @@ sys.exit(37 if sys.argv[1:] == shlex.split(os.environ.get('FAIL_ON', '')) else 0
             return result.returncode, calls
 
         for group, commands in GROUPS.items():
+            native_dsn = CONNECTION['PREPARED_REPLY_MYSQL_DSN']
+            expected_dsns = [native_dsn] * len(commands)
+            if group == 'regional-access':
+                commands = [commands[0], DEVELOPMENT_SCHEMA, *commands[1:]]
+                expected_dsns = [native_dsn, native_dsn, DEVELOPMENT_DSN, DEVELOPMENT_DSN]
             code, calls = execute(group)
             check(code == 0 and calls == [
-                {'args': shlex.split(command), 'dsn': CONNECTION['PREPARED_REPLY_MYSQL_DSN']}
-                for command in commands], 'actual shell lost/duplicated coverage in ' + group)
+                {'args': shlex.split(command), 'dsn': dsn}
+                for command, dsn in zip(commands, expected_dsns, strict=True)],
+                'actual shell lost coverage or used the wrong fixture database in ' + group)
             for index, command in enumerate(commands):
                 code, calls = execute(group, command)
                 check(code == 37 and [call['args'] for call in calls] == [

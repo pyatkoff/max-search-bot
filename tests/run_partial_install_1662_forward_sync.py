@@ -15,6 +15,7 @@ BASE = "302ba66b5739e369a4df94471c8cfe9c054dd070"
 PR1702_MAIN = "32155b9eb2c8606b61554951bfdc988d70bbcb39"
 PR1692_MAIN = "cdde6f427f61bace3a5afbd943d2303f463d6531"
 PR1692_INSTALLED = "e3e1a9bdf29dd0d7530fe6b3b393f1286834d092"
+PR1721_MAIN = "3073195685c8d57808256af6836182262f25fead"
 PRODUCTION = "/var/www/anytoour/data/www/app.anytoour.ru"
 JOURNAL = "/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl"
 GIT = shutil.which("git")
@@ -31,10 +32,12 @@ class ProductionSync(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.tools = self.root / "tools"
         self.checkout = self.root / "checkout"
+        self.private = self.root / "max-search-bot-private-logs"
+        self.catalogue_lock = self.private / "hotel-catalogue-releases" / "operation.lock"
         self.journal = self.root / "journal"
         self.calls = self.root / "calls"
         self.bin = self.root / "bin"
-        for directory in (self.tools, self.checkout, self.bin):
+        for directory in (self.tools, self.checkout, self.private, self.bin):
             directory.mkdir()
         self.journal.write_text("one original journal record\n")
         self.calls.touch()
@@ -50,6 +53,8 @@ class ProductionSync(unittest.TestCase):
         lock = (ROOT / "tools/deploy_monitor_lock.sh").read_text()
         self.assertIn(JOURNAL, lock)
         (self.tools / "deploy_monitor_lock.sh").write_text(lock.replace(JOURNAL, str(self.journal)))
+        guard = "deploy_hotel_catalogue_guard.sh"
+        (self.tools / guard).write_bytes((ROOT / "tools" / guard).read_bytes())
         fence = (ROOT / "tools/check_public_runtime_log_fence.sh").read_bytes()
         (self.tools / "check_public_runtime_log_fence.sh").write_bytes(fence)
         self.make_git_checkout()
@@ -106,6 +111,7 @@ class ProductionSync(unittest.TestCase):
                 if [[ "${LOCAL_REMOTE:-}" == 1 ]]; then
                   # A distinct file descriptor cannot acquire this exclusive lock.
                   if flock --nonblock "$LOCAL_JOURNAL" true; then exit 78; fi
+                  if [[ "$1" == reset ]] && flock --nonblock "$CATALOGUE_LOCK" true; then exit 79; fi
                   echo "locked git $*" >> "$CALLS"
                 fi
                 exec "$REAL_GIT" "$@"
@@ -125,7 +131,7 @@ class ProductionSync(unittest.TestCase):
                    RUNNER_TEMP=str(self.root), DEPLOY_USER="local", DEPLOY_HOST="fixture",
                    PREVIOUS_MAIN_SHA=before, EXPECTED_CHECKOUT_SHA=planned, EXPECTED_SHA=self.successor,
                    HTTP_STATUS_SEQUENCE=" ".join(responses or [first, last]), CALLS=str(self.calls),
-                   REAL_GIT=GIT, LOCAL_JOURNAL=str(self.journal))
+                   REAL_GIT=GIT, LOCAL_JOURNAL=str(self.journal), CATALOGUE_LOCK=str(self.catalogue_lock))
         return dict(args=["bash", "-c", self.shell], cwd=self.root, env=env, text=True,
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -231,6 +237,25 @@ class ProductionSync(unittest.TestCase):
         self.calls.write_text("")
         calls = self.check_run(False, before=current_main, planned=PR1702_MAIN)
         self.assertEqual(calls, ["http", "scp", "ssh", "locked git rev-parse HEAD"])
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+
+    def test_pr1721_requires_working_https_and_the_partial_checkout(self):
+        self.pin_checkout(PR1721_MAIN)
+        self.assertEqual(self.check_run(False, before=PR1721_MAIN, planned=""), [])
+        self.assertEqual(self.check_run(False, before=PR1721_MAIN, planned=PR1721_MAIN,
+                                        responses=["timeout", "timeout"]), ["http", "http"])
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), PR1721_MAIN)
+
+        self.calls.write_text("")
+        calls = self.check_run(True, before=PR1721_MAIN, planned=PR1721_MAIN)
+        self.assertEqual(calls[:4], ["http", "scp", "ssh", "locked git rev-parse HEAD"])
+        self.assertEqual(calls[-1], "http")
+        self.assertEqual(sum(c.startswith("locked git reset --hard ") for c in calls), 1)
+        self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
+
+        self.calls.write_text("")
+        self.assertEqual(self.check_run(False, before=PR1721_MAIN, planned=PR1721_MAIN),
+                         ["http", "scp", "ssh", "locked git rev-parse HEAD"])
         self.assertEqual(checked_git(self.checkout, "rev-parse", "HEAD"), self.successor)
 
     def test_pr1692_sync_from_accepted_checkout(self):

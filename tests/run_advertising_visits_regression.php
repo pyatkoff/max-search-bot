@@ -151,6 +151,58 @@ function advertisingVisitAssertions(PDO $pdo, callable $check): void
     $r = $full->import(advertisingVisitPage($rows,'0',null,['source_key'=>'full-page']),$now);
     $check('a full hundred-observation page commits correctly', $r === ['inserted'=>100,'replayed'=>0,'cursor'=>'100']);
     advertisingVisitJournalAssertions($pdo, $check, $now);
+    advertisingVisitEntryContextAssertions($pdo, $check, $now);
+}
+
+/** Click presence stays in the complete, exact-scope reader; raw clicks never leave SQL. */
+function advertisingVisitEntryContextAssertions(PDO $pdo, callable $check, int $now): void
+{
+    $scope=advertisingVisitScope(['source_key'=>'entry-context']);
+    $repo=new AdvertisingVisitRepository($pdo);
+    $service=new AdvertisingVisitImportService($repo,$scope);
+    $service->import(advertisingVisitPage([
+        advertisingVisitRow('1',['visit_id'=>'presence-a']),
+        advertisingVisitRow('2',['visit_id'=>'presence-b','yclid'=>'']),
+    ],'0',null,['source_key'=>'entry-context']),$now);
+    $queries=[];
+    $read=static function(string $sql,array $args)use($pdo,&$queries):array{
+        $queries[]=$sql;$q=$pdo->prepare($sql);$q->execute($args);return$q->fetchAll(PDO::FETCH_ASSOC);
+    };
+    $peer=['18446744073709551615'];
+    $plain=$repo->entryContextCandidates($scope,$peer,3,$read);
+    $check('ordinary entry-context projection remains unchanged', $plain['complete']===true
+        &&count($plain['rows'])===2&&!array_key_exists('yclid_present',$plain['rows'][0])
+        &&!str_contains(implode('\n',$queries),'yclid'));
+    $projection=$repo->entryContextCandidates($scope,$peer,3,$read,true);
+    $presence=array_map(static fn(array $row):int=>(int)$row['yclid_present'],$projection['rows']);sort($presence);
+    $check('opt-in projection returns only valid or empty click presence', $presence===[0,1]
+        &&!str_contains(json_encode($projection,JSON_THROW_ON_ERROR),'18446744073709551614')
+        &&!array_key_exists('yclid',$projection['rows'][0]));
+    $check('click projection retains completeness sentinel', $repo->entryContextCandidates($scope,$peer,2,$read,true)===['complete'=>false,'rows'=>[]]);
+    $update=$pdo->prepare('UPDATE advertising_visit_observations SET yclid=? WHERE source_key=? AND source_cursor=?');
+    foreach(['0','01','1e3','１２３',"123\n",str_repeat('9',41),' ','  ']as$i=>$invalid){
+        // The canonical native column is ASCII VARCHAR(40). These two invalid
+        // values are refused by MySQL before the read-only projection can see them.
+        if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'&&in_array($i,[3,5],true)){
+            $beforeClick=$pdo->query("SELECT yclid FROM advertising_visit_observations WHERE source_key='entry-context' AND source_cursor='1'")->fetchColumn();
+            $driverCode=0;
+            try{$update->execute([$invalid,'entry-context','1']);}
+            // MySQL rejects at assignment (1366), charset conversion (3854), or
+            // native prepared parameter collation conversion (3988, since 8.0.22).
+            catch(PDOException $error){$driverCode=(int)($error->errorInfo[1]??0);}
+            $refused=in_array($driverCode,$i===3?[1366,3854,3988]:[1406],true);
+            $unchanged=$pdo->query("SELECT yclid FROM advertising_visit_observations WHERE source_key='entry-context' AND source_cursor='1'")->fetchColumn()===$beforeClick;
+            if(!$refused||!$unchanged)fwrite(STDERR,'native_click_fixture case='.$i.' errno='.$driverCode.' unchanged='.(int)$unchanged.PHP_EOL);
+            $check('native schema refuses invalid click before projection '.$i.' errno='.$driverCode,$refused&&$unchanged);
+            continue;
+        }
+        $update->execute([$invalid,'entry-context','1']);
+        $rows=$repo->entryContextCandidates($scope,$peer,3,$read,true)['rows'];
+        $check('malformed click presence remains unknown '.$i,count(array_filter($rows,static fn(array $row):bool=>$row['yclid_present']===null))===1);
+    }
+    $update->execute([str_repeat('9',40),'entry-context','1']);
+    $rows=$repo->entryContextCandidates($scope,$peer,3,$read,true)['rows'];
+    $check('forty-digit click stays a presence flag without integer conversion',count(array_filter($rows,static fn(array $row):bool=>(string)$row['yclid_present']==='1'))===1);
 }
 
 /** Exact envelope and byte-offset cursors of the delivered Mini App package. */

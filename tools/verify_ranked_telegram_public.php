@@ -106,33 +106,101 @@ function verifiedCandidates(array $plan, array $check, array $result, array $sum
     return $candidates;
 }
 
-function inspectPublic(array $candidates, string $digest, callable $read): array
+function inspectPublicRow(array $plan, array $native, string $digest, callable $read): array
 {
-    $rows = []; $routes = [];
-    foreach ($candidates as [$p, $n]) {
-        $entry = ['hotel_id'=>$n['hotel_id'], 'message_id'=>$n['message_id'], 'url'=>$n['url'],
-            'publication_id'=>$n['publication_id'], 'version_id'=>$n['version_id'], 'native_photo_identity_verified'=>true, 'applied'=>false];
-        try {
-            $observed = parseTransferPublic($read($n['message_id']), 'anytour', $n['message_id'], $digest);
-            $buttons = $observed['buttons'];
-            $entry['caption'] = $observed['caption_sha256'] === $p['next_caption_sha256'];
-            $entry['public_new_photo_marker'] = $observed['single_photo'] && $observed['photo_marker_sha256'] !== $p['target_photo_marker_sha256'];
-            $entry['original_date'] = $observed['published_unixtime'] === $p['target_published_unixtime'];
-            $entry['hotel_button'] = count($buttons) === 1 && $buttons[0]['hotel_url'] === $n['button_url']
-                && $buttons[0]['text'] === $p['button_text'];
-            $entry['html_sha256'] = $observed['html_sha256'];
-            $entry['applied'] = $entry['caption'] && $entry['public_new_photo_marker'] && $entry['original_date'] && $entry['hotel_button'];
-            if ($entry['applied']) {
-                $routes[] = ['hotel_id'=>$n['hotel_id'], 'source_url'=>'https://t.me/any_toour/'.$p['source_message_id'],
-                    'post_url'=>$n['url'], 'publication_id'=>$n['publication_id'], 'version_id'=>$n['version_id']];
-            }
-        } catch (Throwable $e) {
-            $entry['reason'] = transferReason($e);
+    $entry = ['hotel_id'=>$native['hotel_id'], 'message_id'=>$native['message_id'], 'url'=>$native['url'],
+        'publication_id'=>$native['publication_id'], 'version_id'=>$native['version_id'],
+        'native_photo_identity_verified'=>true, 'applied'=>false];
+    try {
+        $observed = parseTransferPublic($read($native['message_id']), 'anytour', $native['message_id'], $digest);
+        $buttons = $observed['buttons'];
+        $entry['caption'] = $observed['caption_sha256'] === $plan['next_caption_sha256'];
+        $entry['public_new_photo_marker'] = $observed['single_photo']
+            && $observed['photo_marker_sha256'] !== $plan['target_photo_marker_sha256'];
+        $entry['original_date'] = $observed['published_unixtime'] === $plan['target_published_unixtime'];
+        $entry['hotel_button'] = count($buttons) === 1 && $buttons[0]['hotel_url'] === $native['button_url']
+            && $buttons[0]['text'] === $plan['button_text'];
+        $entry['html_sha256'] = $observed['html_sha256'];
+        $entry['applied'] = $entry['caption'] && $entry['public_new_photo_marker'] && $entry['original_date'] && $entry['hotel_button'];
+
+        if ($entry['original_date'] && $observed['single_photo'] && $buttons === []
+            && $observed['caption_sha256'] === $plan['target_caption_sha256']
+            && $observed['photo_marker_sha256'] === $plan['target_photo_marker_sha256']) {
+            $entry['previous_public_snapshot'] = true;
         }
-        $rows[] = $entry;
+    } catch (Throwable $e) {
+        $entry['reason'] = transferReason($e);
     }
-    return ['results'=>$rows, 'public_verified'=>count($routes), 'public_unverified'=>count($rows)-count($routes),
+    return $entry;
+}
+
+function inspectPublic(array $candidates, string $digest, callable $read, ?callable $wait = null): array
+{
+    $rows = [];
+    foreach ($candidates as $i => [$plan, $native]) {
+        $rows[$i] = inspectPublicRow($plan, $native, $digest, $read);
+    }
+
+    if ($wait !== null) {
+        foreach ([30, 45, 60, 60] as $seconds) {
+            $pending = array_filter($rows, static fn(array $row): bool => $row['previous_public_snapshot'] ?? false);
+            if ($pending === []) break;
+
+            $wait($seconds);
+            foreach ($pending as $i => $previous) {
+                [$plan, $native] = $candidates[$i];
+                $rows[$i] = inspectPublicRow($plan, $native, $digest, $read);
+                $rows[$i]['earlier_public_html_sha256'] = [
+                    ...($previous['earlier_public_html_sha256'] ?? []),
+                    $previous['html_sha256'],
+                ];
+            }
+        }
+    }
+
+    $routes = [];
+    foreach ($candidates as $i => [$plan, $native]) {
+        if (!$rows[$i]['applied']) continue;
+        $routes[] = ['hotel_id'=>$native['hotel_id'], 'source_url'=>'https://t.me/any_toour/'.$plan['source_message_id'],
+            'post_url'=>$native['url'], 'publication_id'=>$native['publication_id'], 'version_id'=>$native['version_id']];
+    }
+    return ['results'=>array_values($rows), 'public_verified'=>count($routes), 'public_unverified'=>count($rows)-count($routes),
         'verified_destinations'=>$routes];
+}
+
+/** Reconcile the report produced by this observer with its authenticated native rows. */
+function routeInput(array $groups, array $context, array $report): array
+{
+    foreach ($context as $key => $value) {
+        requirePost(($report[$key] ?? null) === $value, 'route_receipt_context_invalid');
+    }
+    requirePost(($report['read_only'] ?? null) === true && ($report['provider_write_attempts'] ?? null) === 0
+        && array_keys($groups) === array_keys($report['plans']), 'route_receipt_context_invalid');
+    $accepted = [];
+    foreach ($groups as $digest => $candidates) {
+        $block = $report['plans'][$digest];
+        requirePost(array_is_list($block['results']) && count($candidates) === count($block['results']),
+            'route_public_coverage_invalid');
+        $expected = [];
+        foreach ($candidates as $i => [$plan, $native]) {
+            $public = $block['results'][$i];
+            foreach (['hotel_id','message_id','url','publication_id','version_id'] as $key) {
+                requirePost(($public[$key] ?? null) === $native[$key], 'route_public_identity_invalid');
+            }
+            if ($public['applied'] === false) continue;
+            foreach (['applied','native_photo_identity_verified','caption','public_new_photo_marker','original_date','hotel_button'] as $check) {
+                requirePost(($public[$check] ?? null) === true, 'route_public_proof_incomplete');
+            }
+            requirePost(preg_match('/\A[a-f0-9]{64}\z/D', $public['html_sha256']) === 1, 'route_public_html_invalid');
+            $row = ['hotel_id'=>$native['hotel_id'], 'source_url'=>'https://t.me/any_toour/'.$plan['source_message_id'],
+                'post_url'=>$native['url'], 'publication_id'=>$native['publication_id'], 'version_id'=>$native['version_id']];
+            $expected[] = $row;
+            $accepted[] = $row + ['plan_sha256'=>$digest, 'html_sha256'=>$public['html_sha256']];
+        }
+        requirePost($block['public_verified'] === count($expected) && $block['verified_destinations'] === $expected
+            && $block['public_unverified'] === count($candidates) - count($expected), 'route_destinations_mismatch');
+    }
+    return ['native'=>$context, 'accepted'=>$accepted];
 }
 
 if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
@@ -140,7 +208,10 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     $load = static fn(string $file): array => json_decode(file_get_contents($file), true, 64, JSON_THROW_ON_ERROR);
     $indexPath = getenv('RANKED_APPROVED_INDEX') ?: 'config/anytour_ranked_46_20261123.json';
     requirePost(preg_match('~\Aconfig/anytour_[a-z0-9_]+\.json\z~D', $indexPath) === 1, 'native_plan_path_invalid');
-    $index = $load(__DIR__.'/../'.$indexPath);
+    $dataRoot = getenv('RANKED_DATA_ROOT');
+    $root = $dataRoot ?: dirname(__DIR__);
+    $indexBytes = file_get_contents($root.'/'.$indexPath);
+    $index = json_decode($indexBytes, true, 32, JSON_THROW_ON_ERROR);
     $summary = $load($folder.'summary.json');
     $context = ['run_id'=>getenv('NATIVE_RUN_ID'), 'repository_sha'=>getenv('NATIVE_REPOSITORY_SHA'),
         'artifact_id'=>getenv('RECEIPT_ID'), 'artifact_sha256'=>getenv('RECEIPT_SHA256'), 'write_operation'=>getenv('WRITE_OPERATION')];
@@ -154,7 +225,17 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     $groups = []; $unverified = 0;
     foreach ($index['plans'] as $item) {
         $digest = $item['sha256'];
-        $plan = transferPlanFromBytes(file_get_contents(__DIR__.'/../'.$item['path']), $digest, $digest);
+        requirePost(preg_match('~\Aconfig/anytour_[a-z0-9_]+\.json\z~D', $item['path']) === 1, 'native_plan_path_invalid');
+        $planBytes = file_get_contents($root.'/'.$item['path']);
+        if ($dataRoot) {
+            $indexDigest = getenv('RANKED_INDEX_SHA') ?: '';
+            if (\AnyTourRankedHotelTransfer46::profile($digest) === null) {
+                \AnyTourRankedHotelTransfer46::acceptPacket($indexBytes, $indexDigest, $planBytes, $digest);
+            } else {
+                \AnyTourRankedHotelTransfer46::profileFromBytes($indexBytes, $indexDigest, $planBytes, $digest);
+            }
+        }
+        $plan = transferPlanFromBytes($planBytes, $digest, $digest);
         $result = $load($folder.'result-'.$digest.'.json');
         // The native job writes its terminal summary only after comparing the result
         // to resolve-consumer's accepted application SHA (which may differ from repository SHA).
@@ -163,9 +244,13 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
         $groups[$digest] = verifiedCandidates($plan, $load($folder.'check-'.$digest.'.json'), $result,
             $summary[$digest], $context + ['plan_sha256'=>$digest]);
     }
+    if ($argc === 3 && $argv[1] === '--route-input') {
+        echo json_encode(routeInput($groups, $context, $load($argv[2])), JSON_THROW_ON_ERROR);
+        exit(0);
+    }
     $report = $context + ['read_only'=>true, 'provider_write_attempts'=>0, 'plans'=>[]];
     foreach ($groups as $digest => $candidates) {
-        $verified = inspectPublic($candidates, $digest, __NAMESPACE__.'\\publicHistory');
+        $verified = inspectPublic($candidates, $digest, __NAMESPACE__.'\\publicHistory', 'sleep');
         $report['plans'][$digest] = $verified;
         $unverified += $verified['public_unverified'];
     }

@@ -44,9 +44,14 @@ manifestCheck('canonical full runner delegates to grouped runner', strpos($runne
 manifestCheck('canonical full runner still performs PHP syntax validation', strpos($runner, "find . -type f -name '*.php'") !== false && strpos($runner, 'php -l') !== false);
 manifestCheck('group runner loads metadata catalog', strpos($groupRunner, "required_checks_catalog.php") !== false && strpos($groupRunner, "if (\$group === 'all')") !== false);
 manifestCheck('group runner records per-check duration and machine-readable result', strpos($groupRunner, 'duration_ms') !== false && strpos($groupRunner, 'CHECK_RESULT ') !== false && strpos($groupRunner, 'REQUIRED_CHECK_REPORT') !== false);
-manifestCheck('PR workflow has matrix groups', strpos($workflow, 'matrix:') !== false && strpos($workflow, 'group: [architecture, dialogue, website, manager, diagnostics]') !== false);
-manifestCheck('PR workflow executes group runner', strpos($workflow, 'php tests/run_required_group.php "${{ matrix.group }}"') !== false);
-manifestCheck('PR workflow preserves all final regression gates including native MySQL', strpos($workflow, 'regression:') !== false && strpos($workflow, 'name: regression') !== false && strpos($workflow, 'needs: [change-scope, inventory, php-syntax, required, prepared-mysql, appleservice39-mysql, oauth]') !== false && strpos($workflow, 'test "$PREPARED_MYSQL_RESULT" = success') !== false && strpos($workflow, 'test "$APPLESERVICE39_MYSQL_RESULT" = success') !== false && strpos($workflow, 'php tests/mysql/appleservice39-publisher.php') !== false);
+manifestCheck('PR workflow has matrix groups', strpos($workflow, 'matrix:') !== false && strpos($workflow, 'group: [architecture, apple-coverage, apple-device, dialogue, website, manager, diagnostics]') !== false);
+manifestCheck('PR workflow executes the canonical runner for its required groups and scoped architecture',
+    str_contains($workflow, 'php tests/run_required_group.php "$REQUIRED_CHECK_GROUP"')
+    && str_contains($workflow, 'php tests/run_required_group.php architecture "$BACKEND_PROFILE"')
+    && str_contains($workflow, 'php tests/run_required_group.php architecture ci-architecture-core')
+    && str_contains($workflow, 'php tests/run_required_group.php architecture "ci-$REQUIRED_CHECK_GROUP"')
+    && str_contains($workflow, '"$BACKEND_PROFILE" == telegram-public-observer'));
+manifestCheck('PR workflow preserves all final regression gates including native MySQL', strpos($workflow, 'regression:') !== false && strpos($workflow, 'name: regression') !== false && strpos($workflow, 'needs: [change-scope, inventory, php-syntax, required, prepared-mysql, appleservice39-mysql, hotel-catalogue, oauth]') !== false && strpos($workflow, 'test "$PREPARED_MYSQL_RESULT" = success') !== false && strpos($workflow, 'test "$APPLESERVICE39_MYSQL_RESULT" = success') !== false && strpos($workflow, 'test "$HOTEL_RESULT" = success') !== false && strpos($workflow, 'php tests/mysql/appleservice39-publisher.php') !== false);
 manifestCheck('PR workflow persists required-check timing artifacts', strpos($workflow, 'REQUIRED_CHECK_REPORT:') !== false && strpos($workflow, 'actions/upload-artifact@v4') !== false && strpos($workflow, 'required-check-report-') !== false);
 
 // Read the actual deployment graph and execute its aggregate. A missing lane
@@ -71,8 +76,11 @@ preg_match('/^      - name: Require the complete deployment verification\\n(.*?)
 $sourceGate = $sourceGateRows[1] ?? '';
 manifestCheck('deployment retains distinct source checks, aggregate and install jobs',
     $uniqueJobs && $inventoryJob !== '' && $syntaxJob !== '' && $groupsJob !== '' && $verifyJob !== '' && $deployJob !== '');
-manifestCheck('deployment preflight runs architecture once with inventory first',
-    preg_match('/^        run: php tests\/run_required_group\.php architecture$/m', $inventoryJob) === 1
+manifestCheck('deployment routes the full architecture suite to three lanes and keeps inventory first in core',
+    substr_count($inventoryJob, 'php tests/run_required_group.php architecture ci-apple-coverage') === 1
+    && substr_count($groupsJob, 'php tests/run_required_group.php architecture ci-architecture-core') === 1
+    && substr_count($groupsJob, 'php tests/run_required_group.php architecture ci-apple-device') === 1
+    && substr_count($inventoryJob, 'php tests/run_required_group.php architecture "$DEPLOY_CHECK_PROFILE"') === 1
     && ($manifest['architecture'][0] ?? null) === 'php tests/run_required_checks_inventory_regression.php');
 
 $include = [];
@@ -93,13 +101,17 @@ manifestCheck('two deployment lanes plus preflight cover every catalog group exa
     count($laneRows) === 2 && count(array_unique($lanes)) === 2
     && trim(preg_replace($lanePattern, '', $include[1] ?? '')) === ''
     && $selectedGroups === $expectedGroups);
-manifestCheck('deployment lanes require inventory and limit concurrent runners',
-    preg_match('/^    needs: verify-inventory$/m', $groupsJob) === 1
+manifestCheck('architecture and application lanes run independently with bounded concurrency',
+    preg_match('/^    needs: verify-syntax$/m', $inventoryJob) === 1
+    && preg_match('/^    needs: verify-syntax$/m', $groupsJob) === 1
     && preg_match('/^      fail-fast: false$/m', $groupsJob) === 1
     && preg_match('/^      max-parallel: 2$/m', $groupsJob) === 1
     && str_contains($groupsJob, 'DEPLOY_CHECK_GROUPS: ${{ matrix.groups }}')
     && str_contains($groupsJob, 'for check_group in $DEPLOY_CHECK_GROUPS; do')
     && str_contains($groupsJob, 'php tests/run_required_group.php "$check_group"'));
+manifestCheck('deployment observer profile retains every application and diagnostics group',
+    str_contains($groupsJob, 'hotel-catalogue-data:diagnostics|telegram-public-observer:application|telegram-public-observer:diagnostics) ;;')
+    && in_array('php tests/run_channel_post_automation_regression.php', $manifest['manager'], true));
 manifestCheck('deployment syntax still covers every non-vendor PHP file',
     str_contains($syntaxJob, "run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l"));
 

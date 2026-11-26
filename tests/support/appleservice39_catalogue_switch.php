@@ -1,137 +1,119 @@
 <?php
 declare(strict_types=1);
 
-/** Exercise the installed pointer and rollback primitives only under an isolated temporary root. */
+/** Run the installed catalogue CLI and fresh PHP consumers in an isolated checkout. */
 function repairCatalogueSwitchChecks(string $approvedBytes, string $approvedDigest, string $candidateBytes, array $approvedEntries): void
 {
     $repository = dirname(__DIR__, 2);
-    require_once $repository.'/modules/tour-selections/deploy-editor.php';
     $temp = realpath(sys_get_temp_dir());
     if ($temp === false) throw new RuntimeException('catalogue_rehearsal_temp_unavailable');
     $root = $temp.'/as39-catalogue-switch-'.bin2hex(random_bytes(10));
     if (!mkdir($root, 0700)) throw new RuntimeException('cannot_create_catalogue_rehearsal');
     $heldReader = null;
     try {
+        $app = $root.'/app';
         $versions = [
             'reader'=>'services/AppleService39PilotCatalog.php',
             'anytour'=>'knowledge/hotels/catalogue.json',
             'manager2'=>'manager/assets/workspace-v2.js',
         ];
         foreach ($versions as $file) {
-            $target = $root.'/'.$file;
+            $target = $app.'/'.$file;
             if (!mkdir(dirname($target), 0700, true) || !copy($repository.'/'.$file, $target)) {
                 throw new RuntimeException('cannot_copy_catalogue_rehearsal_input');
             }
         }
         $versionReadback = static fn(): array => array_map(
-            static fn(string $file): string => hash_file('sha256', $root.'/'.$file), $versions
+            static fn(string $file): string => hash_file('sha256', $app.'/'.$file), $versions
         );
         $beforeVersions = $versionReadback();
-        $releases = $root.'/releases';
-        $site = $root.'/site';
-        foreach ([$site, $root.'/resources', $releases.'/operations'] as $directory) {
-            if (!mkdir($directory, 0700, true)) throw new RuntimeException('cannot_create_catalogue_rehearsal_input');
-        }
-
+        $private = $root.'/max-search-bot-private-logs';
+        $releases = $private.'/appleservice39-catalogue-releases';
+        mkdir($private.'/hotel-catalogue-releases', 0700, true);
+        mkdir($app.'/resources', 0700);
+        $bundled = $app.'/resources/appleservice39-pilot-entries.json';
+        file_put_contents($bundled, $approvedBytes);
+        $candidate = $root.'/approved-candidate.json';
+        file_put_contents($candidate, $candidateBytes);
         $candidateDigest = hash('sha256', $candidateBytes);
-        $leaf = 'appleservice39-pilot-entries.json';
-        $base = $releases.'/'.$approvedDigest.'-'.$beforeVersions['reader'];
-        $next = $releases.'/'.$candidateDigest.'-'.$beforeVersions['reader'];
-        $stage = static function (string $path, string $bytes) use ($leaf): void {
-            if (!mkdir($path, 0700) || file_put_contents($path.'/'.$leaf, $bytes) !== strlen($bytes)
-                || !chmod($path.'/'.$leaf, 0400)) {
-                throw new RuntimeException('cannot_stage_catalogue_rehearsal');
+        $run = static function (array $command, ?string $refusal = null): array {
+            $p = proc_open($command, [['file','/dev/null','r'],['pipe','w'],['pipe','w']], $pipes);
+            if (!is_resource($p)) throw new RuntimeException('catalogue_rehearsal_subprocess_failed');
+            $out = stream_get_contents($pipes[1]); fclose($pipes[1]);
+            $err = trim((string)stream_get_contents($pipes[2])); fclose($pipes[2]);
+            $code = proc_close($p);
+            if ($code !== ($refusal === null ? 0 : 1) || $err !== ($refusal ?? '')) {
+                throw new RuntimeException('catalogue_rehearsal_command_failed '.$code.' '.$err);
             }
+            return $refusal === null ? json_decode($out, true, 32, JSON_THROW_ON_ERROR) : [];
         };
-        $stage($base, $approvedBytes);
-        $stage($next, $candidateBytes);
-        $path = $root.'/resources/'.$leaf;
-        if (!symlink($releases.'/current/'.$leaf, $path)) throw new RuntimeException('cannot_link_catalogue_rehearsal');
+        $git = <<<'GIT'
+git -C "$1" init -q --object-format=sha1 &&
+git -C "$1" add . &&
+git -C "$1" -c user.name=Fixture -c user.email=fixture@example.invalid commit -qm fixture &&
+printf '{"sha":"%s"}\n' "$(git -C "$1" rev-parse HEAD)"
+GIT;
+        $sha = $run(['bash','-c',$git,'fixture',$app])['sha'];
+        $cli = ['node',$repository.'/tools/appleservice39_catalogue_release.js'];
+        $operation = 'apple-activation';
+        $activate = [...$cli,'activate',$app,$sha,'bundled',$candidate,$candidateDigest,$operation];
+        $rollback = [...$cli,'rollback',$app,$sha,$operation,'apple-rollback'];
+        $read = static fn(): array => $run([PHP_BINARY, '-r',
+            'require $argv[1]; echo json_encode(AppleService39PilotCatalog::entries(), JSON_THROW_ON_ERROR);',
+            $app.'/services/AppleService39PilotCatalog.php']);
+        repairCheck('fresh Apple reader starts on the fifteen exact approved entries', $read() === $approvedEntries);
+        $wrongBase = $activate;
+        $wrongBase[5] = str_repeat('a',64).'-'.$beforeVersions['reader'];
+        $run($wrongBase, 'catalogue_baseline_changed');
+        $wrongHash = $activate;
+        $wrongHash[7] = $approvedDigest;
+        $run($wrongHash, 'catalogue_digest_mismatch');
+        $invalid = json_decode($candidateBytes, true, 16, JSON_THROW_ON_ERROR);
+        $invalid['entries'][0]['price_text'] = 'Fixture refusal';
+        $invalidBytes = json_encode($invalid, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        $invalidFile = $root.'/forbidden-edit.json';
+        file_put_contents($invalidFile, $invalidBytes);
+        $forbidden = $activate;
+        $forbidden[6] = $invalidFile;
+        $forbidden[7] = hash('sha256', $invalidBytes);
+        $run($forbidden, 'appleservice39_catalogue_validation_failed');
+        repairCheck('invalid base, digest or price edit leaves the bundled Apple reader selected',
+            !is_link($releases.'/current') && $read() === $approvedEntries);
 
-        $deployment = new TourSelectionEditorDeployment($root, $site, $releases);
-        // This private access is confined to the fixture. Apple data do not enter
-        // the editor package admission path or any production command.
-        $exclusive = new ReflectionMethod($deployment, 'exclusive');
-        $point = new ReflectionMethod($deployment, 'point');
-        $current = new ReflectionMethod($deployment, 'current');
-        $write = new ReflectionMethod($deployment, 'write');
-        $exclusive->invoke($deployment, static function () use ($point, $deployment, $base): array {
-            $point->invoke($deployment, $base);
-            return [];
-        });
-        $read = static function () use ($root, $path): array {
-            // Each process starts with an empty catalogue cache.
-            $code = 'require $argv[1]; echo json_encode([hash_file("sha256",$argv[2]),'
-                .'AppleService39PilotCatalog::entries()], JSON_THROW_ON_ERROR);';
-            $p = proc_open([PHP_BINARY, '-r', $code, $root.'/services/AppleService39PilotCatalog.php', $path],
-                [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']], $streams);
-            if (!is_resource($p)) throw new RuntimeException('cannot_run_catalogue_rehearsal_reader');
-            fclose($streams[0]);
-            $output = stream_get_contents($streams[1]); fclose($streams[1]);
-            $error = stream_get_contents($streams[2]); fclose($streams[2]);
-            if (proc_close($p) !== 0 || $error !== '') throw new RuntimeException('catalogue_rehearsal_reader_failed');
-            return json_decode($output, true, 32, JSON_THROW_ON_ERROR);
-        };
-        repairCheck('fresh Apple reader starts on all fifteen exact approved entries', $read() === [$approvedDigest, $approvedEntries]);
-        $operation = 'as39-catalogue-rehearsal';
-        $pending = $releases.'/pending.json';
-        $switch = static function (string $expected, string $pin) use ($exclusive, $current, $point, $write,
-            $deployment, $next, $leaf, $pending, $releases, $operation): void {
-            $exclusive->invoke($deployment, static function () use ($expected, $pin, $current, $point, $write,
-                $deployment, $next, $leaf, $pending, $releases, $operation): array {
-                if ($current->invoke($deployment) !== $expected) {
-                    throw new RuntimeException('catalogue_rehearsal_current_changed');
-                }
-                if (is_file($pending)) throw new RuntimeException('catalogue_rehearsal_pending');
-                $bytes = file_get_contents($next.'/'.$leaf);
-                AppleService39PilotCatalog::comparePackage($bytes, $pin);
-                $write->invoke(null, $releases.'/operations/'.$operation.'.json', '{"state":"reserved"}');
-                $write->invoke(null, $pending, json_encode([
-                    'target'=>$next, 'previous'=>$expected, 'active'=>null, 'front'=>false,
-                    'operation'=>$operation, 'release_kind'=>'independent',
-                ], JSON_THROW_ON_ERROR));
-                $point->invoke($deployment, $next);
-                return [];
-            });
-        };
-        foreach ([
-            [$next, $candidateDigest, 'catalogue_rehearsal_current_changed'],
-            [$base, $approvedDigest, 'appleservice39_pilot_package_digest_mismatch'],
-        ] as [$expected, $pin, $reason]) {
-            try { $switch($expected, $pin); $refused = false; }
-            catch (RuntimeException $error) { $refused = $error->getMessage() === $reason; }
-            repairCheck('refused catalogue rehearsal preserves the pointer and leaves no pending record '.$reason,
-                $refused && !file_exists($pending) && $read() === [$approvedDigest, $approvedEntries]);
-        }
-
-        $heldReader = fopen($path, 'rb');
+        $heldReader = fopen($bundled, 'rb');
         if ($heldReader === false) throw new RuntimeException('cannot_hold_catalogue_rehearsal_reader');
-        $switch($base, $candidateDigest);
+        $receipt = $run($activate);
+        $target = $releases.'/'.$receipt['to'];
         $expectedEntries = $approvedEntries;
-        $candidate = json_decode($candidateBytes, true, 16, JSON_THROW_ON_ERROR);
-        $expectedEntries[0]['question'] = $candidate['entries'][0]['question'];
-        repairCheck('overlapping readers see the full old or full new Apple bytes across the atomic pointer change',
+        $expectedEntries[0]['question'] = json_decode($candidateBytes, true, 16, JSON_THROW_ON_ERROR)['entries'][0]['question'];
+        repairCheck('old and new Apple readers see complete versions while other component files stay pinned',
             hash('sha256', stream_get_contents($heldReader)) === $approvedDigest
-            && $read() === [$candidateDigest, $expectedEntries] && $versionReadback() === $beforeVersions);
+            && $read() === $expectedEntries && $versionReadback() === $beforeVersions
+            && readlink($releases.'/current') === $target);
         fclose($heldReader);
         $heldReader = null;
-        try { $deployment->rollbackIndependent('foreign-rehearsal'); $foreignRefused = false; }
-        catch (RuntimeException $error) { $foreignRefused = $error->getMessage() === 'editor_operation_changed'; }
-        repairCheck('existing rollback rejects a foreign operation and the staged reader keeps the new version',
-            $foreignRefused && is_file($pending) && $read() === [$candidateDigest, $expectedEntries]);
-
-        $receipt = $releases.'/operations/'.$operation.'.json';
-        repairCheck('existing rollback restores the original Apple package and leaves core, AnyTour and Manager2 fixtures unchanged',
-            $deployment->rollbackIndependent($operation) === ['ok'=>true, 'rolled_back'=>true]
-            && !file_exists($pending) && $read() === [$approvedDigest, $approvedEntries]
-            && $versionReadback() === $beforeVersions
-            && ManagerTourSelectionEditorHost::json($receipt) === ['state'=>'rolled_back','package_id'=>basename($next)]);
-        $receiptDigest = hash_file('sha256', $receipt);
-        try { $deployment->rollbackIndependent($operation); $repeatRefused = false; }
-        catch (RuntimeException $error) { $repeatRefused = $error->getMessage() === 'editor_operation_unconfirmed'; }
-        repairCheck('the completed rollback operation cannot run again after a lost result',
-            $repeatRefused && hash_file('sha256', $receipt) === $receiptDigest
-            && $read() === [$approvedDigest, $approvedEntries]);
+        $persisted = $releases.'/operations/'.$operation.'.json';
+        rename($persisted, $releases.'/pending.json');
+        $foreign = $activate;
+        $foreign[8] = 'apple-foreign-activation';
+        $run($foreign, 'catalogue_release_pending');
+        repairCheck('the same request recovers an already selected Apple version',
+            $run($activate) === $receipt && readlink($releases.'/current') === $target);
+        $foreignRollback = $rollback;
+        $foreignRollback[5] = 'apple-foreign-activation';
+        $run($foreignRollback, 'invalid_catalogue_activation_receipt');
+        $rolledBack = $run($rollback);
+        repairCheck('Apple rollback restores the bundled catalogue and retains the other component versions',
+            $rolledBack['state'] === 'rolled_back' && $rolledBack['to'] === 'bundled'
+            && $run($rollback) === $rolledBack && $read() === $approvedEntries
+            && hash_file('sha256',$bundled) === $approvedDigest && $versionReadback() === $beforeVersions);
+        $again = $activate;
+        $again[8] = 'apple-new-activation';
+        $run($again);
+        $stale = $rollback;
+        $stale[6] = 'apple-stale-rollback';
+        $run($stale, 'catalogue_activation_already_rolled_back');
+        repairCheck('stale Apple rollback cannot replace a later activation', $read() === $expectedEntries);
     } finally {
         if (is_resource($heldReader)) fclose($heldReader);
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($root, FilesystemIterator::SKIP_DOTS),

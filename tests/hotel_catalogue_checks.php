@@ -1,10 +1,16 @@
 <?php
 declare(strict_types=1);
 require_once dirname(__DIR__).'/services/ManagerHotelKnowledge.php';
+require_once __DIR__.'/hotel_resort_island_reader_checks.php';
+require_once __DIR__.'/support/hotel_catalogue_release_checks.php';
 
 /** Synthetic capacity checks; no research, approvals, provider or database writes. */
 function hotelCatalogueChecks(): void
 {
+    hotelResortIslandReaderChecks();
+    passthru('node '.escapeshellarg(__DIR__.'/hotel_catalogue_package_checks.js'), $packageStatus);
+    draftContextCheck('catalogue sealed transport CLI', $packageStatus === 0);
+
     $canonicalMethod = new ReflectionMethod(ManagerHotelKnowledge::class, 'canonical');
     $canonical = static fn($v): string => $canonicalMethod->invoke(null, $v);
     $lookup = new ReflectionMethod(ManagerHotelKnowledge::class, 'catalogueBinding');
@@ -29,10 +35,24 @@ function hotelCatalogueChecks(): void
         $reason === 'available' && $found === $original['bindings'][0]
         && $index['shards'][0] === ['file'=>'manifest.json','git_blob_sha'=>$blob($originalBytes)]);
     $now = strtotime('2026-11-11T00:00:00Z');
+    hotelCatalogueReleaseChecks($original, $now);
     $bundleBytes = file_get_contents($directory.'/'.$found['bundle_file']);
     $legacy = $select->invoke(null,$original,$bundleBytes,$selector,$now);
     draftContextCheck('catalogue capture preserves the complete previous reference and fingerprint',
         ManagerHotelKnowledge::capture($selector,$now) === $legacy && $legacy['status'] === 'available');
+
+    // The first canonical lookup validates all shard pins and identities.
+    // Read every actual bundle too, including entries the fixtures do not use.
+    foreach ($index['shards'] as $shard) {
+        $shardBytes = $read->invoke(null,$directory,$shard['file'],65536);
+        $manifest = json_decode($shardBytes,true,24,JSON_THROW_ON_ERROR);
+        foreach ($manifest['bindings'] as $entry) {
+            $bytes = $read->invoke(null,$directory,$entry['bundle_file'],16384);
+            $reference = $selectEntry->invoke(null,$entry,$bytes,$selectorFor($entry),time());
+            draftContextCheck('exact catalogue bundle passes its current reader: '.$entry['bundle_file'],
+                $reference['status']==='available' || ($reference['reason']??null)==='outside_explicit_validity');
+        }
+    }
 
     // These identities and approval strings exist in memory only. They never
     // enter the repository manifest, a real admission or the hotel counters.

@@ -124,6 +124,113 @@ write MATCH/LOCAL, publish MAX/Telegram posts, extend those consumers' permissio
 or prove that facts influenced an AI selection. Their guarded writes and
 readbacks remain separate results.
 
+## Prepare a sealed data package
+
+The HOTEL owner can prepare a package from two complete private snapshots of
+the same catalogue. Use the current accepted snapshot as `CURRENT` and the
+independently admitted, append-only candidate as `STAGED`. Both directories
+contain the existing `catalogue.json`, listed manifests and referenced bundles
+with their exact source bytes. Use the approved deployed reader file as
+`READER`. The staging utility runs as a CLI outside the manager interface.
+
+```sh
+node tools/hotel_catalogue_package.js build "$CURRENT" "$READER" "$STAGED" "$PACKAGE"
+node tools/hotel_catalogue_package.js stage "$CURRENT" "$READER" "$PACKAGE" "$EXPECTED_SHA256" "$RELEASES"
+```
+
+Build creates a private file at a previously unused path and emits a JSON
+receipt. The deterministic package binds the old and new catalogue SHA-256,
+the reader SHA-256 and every member byte. Verify takes the expected package
+digest from the trusted staging receipt, checks every manifest and bundle
+pin and recomputes the append-only decision against the supplied current
+snapshot. It checks the same file and size boundaries on input and on the
+received package. It needs neither a Git checkout nor the staging directory.
+
+Stage runs the same verification before creating a version in the existing
+private `RELEASES` directory. Use the separate `verify CURRENT READER PACKAGE
+EXPECTED_SHA256` command to inspect a package without placing it. Stage
+preserves each member byte, reserves the version without replacing an existing
+directory, and writes the readiness seal after the members. A duplicate stage
+fails with `EEXIST`. The active pointer is untouched.
+
+Activation uses the separately admitted package digest. The working publisher
+checks the installed application and reader before using the package.
+
+## Activate and roll back through the HOTEL publisher
+
+Run the CLI under the existing HOTEL publisher account with the canonical
+checkout path and the SHA from the accepted installation receipt. Pass
+`bundled` for the first release or the exact currently selected version. Copy
+the expected archive SHA from the independent HOTEL content approval. It
+must cover the previous snapshot, the exact reader and the new content.
+The CLI does not create production authority or approve hotel research.
+
+```sh
+node tools/hotel_catalogue_release.js activate \
+  "$APP" "$APP_SHA" "$PREVIOUS_VERSION" "$PACKAGE" "$APPROVED_SHA256" "$OPERATION"
+node tools/hotel_catalogue_release.js rollback \
+  "$APP" "$APP_SHA" "$ACTIVATION_OPERATION" "$ROLLBACK_OPERATION"
+```
+
+Activation uses the same `operation.lock` as the core installer. It verifies
+the approved append against the actual active snapshot and reader. It stages
+the verified bytes directly or checks an existing staged version against them.
+The reader validates the catalogue bindings and added bundles with its typed
+rules before the pointer changes. Running a separate `stage` is optional when
+the publisher uses `activate`. Each operation records the exact application,
+reader, previous and selected catalogue versions and snapshot hashes in
+`operations/<operation>.json` outside the web root.
+
+The pointer is swapped atomically. Keep the archive and operation arguments
+until the receipt is available. If interrupted after writing `pending.json`,
+repeat that exact operation; it finishes the recorded transition or returns the
+same receipt without switching again. A different mutation stops while that
+operation is pending. Rollback requires a new operation ID, checks that the
+recorded version is still selected and restores the verified prior snapshot.
+An activation previously rolled back cannot alter a subsequent activation of
+the same bytes. For a first activation, rollback returns to the checkout
+catalogue if its snapshot hash still matches.
+
+## Read a selected immutable version
+
+The reader uses the checkout catalogue when no active selection exists. An
+active selection is a single `current` pointer under the checkout's existing
+sibling private-data directory, `max-search-bot-private-logs/hotel-catalogue-releases`.
+It must identify a canonical immutable child named `<package SHA-256>-<reader
+SHA-256>`. That child contains `hotels/` and a regular `release.json` bearing
+`contract: anytour-hotel-catalogue-package-v1`, `package_sha256`,
+`reader_sha256` and `catalogue_index_sha256`. The receipt binds the staged
+index to the installed reader bytes. The reader resolves the directory once
+per standalone reference and uses that directory for every manifest and bundle.
+The retained Search3 reader pins the version for all references in one response,
+including an unavailable catalogue. A later response resolves the current version.
+An invalid published pointer or receipt holds the affected references.
+
+The hotel regression exercises the CLI against a private isolated checkout.
+The reader returns original approved references before activation, data from
+the new snapshot after activation and the old references after rollback. It
+also tests the common lock, recovery with an already selected version,
+corruption, replay and a reader already pinned to the prior snapshot.
+
+## Check an active catalogue against an incoming core
+
+Run the read-only check from the verified candidate source. Pass the canonical
+absolute application root and the exact staged reader file from that source.
+
+```sh
+php tools/hotel_catalogue_compatibility.php "$APPLICATION_ROOT" "$CANDIDATE_READER"
+```
+
+The check uses the same active pointer, receipt and index verification as the
+serving reader. It admits the bundled state or exact reader bytes and returns a
+failure for a corrupted active package or incompatible reader. It reads files
+only and does not change the active selection. The shared installer takes the
+catalogue publisher's `operation.lock` before inspecting the active version and
+holds it through the core switch. The bundled state skips the PHP compatibility
+check. An independent version requires checking the exact candidate reader
+from the verified Git bundle. A pending catalogue operation, an incompatible
+reader or an invalid active version stops the core switch.
+
 ## Verification
 
 `tests/hotel_catalogue_checks.php` is included by the existing hotel knowledge

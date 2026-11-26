@@ -4,6 +4,7 @@ import itertools
 import fnmatch
 import json
 import os
+import tempfile
 from pathlib import Path
 import subprocess
 import yaml
@@ -22,7 +23,7 @@ def check(condition, message):
 
 def gate_passes(job, env, step_name=None):
     step = next(s for s in job['steps'] if s.get('name') == step_name) if step_name else job['steps'][-1]
-    return subprocess.run(['bash', '-e', '-c', step['run']], env={**os.environ, **env}, capture_output=True).returncode == 0
+    return subprocess.run(['bash', '-e', '-c', step['run']], env={**os.environ, 'HOTEL_PROOF':'false', 'HOTEL_RESULT':'skipped', **env}, capture_output=True).returncode == 0
 
 # Required regression owns PR policy validation. Known companions omit only
 # the identical selftest prelude, never their selector or native checks.
@@ -44,7 +45,7 @@ for filename in ['regression-tests.yml', 'workspace-sound.yml', 'channel-post-co
     check(concurrency.get('cancel-in-progress') == "${{ github.event_name == 'pull_request' }}", 'only superseded PRs may be cancelled: ' + filename)
     check(concurrency.get('group') == "ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.pull_request.number) || format('run-{0}-{1}', github.run_id, github.run_attempt) }}", 'PR/workflow isolation and unique manual runs required: ' + filename)
 
-check(set(regression['regression']['needs']) == {'change-scope','inventory','php-syntax','required','prepared-mysql','appleservice39-mysql','oauth'}, 'regression must await all branches')
+check(set(regression['regression']['needs']) == {'change-scope','inventory','php-syntax','required','prepared-mysql','appleservice39-mysql','hotel-catalogue','oauth'}, 'regression must await all branches')
 # Source-result aggregation and mutable release admission are separate steps.
 # Exercise every old truth-table case below against the source gate, while the
 # existing Node policy suite executes admission/failure behavior with API fixtures.
@@ -72,14 +73,42 @@ for name, jobs in [('workspace-v2-visual-qa.yml',['selection','firefox-history',
 for job in ['required','prepared-mysql','appleservice39-mysql']:
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
 check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
-check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend != 'workspace-style') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'only audited styling may omit unchanged MySQL coverage')
-expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || '[]') }}"
+check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && (needs.change-scope.outputs.backend == 'full' || needs.change-scope.outputs.backend == 'telegram-public-observer')) || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'the observer retains all shared native MySQL groups')
+expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || (needs.change-scope.outputs.backend == 'hotel-catalogue-data' && '[{\"group\":\"manager\"},{\"group\":\"apple-coverage\"},{\"group\":\"apple-device\"}]') || (needs.change-scope.outputs.backend == 'telegram-public-observer' && '[{\"group\":\"apple-coverage\"},{\"group\":\"apple-device\"}]') || '[]') }}"
 check(regression['required']['strategy']['matrix'] == {
-    'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
-    'styling excludes exactly four unchanged server groups; other profiles keep all five')
+    'group':['architecture','apple-coverage','apple-device','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
+    'catalogue excludes unrelated Manager2 tests and styling retains its existing matrix')
+pr_required = next(s for s in regression['required']['steps'] if s.get('name') == 'Run required group')
+check(pr_required['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}'
+      and pr_required['env']['REQUIRED_CHECK_GROUP'] == '${{ matrix.group }}'
+      and not pr_required.get('if') and not pr_required.get('continue-on-error')
+      and '"$BACKEND_PROFILE" == telegram-public-observer' in pr_required['run']
+      and 'php tests/run_required_group.php architecture "$BACKEND_PROFILE"' in pr_required['run']
+      and 'php tests/run_required_group.php architecture ci-architecture-core' in pr_required['run']
+      and 'php tests/run_required_group.php architecture "ci-$REQUIRED_CHECK_GROUP"' in pr_required['run'],
+      'PR architecture uses the proven profile without skipping the required group')
 check(source_gate['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}', 'aggregate uses the actual backend selection')
+hotel_job = regression['hotel-catalogue']
+check(hotel_job['needs'] == 'change-scope' and hotel_job['if'] ==
+      "needs.change-scope.outputs.backend == 'hotel-catalogue-data' || needs.change-scope.outputs.hotel-proof == 'true'",
+      'hotel job runs for exact data and rules commissioning')
+check(hotel_job['permissions'] == {'contents':'read'} and
+      all(not s.get('if') and not s.get('continue-on-error', False) for s in hotel_job['steps']),
+      'hotel data verification stays read-only and fatal')
+hotel_check_script = root/'tools/check_hotel_catalogue_scope.sh'
+check(hotel_job['steps'][-1]['run'] == 'bash tools/check_hotel_catalogue_scope.sh', 'PR catalogue uses the canonical suite')
+check(hotel_check_script.read_text().splitlines() == [
+    '#!/usr/bin/env bash', 'set -euo pipefail', '',
+    'php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-read',
+    'php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-http',
+    'php tests/run_manager_ai_draft_service_regression.php',
+    'php tests/run_manager_preparation_mcp_regression.php',
+], 'exact catalogue, HTTP, AI and MCP consumer regressions are mandatory')
+check(source_gate['env']['HOTEL_RESULT'] == '${{ needs.hotel-catalogue.result }}' and
+      source_gate['env']['HOTEL_PROOF'] == '${{ needs.change-scope.outputs.hotel-proof }}',
+      'hotel proof uses only actual canonical outputs')
 pilot_mysql = regression['appleservice39-mysql']
-check(pilot_mysql['if'] == regression['prepared-mysql']['if']
+check(pilot_mysql['if'] == "(needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'full') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')"
       and pilot_mysql['needs'] == 'change-scope'
       and pilot_mysql['runs-on'] == 'ubuntu-latest'
       and pilot_mysql['timeout-minutes'] == 8
@@ -105,6 +134,11 @@ check(pilot_steps[2]['run'] == 'php tests/mysql/appleservice39-publisher.php'
       'actual migration and independent claim workers execute on the isolated fixture')
 check(source_gate['env']['APPLESERVICE39_MYSQL_RESULT'] == '${{ needs.appleservice39-mysql.result }}',
       'required aggregate consumes the actual pilot native job result')
+observer_gate = source_gate['run'].split('full:telegram-public-observer)', 1)[-1].split(';;', 1)[0]
+check('test "$REQUIRED_RESULT" = success' in observer_gate
+      and 'test "$PREPARED_MYSQL_RESULT" = success' in observer_gate
+      and 'test "$APPLESERVICE39_MYSQL_RESULT" = skipped' in observer_gate,
+      'observer excludes the pilot native fixture and keeps the whole shared stack')
 check('native-mysql' not in load('publish-appleservice39-pilot.yml')['jobs'],
       'pilot native fixture has one mandatory aggregate owner')
 scope_document = load('ci-change-scope.yml')
@@ -112,6 +146,9 @@ scope_events = scope_document.get('on',scope_document.get(True))
 check(scope_events['workflow_call']['outputs']['backend']['value'] == '${{ jobs.scope.outputs.backend }}'
       and scope_document['jobs']['scope']['outputs']['backend'] == '${{ steps.scope.outputs.backend }}',
       'backend profile is bound through the canonical scope job')
+scope_step = next(step for step in scope_document['jobs']['scope']['steps'] if step.get('id') == 'scope')
+check('["workspace-style", "hotel-catalogue-data", "telegram-public-observer"].includes(result.backend)' in scope_step['run'],
+      'the canonical workflow passes through the exact observer backend')
 check('node tests/check_ci_selection_style_scope.js' in policy['run'], 'style selector selftests are mandatory')
 check("needs.change-scope.outputs.mode == 'full'" in visual['browser-tests']['if'], 'full browser assembler must not run after OAuth-only skips')
 check(set(visual['full-screenshots']['needs']) == {'browser-tests','firefox-history','firefox-notifications'}, 'full screenshot proof preserves all engines and Firefox')
@@ -274,6 +311,19 @@ for mode,profile in itertools.product(['oauth','full','tour-selection','','unkno
           == ((mode == 'tour-selection' and profile == 'selection-style') or (mode == 'full' and profile == 'workspace-style')),
           'a styling result cannot certify another or missing profile')
 
+hotel_valid = {**style_valid, 'CI_MODE':'full', 'BACKEND_PROFILE':'hotel-catalogue-data',
+               'HOTEL_PROOF':'false', 'HOTEL_RESULT':'success'}
+check(gate_passes(aggregate,hotel_valid,'Require every gate'),'exact hotel data profile retains mandatory consumer proof')
+for field in ['HOTEL_RESULT','HOTEL_PROOF','REQUIRED_RESULT','PREPARED_MYSQL_RESULT','APPLESERVICE39_MYSQL_RESULT','CI_MODE']:
+    for value in ['success','failure','skipped','cancelled','full','true','false','']:
+        check(gate_passes(aggregate,{**hotel_valid,field:value},'Require every gate') == (value == hotel_valid[field]),
+              'invalid or absent hotel scope evidence must fail: '+field+'='+value)
+commission = {**hotel_valid, 'BACKEND_PROFILE':'full', 'HOTEL_PROOF':'true',
+              'PREPARED_MYSQL_RESULT':'success','APPLESERVICE39_MYSQL_RESULT':'success'}
+check(gate_passes(aggregate,commission,'Require every gate'),'rule changes require full and hotel commissioning evidence')
+check(not gate_passes(aggregate,{**commission,'HOTEL_RESULT':'skipped'},'Require every gate'),
+      'full rule changes cannot skip hotel commissioning evidence')
+
 # Independently exercise the source-result gate for the new backend profile.
 # Its browser mode remains full; existing full visual truth tables still apply.
 workspace_valid = {**style_valid,'CI_MODE':'full','BACKEND_PROFILE':'workspace-style'}
@@ -312,9 +362,9 @@ for mode,proof,full,oauth,tour_result in [('tour-selection','false','skipped','s
 tail_workflow = load('modeled-conversion-value-export.yml')
 tail_events = tail_workflow.get('on', tail_workflow.get(True))
 check(set(tail_events) == {'workflow_run', 'workflow_dispatch', 'push'}, 'only the bounded native terminal continuation adds a trigger')
-check(tail_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112', 'ops/recover-pr1529-terminal-20261113', 'ops/recover-pr1597-terminal-20261117', 'ops/recover-pr1643-terminal-20261121']}, 'terminal continuations use only the four fixed owner branches, no timer')
+check(tail_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112', 'ops/recover-pr1529-terminal-20261113', 'ops/recover-pr1597-terminal-20261117', 'ops/recover-pr1643-terminal-20261121', 'ops/recover-pr1701-terminal-20261125', 'ops/recover-pr1720-terminal-20261125']}, 'terminal continuations use only the six fixed owner branches, no timer')
 recovery = tail_workflow['jobs']['release-slot-recovery']
-check(recovery['if'] == "github.event_name == 'push' && (github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112' || github.ref == 'refs/heads/ops/recover-pr1529-terminal-20261113' || github.ref == 'refs/heads/ops/recover-pr1597-terminal-20261117' || github.ref == 'refs/heads/ops/recover-pr1643-terminal-20261121')", 'terminal continuation cannot run as a normal deploy tail or manual dispatch')
+check(recovery['if'] == "github.event_name == 'push' && (github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112' || github.ref == 'refs/heads/ops/recover-pr1529-terminal-20261113' || github.ref == 'refs/heads/ops/recover-pr1597-terminal-20261117' || github.ref == 'refs/heads/ops/recover-pr1643-terminal-20261121' || github.ref == 'refs/heads/ops/recover-pr1701-terminal-20261125' || github.ref == 'refs/heads/ops/recover-pr1720-terminal-20261125')", 'terminal continuation cannot run as a normal deploy tail or manual dispatch')
 check(recovery['permissions'] == {'contents':'write','actions':'read','pull-requests':'read','issues':'write'}, 'continuation keeps metadata-only authority')
 check(recovery['timeout-minutes'] == 8, 'continuation has a finite metadata deadline')
 check(recovery['steps'][0]['with'] == {'ref':'${{ github.sha }}','persist-credentials':False}, 'continuation loads its genuine source')
@@ -374,6 +424,91 @@ check(dj['deploy']['needs'] == ['verify-inventory','verify-syntax','verify-group
 check(dj['deploy']['steps'][0]['name'] == 'Require the complete deployment verification'
       and 'test "$GITHUB_RUN_ATTEMPT" = 1' in dj['deploy']['steps'][0]['run'],
       'installer replay stopped before checkout or protected access')
+production_scope = next(s for s in dj['verify-syntax']['steps'] if s.get('id') == 'hotel_scope')
+profile_output = '${{ needs.verify-syntax.outputs.profile }}'
+check(production_scope['run'] == 'node tools/deploy_hotel_catalogue_scope.js'
+      and not production_scope.get('if') and not production_scope.get('continue-on-error')
+      and dj['verify-syntax']['permissions'] == {
+          'contents':'read', 'actions':'read', 'pull-requests':'read', 'issues':'read'}
+      and dj['verify-syntax']['outputs'] == {'profile':'${{ steps.hotel_scope.outputs.profile }}'},
+      'production catalogue scope is selected by one fatal, read-only source gate')
+production_inventory = next(s for s in dj['verify-inventory']['steps']
+                            if s.get('name') == 'Run assigned architecture checks')
+production_group = next(s for s in dj['verify-groups']['steps'] if s.get('name') == 'Run every required group in this lane')
+check(all(dj[job]['needs'] == 'verify-syntax' for job in ['verify-inventory','verify-groups'])
+      and production_inventory['env']['DEPLOY_CHECK_PROFILE'] == profile_output
+      and production_group['env']['DEPLOY_CHECK_PROFILE'] == profile_output
+      and 'bash tools/check_hotel_catalogue_scope.sh' in production_group['run']
+      and all(not s.get('if') and not s.get('continue-on-error') for job in
+              [dj['verify-inventory'],dj['verify-syntax'],dj['verify-groups']] for s in job['steps']),
+      'architecture and groups run on separate runners with the same proven profile')
+with tempfile.TemporaryDirectory() as stub_dir:
+    php_stub = Path(stub_dir)/'php'
+    php_stub.write_text(
+        '#!/usr/bin/env bash\nset -eu\n'
+        'if [[ "$1" == tests/run_required_group.php ]]; then\n'
+        '  shift\n  printf "%s\\n" "$*"\n'
+        '  if [[ "$*" == "${FAIL_CHECK:-}" ]]; then exit 17; fi\n'
+        'else\n  printf "catalogue:%s\\n" "$1"\nfi\n'
+    )
+    php_stub.chmod(0o755)
+    probe_env = {**os.environ, 'PATH': stub_dir + os.pathsep + os.environ['PATH']}
+    for profile, group, expected in [
+        ('hotel-catalogue-data','architecture','architecture hotel-catalogue-data'),
+        ('full','architecture','architecture ci-architecture-core'),
+        ('full','apple-coverage','architecture ci-apple-coverage'),
+        ('full','apple-device','architecture ci-apple-device'),
+        ('workspace-style','architecture','architecture ci-architecture-core'),
+        ('telegram-public-observer','architecture','architecture telegram-public-observer'),
+        ('hotel-catalogue-data','website','website'),
+    ]:
+        probe = subprocess.run(['bash','-e','-c',pr_required['run']], capture_output=True, text=True,
+            env={**probe_env, 'BACKEND_PROFILE':profile, 'REQUIRED_CHECK_GROUP':group})
+        check(probe.returncode == 0 and probe.stdout.strip() == expected,
+              'required group command for '+profile+'/'+group)
+    for profile, expected in [
+        ('full','architecture ci-apple-coverage'),
+        ('hotel-catalogue-data','architecture hotel-catalogue-data'),
+        ('telegram-public-observer','architecture telegram-public-observer'),
+        ('unknown', None),
+        ('', None),
+    ]:
+        probe = subprocess.run(['bash','-e','-c',production_inventory['run']], capture_output=True, text=True,
+            env={**probe_env, 'DEPLOY_CHECK_PROFILE':profile})
+        check((probe.returncode == 1 and not probe.stdout) if expected is None else
+              (probe.returncode == 0 and probe.stdout.strip() == expected),
+              'production architecture command for '+profile)
+    for profile, lane, groups, expected in [
+        ('full','application','dialogue website manager',
+            ['architecture ci-architecture-core','dialogue','website','manager']),
+        ('hotel-catalogue-data','application','dialogue website manager',
+            ['dialogue','website','catalogue:tests/run_manager_ai_draft_context_regression.php',
+             'catalogue:tests/run_manager_ai_draft_context_regression.php',
+             'catalogue:tests/run_manager_ai_draft_service_regression.php',
+             'catalogue:tests/run_manager_preparation_mcp_regression.php']),
+        ('full','diagnostics','diagnostics',['architecture ci-apple-device','diagnostics']),
+        ('hotel-catalogue-data','diagnostics','diagnostics',['diagnostics']),
+        ('telegram-public-observer','application','dialogue website manager',['dialogue','website','manager']),
+        ('telegram-public-observer','diagnostics','diagnostics',['diagnostics']),
+        ('','application','dialogue website manager',None),
+        ('unknown','diagnostics','diagnostics',None),
+    ]:
+        probe = subprocess.run(['bash','-e','-c',production_group['run']], capture_output=True, text=True,
+            env={**probe_env,
+                 'DEPLOY_CHECK_PROFILE':profile,'DEPLOY_CHECK_LANE':lane,'DEPLOY_CHECK_GROUPS':groups})
+        check((probe.returncode == 1 and not probe.stdout) if expected is None else
+              (probe.returncode == 0 and probe.stdout.splitlines() == expected),
+              'actual deployment command routing for '+profile+'/'+lane)
+    for step, lane, groups, failed in [
+        (production_inventory, '', '', 'architecture ci-apple-coverage'),
+        (production_group, 'application', 'dialogue website manager', 'architecture ci-architecture-core'),
+        (production_group, 'diagnostics', 'diagnostics', 'architecture ci-apple-device'),
+    ]:
+        probe = subprocess.run(['bash','-e','-c',step['run']], capture_output=True, text=True,
+            env={**probe_env, 'DEPLOY_CHECK_PROFILE':'full', 'DEPLOY_CHECK_LANE':lane,
+                 'DEPLOY_CHECK_GROUPS':groups, 'FAIL_CHECK':failed})
+        check(probe.returncode == 17 and probe.stdout.splitlines() == [failed],
+              'failed architecture lane stops its production job: '+failed)
 check(dj['verify']['needs'] == 'deploy', 'verification cannot precede installation')
 vs = dj['verify']['steps']
 admit = next(i for i,s in enumerate(vs) if s.get('id') == 'admission')
@@ -419,4 +554,3 @@ check("format('monitor-proof:v1:{0}:{1}', github.event.workflow_run.id, github.e
       'activation provenance follows the exact original monitor')
 
 print(f'PASS {checks} workflow selection and gate cases')
-

@@ -346,16 +346,30 @@ PHP);
         $observed=cardObservedRequest($second,'/manager/api.php',['action'=>'detail','conversation_id'=>$id,'csrf'=>$csrf],$cookie);$result=$observed['response'];
         cardCheck($label.' transcript stays denied without project writes',$result['status']===$status&&!isset($result['body']['messages'])&&!isset($result['body']['conversation'])&&!isset($result['body']['request_kind'])&&$observed['project_writes']===0&&($label!=='anonymous'||$observed['queries']===[]));
     }
+    $startupCases=[
+        ['manager startup','/manager/api.php',['action'=>'me'],'manager'],
+        ['classic queue','/manager/api.php',['action'=>'list','queue'=>'all'],'conversations'],
+        ['queue badges','/manager/api.php',['action'=>'counts','scope'=>'inbox_tabs'],'counts'],
+        ['lead inbox','/manager/pipeline-api.php',['action'=>'list','queue'=>'all'],'conversations'],
+    ];
+    foreach($startupCases as [$label,$path,$input,$field]){
+        file_put_contents($projectFile,json_encode($readyProject));$before=file_get_contents($projectFile);
+        $observed=cardObservedRequest($second,$path,$input+['csrf'=>'fixture-csrf','project_key'=>'fixture'],$cookies['own']);
+        $result=$observed['response'];$body=$result['body'];
+        $authorized=$result['status']===200&&($body['ok']??false)===true&&is_array($body[$field]??null);
+        if($field==='manager')$authorized=$authorized&&($body['manager']['id']??null)===7&&($body['csrf']??null)==='fixture-csrf';
+        cardCheck($label.' reads the authorized payload without locking the project row',$authorized&&
+            $observed['project_writes']===0&&$observed['bootstrap_queries']===1&&file_get_contents($projectFile)===$before);
+    }
     foreach(['wrong_name','inactive','missing','lookup_failure']as$state){
         $project=$state==='missing'?null:$readyProject;if($state==='wrong_name')$project['display_name']='Operator-owned name';if($state==='inactive')$project['is_active']=0;if($state==='lookup_failure')$project['read_error']=true;
         foreach([0,2,3,4,5]as$index){[$label,$path,$input]=$readCases[$index];file_put_contents($projectFile,json_encode($project));$before=file_get_contents($projectFile);
             $observed=cardObservedRequest($second,$path,$input+['csrf'=>'fixture-csrf'],$cookies['own']);$result=$observed['response'];
             cardCheck($state.' '.$label.' fails closed without repair',$result['status']===503&&$result['body']===['ok'=>false,'error'=>'project_unavailable']&&$observed['project_writes']===0&&file_get_contents($projectFile)===$before);
         }
-        // The existing startup boundary intentionally keeps its legacy bootstrap;
-        // a failed read cannot leak read-only readiness into another request.
+        // Startup still takes its existing repair path after read-only admission refuses.
         $recovery=cardObservedRequest($second,'/manager/api.php',['action'=>'me'],$cookies['own']);
-        cardCheck($state.' retains the legacy startup lifecycle',$recovery['response']['status']===200&&$recovery['response']['body']['manager']['id']===7&&$recovery['response']['body']['csrf']==='fixture-csrf'&&$recovery['project_writes']===1&&$recovery['bootstrap_queries']===2);
+        cardCheck($state.' retains the legacy startup lifecycle',$recovery['response']['status']===200&&$recovery['response']['body']['manager']['id']===7&&$recovery['response']['body']['csrf']==='fixture-csrf'&&$recovery['project_writes']===1&&$recovery['bootstrap_queries']===3);
         $again=cardObservedRequest($second,'/manager/pipeline-api.php',['action'=>'detail','conversation_id'=>42,'csrf'=>'fixture-csrf'],$cookies['own']);
         cardCheck($state.' next read independently validates recovered metadata',$again['response']['status']===200&&!empty($again['response']['body']['ok'])&&$again['project_writes']===0&&$again['bootstrap_queries']===1);
     }

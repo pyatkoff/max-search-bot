@@ -101,10 +101,43 @@ final class AppleService39PilotCatalog
 
     private static function catalogueBytes(): string
     {
-        $raw = @file_get_contents(__DIR__.'/../resources/appleservice39-pilot-entries.json',
-            false, null, 0, self::MAX_PACKAGE_BYTES + 1);
-        self::check(is_string($raw));
+        $root = dirname(__DIR__);
+        $releases = dirname($root).'/max-search-bot-private-logs/appleservice39-catalogue-releases';
+        $pointer = $releases.'/current';
+        clearstatcache(true, $pointer);
+        if (@lstat($pointer) === false) return self::readPackage($root.'/resources/appleservice39-pilot-entries.json');
+        $target = is_link($pointer) ? readlink($pointer) : false;
+        self::check(is_string($target) && realpath($releases) === $releases && realpath($target) === $target
+            && preg_match('~\A'.preg_quote($releases, '~').'/([a-f0-9]{64})-([a-f0-9]{64})\z~D', $target, $pin) === 1
+            && hash_file('sha256', __FILE__) === $pin[2]);
+        $bytes = self::readPackage($target.'/catalogue.json');
+        self::check(hash_equals($pin[1], hash('sha256', $bytes)));
+        return $bytes;
+    }
+
+    private static function readPackage(string $path): string
+    {
+        $raw = is_file($path) && !is_link($path)
+            ? @file_get_contents($path, false, null, 0, self::MAX_PACKAGE_BYTES + 1) : false;
+        self::check(is_string($raw) && strlen($raw) <= self::MAX_PACKAGE_BYTES);
         return $raw;
+    }
+
+    /** Independent releases may change the reply question, with all other fields pinned. */
+    public static function validateQuestionRelease(string $candidate): void
+    {
+        self::check(PHP_SAPI === 'cli');
+        self::decodeEntries($candidate);
+        $bundled = self::readPackage(dirname(__DIR__).'/resources/appleservice39-pilot-entries.json');
+        $withoutQuestions = static function (string $bytes): array {
+            $data = json_decode($bytes, true, 16, JSON_THROW_ON_ERROR);
+            foreach ($data['entries'] as &$entry) unset($entry['question']);
+            unset($entry);
+            return $data;
+        };
+        if ($withoutQuestions($candidate) !== $withoutQuestions($bundled)) {
+            throw new RuntimeException('appleservice39_immutable_catalogue_fields');
+        }
     }
 
     /** Shared validation and projection for the current reader and the staging check. */
@@ -378,4 +411,3 @@ final class AppleService39PilotCatalog
             .$entry['price_text']."\n".self::WARRANTY_TEXT."\n".$entry['question'];
     }
 }
-

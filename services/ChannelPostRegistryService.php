@@ -19,6 +19,7 @@ final class ChannelPostRegistryService
     private const LEASE_SECONDS = 300;
     private const MAX_SNAPSHOT_BYTES = 131072;
     private const MANUAL_TELEGRAM_REPAIR = 'aloft_public_keyboard';
+    private const HISTORICAL_PUBLISHER_KEYBOARD_HOLD = 'historical_publisher_keyboard_pilot';
 
     public function __construct(?PDO $pdo = null)
     {
@@ -266,6 +267,230 @@ final class ChannelPostRegistryService
             $this->execute('INSERT INTO post_observations (publication_id,source_event_key,version_id,created_at) VALUES (?,?,?,?)', [$id, hash('sha256', $event), $versionId, $now]);
             return ($this->publication($id) ?? throw new RuntimeException('hotel_transfer_target_changed')) + ['already_completed'=>false];
         });
+    }
+
+    /**
+     * Existing editor only: a new publisher intent may reuse the identity left
+     * by a final rejected transfer. The caller authenticates the immutable
+     * parent journal; this method never clears it or creates another reservation.
+     */
+    public function assertPublisherMediaPilotReservation(array $reservation, array $parentRow,
+        string $parentPlanDigest, array $sourcePin): array
+    {
+        $row = self::publisherMediaPilotRow($parentRow, $parentPlanDigest);
+        self::publisherMediaPilotSourcePin($row, $sourcePin);
+        return $this->transaction(function () use ($reservation, $row, $parentPlanDigest, $sourcePin): array {
+            $channel = $this->telegramHotelTransferChannel($row);
+            $identity = $this->publisherMediaPilotIdentity($reservation, $channel, $row, $parentPlanDigest);
+            $this->publisherMediaPilotSource($row, $sourcePin);
+            $this->publisherMediaPilotNoDuplicate();
+            if ($identity['current_version_id'] !== null || $identity['observed_revision_ms'] !== null
+                || $identity['telegram_sequence'] !== null
+                || $this->fetch('SELECT id FROM post_versions WHERE publication_id=? LIMIT 1' . $this->lock(), [3848])
+                || $this->fetch('SELECT version_id FROM post_observations WHERE publication_id=? LIMIT 1' . $this->lock(), [3848])) {
+                throw new RuntimeException('publisher_media_reservation_changed');
+            }
+            return $reservation;
+        });
+    }
+
+    /**
+     * Reconcile a saved ANYTOURBOT response with an independently received
+     * anyru webhook. The canonical snapshot keeps ONLY that webhook's file IDs.
+     * No HTTP call, synthetic Telegram update or publisher credential is used.
+     */
+    public function completePublisherMediaPilot(array $reservation, array $parentRow, string $parentPlanDigest,
+        array $sourcePin, array $nativeResponse, array $evidence): array
+    {
+        $row = self::publisherMediaPilotRow($parentRow, $parentPlanDigest);
+        self::publisherMediaPilotSourcePin($row, $sourcePin);
+        self::publisherMediaPilotEvidence($reservation, $row, $evidence);
+        $observed = self::publisherMediaPilotResponse($reservation, $row, $nativeResponse);
+        $responseDigest = hash('sha256', self::json(self::canonicalArray($nativeResponse)));
+        $provenance = ['kind'=>'telegram_publisher_hotel_transfer_v1', 'plan_digest'=>$parentPlanDigest,
+            'row_digest'=>$reservation['row_digest'] ?? null, 'response_sha256'=>$responseDigest,
+            'publication_id'=>3848, 'source_publication_id'=>952, 'source_pin'=>$sourcePin,
+            'publisher_evidence'=>$evidence,
+            'output_file_unique_id_sha256'=>hash('sha256', $observed['attachments'][0]['file_unique_id'])];
+        return $this->transaction(function () use ($reservation, $row, $parentPlanDigest, $sourcePin,
+            $observed, $provenance, $responseDigest, $nativeResponse): array {
+            $channel = $this->telegramHotelTransferChannel($row);
+            $identity = $this->publisherMediaPilotIdentity($reservation, $channel, $row, $parentPlanDigest);
+            $current = $identity['current_version_id'] === null ? null
+                : $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?' . $this->lock(),
+                    [(int)$identity['current_version_id'], 3848]);
+            if (!$current) throw new RuntimeException('publisher_media_native_observation_required');
+            $snapshot = json_decode((string)$current['snapshot_json'], true) ?: [];
+            self::telegramHotelTransferObservedMatch($snapshot, $observed, $row);
+            $revision = $nativeResponse['data']['result']['edit_date'] * 1000;
+            if ((int)$identity['observed_revision_ms'] !== $revision
+                || !hash_equals((string)$current['content_hash'], ChannelPostIncomingAdapter::contentFingerprint($snapshot))) {
+                throw new RuntimeException('publisher_media_native_observation_changed');
+            }
+            $held = $this->fetch("SELECT id FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL) LIMIT 1" . $this->lock(), [3848]);
+            if ($held) throw new RuntimeException('publisher_media_target_held');
+            if (($snapshot['metadata']['hotel_transfer'] ?? null) === $provenance
+                && ($snapshot['metadata']['hotel_catalog_id'] ?? null) === 2514
+                && $current['state'] === 'sent' && (int)$current['write_attempts'] === 0) {
+                return ($this->publication(3848) ?? throw new RuntimeException('publisher_media_native_observation_changed'))
+                    + ['already_completed'=>true];
+            }
+            $this->publisherMediaPilotSource($row, $sourcePin);
+            $this->publisherMediaPilotNoDuplicate();
+            $event = $snapshot['metadata']['source_event_id'] ?? null;
+            $nativeObservation = is_string($event) && preg_match('/\A[a-f0-9]{64}\z/D', $event)
+                ? $this->fetch('SELECT version_id FROM post_observations WHERE publication_id=? AND source_event_key=?' . $this->lock(),
+                    [3848, hash('sha256', $event)]) : null;
+            $sequence = self::validSequence($snapshot['metadata']['source_sequence'] ?? null);
+            if (!$nativeObservation || (int)$nativeObservation['version_id'] !== (int)$current['id']
+                || ($snapshot['metadata']['source_sequence_scope'] ?? null) !== 'telegram_update_id'
+                || $sequence === null || (string)$identity['telegram_sequence'] !== (string)$sequence
+                || (string)($snapshot['metadata']['source_revision_ms'] ?? '') !== (string)$revision) {
+                throw new RuntimeException('publisher_media_native_observation_required');
+            }
+            $history = $this->fetch('SELECT COUNT(*) AS total FROM post_versions WHERE publication_id=?', [3848]);
+            if ((int)$history['total'] !== 1 || (int)$current['version_number'] !== 1
+                || !in_array($current['state'], ['pending','sent'], true) || (int)$current['write_attempts'] !== 0
+                || isset($snapshot['metadata']['hotel_transfer'])
+                || (isset($snapshot['metadata']['hotel_catalog_id']) && $snapshot['metadata']['hotel_catalog_id'] !== 2514)) {
+                throw new RuntimeException('publisher_media_native_observation_changed');
+            }
+            // Preserve the genuine anyru raw message, attachment credentials and
+            // update sequence. The alternative publisher reply stays in its journal.
+            $snapshot['metadata']['hotel_catalog_id'] = 2514;
+            $snapshot['metadata']['hotel_transfer'] = $provenance;
+            unset($snapshot['metadata']['hotel_transfer_price_record_id'], $snapshot['metadata']['monitor_price_record_id']);
+            $snapshot = self::snapshot($snapshot);
+            $receipt = ['verified'=>true, 'button_verified'=>true, 'media_verified'=>true, 'caption_verified'=>true,
+                'publication_date_verified'=>true, 'completion_kind'=>'telegram_publisher_hotel_transfer_v1',
+                'plan_digest'=>$parentPlanDigest, 'row_digest'=>$reservation['row_digest'],
+                'provider_response_sha256'=>$responseDigest, 'media_write_attempts'=>1,
+                'request_count'=>0, 'write_attempts'=>0, 'adopted_from_version_id'=>(int)$current['id'],
+                'file_id_bot_key'=>'anyru_bot', 'publisher_evidence'=>$provenance['publisher_evidence']];
+            $now = self::now();
+            $this->execute("INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,error_reason,receipt_json,created_at,updated_at) VALUES (3848,2,?,?,'sent',0,'',?,?,?)",
+                [ChannelPostIncomingAdapter::contentFingerprint($snapshot), self::json($snapshot), self::json($receipt), $now, $now]);
+            $versionId = (int)$this->pdo->lastInsertId();
+            if ($this->execute('UPDATE post_publications SET current_version_id=? WHERE id=3848 AND current_version_id=?',
+                [$versionId, (int)$current['id']]) !== 1) throw new RuntimeException('publisher_media_native_observation_changed');
+            if ($current['state'] === 'pending' && $this->execute("UPDATE post_versions SET state='requires_attention',error_reason='superseded_before_write',updated_at=? WHERE id=? AND state='pending' AND write_attempts=0 AND claim_token IS NULL AND claimed_at IS NULL",
+                [$now, (int)$current['id']]) !== 1) throw new RuntimeException('publisher_media_target_held');
+            $completionEvent = 'authorized-publisher-media:'.hash('sha256', self::json(self::canonicalArray($provenance)));
+            $this->execute('INSERT INTO post_observations (publication_id,source_event_key,version_id,created_at) VALUES (3848,?,?,?)',
+                [hash('sha256', $completionEvent), $versionId, $now]);
+            return ($this->publication(3848) ?? throw new RuntimeException('publisher_media_native_observation_changed'))
+                + ['already_completed'=>false];
+        });
+    }
+
+    private static function publisherMediaPilotRow(array $row, string $digest): array
+    {
+        $row = self::telegramHotelTransferRow($row, $digest);
+        if ($row['hotel_id'] !== 2514 || $row['source_publication_id'] !== 952 || $row['source_message_id'] !== '429'
+            || $row['target_message_id'] !== '1058' || $row['target_published_unixtime'] !== 1742976715
+            || $row['button_text'] !== '✈️ Рассчитать на мои даты' || $row['price_record_id'] !== null
+            || $row['next_caption_sha256'] !== '4de6674c0a8d3fe60319c1d6a93bf5b70dade3a443aa025efa075fcd48263736') {
+            throw new InvalidArgumentException('publisher_media_scope_invalid');
+        }
+        return $row;
+    }
+
+    private function publisherMediaPilotIdentity(array $reservation, array $channel, array $row, string $digest): array
+    {
+        if (($reservation['publication_id'] ?? null) !== 3848 || (int)$channel['id'] !== 6) {
+            throw new RuntimeException('publisher_media_reservation_changed');
+        }
+        return $this->telegramHotelTransferIdentity($reservation, $channel, $row, $digest);
+    }
+
+    /** Fresh inventory in the same locked registry scope; the historical read is not admission. */
+    private function publisherMediaPilotNoDuplicate(): void
+    {
+        $extract = $this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'sqlite'
+            ? static fn(string $key): string => "CAST(JSON_EXTRACT(v.snapshot_json,'$.metadata.".$key."') AS TEXT)"
+            : static fn(string $key): string => "JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.".$key."'))";
+        $duplicate = $this->fetch('SELECT p.id FROM post_publications p JOIN post_versions v '
+            . 'ON v.id=p.current_version_id AND v.publication_id=p.id '
+            . 'WHERE p.post_channel_id=6 AND p.id<>3848 AND (' . $extract('hotel_catalog_id') . '=? OR '
+            . $extract('logical_id') . ' IN (?,?,?)) LIMIT 1' . $this->lock(),
+            ['2514','commercial-hotel-2514-v1','commercial-main-hotel-2514-v1','commercial-amwaj-rotana-2514-v1']);
+        if ($duplicate) throw new RuntimeException('publisher_media_hotel_already_in_channel');
+    }
+
+    private static function publisherMediaPilotSourcePin(array $row, array $pin): void
+    {
+        if (array_keys($pin) !== ['version_id','content_hash','caption_sha256','file_id_sha256','file_unique_id_sha256']
+            || !is_int($pin['version_id']) || $pin['version_id'] < $row['source_version_id']
+            || $pin['file_unique_id_sha256'] !== $row['source_file_unique_id_sha256']) {
+            throw new InvalidArgumentException('publisher_media_source_pin_invalid');
+        }
+        foreach (array_slice($pin, 1) as $value) {
+            if (!is_string($value) || !preg_match('/\A[a-f0-9]{64}\z/D', $value)) {
+                throw new InvalidArgumentException('publisher_media_source_pin_invalid');
+            }
+        }
+    }
+
+    private function publisherMediaPilotSource(array $row, array $pin): array
+    {
+        $current = array_replace($row, ['source_version_id'=>$pin['version_id'], 'source_content_hash'=>$pin['content_hash'],
+            'source_caption_sha256'=>$pin['caption_sha256'], 'source_file_id_sha256'=>$pin['file_id_sha256'],
+            'source_file_unique_id_sha256'=>$pin['file_unique_id_sha256']]);
+        return $this->telegramHotelTransferSource($current);
+    }
+
+    private static function publisherMediaPilotEvidence(array $reservation, array $row, array $evidence): void
+    {
+        $publisher = $evidence['publisher'] ?? null;
+        if (array_keys($evidence) !== ['schema','publisher','native_run_id','parent_receipt_sha256','upload_sha256','request_sha256']
+            || $evidence['schema'] !== 1 || !is_array($publisher)
+            || array_keys($publisher) !== ['username','bot_id','credential_version']
+            || $publisher['username'] !== 'ANYTOURBOT_bot' || !is_string($publisher['bot_id'])
+            || !preg_match('/\A[1-9][0-9]{4,18}\z/D', $publisher['bot_id'])
+            || !is_int($publisher['credential_version']) || $publisher['credential_version'] < 1
+            || !is_string($evidence['native_run_id']) || !preg_match('/\A[1-9][0-9]{0,19}\z/D', $evidence['native_run_id'])
+            || $evidence['native_run_id'] === '45567178733'
+            || $evidence['parent_receipt_sha256'] !== 'b30bddac7fb9ddcb40e2f41c44bec8988e7fc0e98ddb3a0ca9f825e38492aeb0'
+            || $evidence['upload_sha256'] !== '3364da0d8257468c9f2933d042dfc7b5d5b7ca705d2ca1564b328966257bbe58') {
+            throw new InvalidArgumentException('publisher_media_evidence_invalid');
+        }
+        $request = ['chat_id'=>'-1001845835645', 'message_id'=>'1058',
+            'media'=>['type'=>'photo', 'media'=>'attach://hotel_photo', 'caption'=>$row['next_caption'], 'caption_entities'=>[]],
+            'reply_markup'=>['inline_keyboard'=>[[['text'=>$row['button_text'], 'url'=>$reservation['button_url'] ?? null]]]],
+            'upload_sha256'=>$evidence['upload_sha256']];
+        if (!is_string($evidence['request_sha256'])
+            || !hash_equals(hash('sha256', self::json($request)), $evidence['request_sha256'])) {
+            throw new InvalidArgumentException('publisher_media_evidence_invalid');
+        }
+    }
+
+    private static function publisherMediaPilotResponse(array $reservation, array $row, array $response): array
+    {
+        $raw = $response['data']['result'] ?? null;
+        if (($response['http'] ?? null) !== 200 || ($response['transport_error'] ?? null) !== false
+            || ($response['data']['ok'] ?? null) !== true || !is_array($raw)
+            || (string)($raw['chat']['id'] ?? '') !== '-1001845835645' || ($raw['chat']['type'] ?? '') !== 'channel'
+            || ($raw['chat']['username'] ?? '') !== 'anytour' || (string)($raw['message_id'] ?? '') !== '1058'
+            || ($raw['date'] ?? null) !== $row['target_published_unixtime'] || !is_int($raw['edit_date'] ?? null)
+            || $raw['edit_date'] <= $row['target_published_unixtime'] || $raw['edit_date'] > 9999999999
+            || ($raw['caption'] ?? null) !== $row['next_caption'] || isset($raw['text']) || !empty($raw['media_group_id'])
+            || ($raw['caption_entities'] ?? []) !== [] || ($raw['entities'] ?? []) !== []
+            || !is_array($raw['reply_markup'] ?? null)
+            || self::canonicalArray($raw['reply_markup']) !== self::canonicalArray(
+                ['inline_keyboard'=>[[['text'=>$row['button_text'], 'url'=>$reservation['button_url'] ?? null]]]])) {
+            throw new RuntimeException('publisher_media_response_unconfirmed');
+        }
+        $snapshot = ChannelPostIncomingAdapter::telegramSnapshot($raw);
+        $photo = $snapshot['attachments'][0] ?? [];
+        if (!$snapshot || ($snapshot['metadata']['capability'] ?? '') !== 'supported'
+            || count($snapshot['attachments']) !== 1 || ($photo['type'] ?? '') !== 'image'
+            || ($photo['provider'] ?? '') !== 'telegram'
+            || !is_string($photo['file_unique_id'] ?? null) || !preg_match('/\A[A-Za-z0-9_-]{5,160}\z/D', $photo['file_unique_id'])
+            || !is_string($photo['telegram_file_id'] ?? null) || !preg_match('/\A[A-Za-z0-9_-]{8,1024}\z/D', $photo['telegram_file_id'])
+            || $snapshot['post_url'] !== 'https://t.me/anytour/1058') {
+            throw new RuntimeException('publisher_media_response_unconfirmed');
+        }
+        return self::snapshot($snapshot);
     }
 
     private static function telegramHotelTransferRow(array $row, string $planDigest): array
@@ -678,6 +903,28 @@ final class ChannelPostRegistryService
         if ($publication['state'] !== 'requires_attention' || $publication['error_reason'] !== 'manual_approval_required') throw new RuntimeException('manual_repair_not_claimable');
     }
 
+    /**
+     * The separate publisher pilot owns only this rejected, identity-only
+     * reservation. Observing its old body is not approval of the hotel transfer.
+     * The fence allocates no version until a real observation arrives.
+     */
+    private static function historicalPublisherKeyboardHold(array $publication, array $channel): bool
+    {
+        return (int)($publication['publication_id'] ?? $publication['id'] ?? 0) === 3847
+            && ($publication['external_message_id'] ?? '') === '1047'
+            && (int)($channel['id'] ?? 0) === 6
+            && ($channel['project_key'] ?? '') === 'anytour' && ($channel['platform'] ?? '') === 'telegram'
+            && ($channel['bot_key'] ?? '') === 'anyru_bot' && ($channel['channel_id'] ?? '') === '-1001845835645';
+    }
+
+    /** Same exact identity for the existing queue's pp/pc/p SQL aliases. */
+    private static function historicalPublisherKeyboardQueueExclusion(): string
+    {
+        return "NOT (pp.id=3847 AND pp.external_message_id='1047'"
+            . " AND pc.id=6 AND p.project_key='anytour' AND pc.platform='telegram'"
+            . " AND pc.bot_key='anyru_bot' AND pc.channel_id='-1001845835645')";
+    }
+
     private static function manualPlanReceipt(array $receipt): array
     {
         if (($receipt['repair_kind'] ?? null) !== self::MANUAL_TELEGRAM_REPAIR) return [];
@@ -854,6 +1101,7 @@ final class ChannelPostRegistryService
                 $publication = ['id' => (int)$this->pdo->lastInsertId(), 'current_version_id' => null];
             }
             $previous = $publication['current_version_id'] ? $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?', [(int)$publication['current_version_id'], (int)$publication['id']]) : null;
+            $publisherKeyboardHold = self::historicalPublisherKeyboardHold($publication, $channel);
             $manualFence = $projectKey === 'anytour' && $platform === 'telegram' && $botKey === 'anyru_bot'
                 && $channelId === '-1001845835645' && $messageId === '1678'
                 ? $this->manualFenceReceipt((int)$publication['id']) : null;
@@ -910,6 +1158,12 @@ final class ChannelPostRegistryService
                 // invalidate the reviewed public version without granting work.
                 $albumOperation = ['state'=>'requires_attention', 'write_attempts'=>0,
                     'receipt'=>$manualFence, 'reason'=>'manual_observation_changed'];
+            } elseif ($publisherKeyboardHold) {
+                // Keep the authenticated old caption/photo and update clock.
+                // No publisher outcome or prepared hotel's identity is inferred.
+                $albumOperation = ['state'=>'requires_attention', 'write_attempts'=>0,
+                    'receipt'=>['repair_kind'=>self::HISTORICAL_PUBLISHER_KEYBOARD_HOLD],
+                    'reason'=>'publisher_keyboard_pilot_requires_review'];
             }
             if ($album) {
                 $priorSnapshot = $previous ? (json_decode((string)$previous['snapshot_json'], true) ?: []) : null;
@@ -960,7 +1214,8 @@ final class ChannelPostRegistryService
                     rtrim((string)$channel['bot_url'], '/') . '?start=' . rawurlencode((string)$publication['start_payload']),
                     (string)$channel['button_text']);
             // Album observations also append immutable per-member clocks when the body is unchanged.
-            if ($album || $keyboardCorrection || $manualContextChanged || !$previous || !hash_equals($previousHash, $hash)) {
+            if ($album || $keyboardCorrection || $manualContextChanged || !$previous || !hash_equals($previousHash, $hash)
+                || ($publisherKeyboardHold && $sourceEventKey !== null)) {
                 $version = $previous ? (int)$previous['version_number'] + 1 : 1;
                 $now = self::now();
                 $this->execute('INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,error_reason,receipt_json,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?)', [(int)$publication['id'], $version, $hash, self::json($snapshot), $albumOperation['state'], $albumOperation['write_attempts'], $albumOperation['reason'], self::json($albumOperation['receipt']), $now, $now]);
@@ -1014,8 +1269,9 @@ final class ChannelPostRegistryService
         $limit = max(1, min(25, $limit));
         $cutoff = gmdate('Y-m-d H:i:s', time() - self::LEASE_SECONDS);
         $manualPattern = '%"repair_kind":"' . self::MANUAL_TELEGRAM_REPAIR . '"%';
-        if($expireLeases)$this->execute("UPDATE post_versions SET state=CASE WHEN write_attempts>0 THEN 'unknown' WHEN receipt_json LIKE ? THEN 'requires_attention' ELSE 'pending' END,claim_token=NULL,claimed_at=NULL,error_reason=CASE WHEN write_attempts=0 AND receipt_json LIKE ? THEN 'manual_approval_required' ELSE 'claim_expired' END,updated_at=? WHERE publication_id IN (SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=?) AND state IN ('claimed','write_started') AND claimed_at<?", [$manualPattern, $manualPattern, self::now(), $projectKey, $platform, $botKey, $cutoff]);
-        $query = $this->pdo->prepare("SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id JOIN conversation_sources s ON s.id=pp.source_id AND s.id=pc.source_id AND s.project_id=pc.project_id JOIN post_versions v ON v.id=pp.current_version_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=? AND pc.is_enabled=1 AND p.is_active=1 AND s.is_active=1 AND s.channel=pc.platform AND s.handling_mode IN ('manager','ask') AND v.state IN ('pending','unknown') AND NOT EXISTS (SELECT 1 FROM post_versions fence WHERE fence.publication_id=pp.id AND fence.receipt_json LIKE ?) ORDER BY CASE WHEN v.state='pending' THEN 0 ELSE 1 END ASC,v.id ASC LIMIT " . $limit);
+        $publisherPilotExclusion = self::historicalPublisherKeyboardQueueExclusion();
+        if($expireLeases)$this->execute("UPDATE post_versions SET state=CASE WHEN write_attempts>0 THEN 'unknown' WHEN receipt_json LIKE ? THEN 'requires_attention' ELSE 'pending' END,claim_token=NULL,claimed_at=NULL,error_reason=CASE WHEN write_attempts=0 AND receipt_json LIKE ? THEN 'manual_approval_required' ELSE 'claim_expired' END,updated_at=? WHERE publication_id IN (SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=? AND " . $publisherPilotExclusion . ") AND state IN ('claimed','write_started') AND claimed_at<?", [$manualPattern, $manualPattern, self::now(), $projectKey, $platform, $botKey, $cutoff]);
+        $query = $this->pdo->prepare("SELECT pp.id FROM post_publications pp JOIN post_channels pc ON pc.id=pp.post_channel_id JOIN projects p ON p.id=pc.project_id JOIN conversation_sources s ON s.id=pp.source_id AND s.id=pc.source_id AND s.project_id=pc.project_id JOIN post_versions v ON v.id=pp.current_version_id WHERE p.project_key=? AND pc.platform=? AND pc.bot_key=? AND pc.is_enabled=1 AND p.is_active=1 AND s.is_active=1 AND s.channel=pc.platform AND s.handling_mode IN ('manager','ask') AND v.state IN ('pending','unknown') AND " . $publisherPilotExclusion . " AND NOT EXISTS (SELECT 1 FROM post_versions fence WHERE fence.publication_id=pp.id AND fence.receipt_json LIKE ?) ORDER BY CASE WHEN v.state='pending' THEN 0 ELSE 1 END ASC,v.id ASC LIMIT " . $limit);
         $query->execute([$projectKey, $platform, $botKey, $manualPattern]);
         $rows = [];
         foreach ($query->fetchAll(PDO::FETCH_COLUMN) as $id) {
@@ -1030,6 +1286,7 @@ final class ChannelPostRegistryService
         return $this->transaction(function () use ($publicationId, $versionId, $reconcileOnly): ?array {
             $publication = $this->publication($publicationId);
             if (!$publication || $publication['version_id'] !== $versionId) return null;
+            if (self::historicalPublisherKeyboardHold($publication, $publication['channel'])) return null;
             if ($publication['platform'] === 'telegram' && $publication['channel_id'] === '-1001845835645'
                 && $publication['external_message_id'] === '1678' && $this->manualFenceReceipt($publicationId) !== null) return null;
             // Telegram albums have distinct per-member edit claims.
@@ -1170,6 +1427,7 @@ final class ChannelPostRegistryService
             $this->fetch('SELECT id FROM post_publications WHERE id=?' . $this->lock(), [$publicationId]);
             $publication = $this->publication($publicationId);
             if (!$publication || $publication['version_id'] !== $versionId) return false;
+            if (self::historicalPublisherKeyboardHold($publication, $publication['channel'])) return false;
             if (!empty($publication['manual_button_repair'])) {
                 try {
                     if ((int)$publication['attempt_count'] !== 1 || (int)$publication['write_attempts'] !== 0
@@ -1190,6 +1448,8 @@ final class ChannelPostRegistryService
         $receipt = self::receipt($receipt);
         return $this->transaction(function () use ($publicationId, $versionId, $claimToken, $state, $reason, $receipt): bool {
             $this->fetch('SELECT id FROM post_publications WHERE id=?' . $this->lock(), [$publicationId]);
+            $publication = $this->publication($publicationId);
+            if ($publication && self::historicalPublisherKeyboardHold($publication, $publication['channel'])) return false;
             $written = $this->fetch('SELECT * FROM post_versions WHERE id=? AND publication_id=?', [$versionId, $publicationId]);
             $stored = json_decode((string)($written['receipt_json'] ?? ''), true) ?: [];
             $receipt = self::retainTelegramRecoveryHistory($stored, $receipt);
@@ -1227,6 +1487,7 @@ final class ChannelPostRegistryService
     {
         $publication = $this->publication($publicationId);
         if (!$publication || $publication['version_id'] !== $versionId) return false;
+        if (self::historicalPublisherKeyboardHold($publication, $publication['channel'])) return false;
         if ($publication['platform'] === 'telegram' && $publication['channel_id'] === '-1001845835645'
             && $publication['external_message_id'] === '1678' && $this->manualFenceReceipt($publicationId) !== null) return false;
         return $this->execute("UPDATE post_versions SET state='sent',claim_token=NULL,claimed_at=NULL,error_reason='',receipt_json=?,updated_at=? WHERE id=? AND publication_id=? AND state IN ('pending','claimed','write_started','unknown')", [self::json(self::retainTelegramRecoveryHistory((array)$publication['receipt'], self::receipt($receipt))), self::now(), $versionId, $publicationId]) === 1;
@@ -1574,6 +1835,12 @@ final class ChannelPostRegistryService
                 'bot_id'=>$row['receipt']['publisher_bot_id'] ?? '', 'credential_version'=>$row['receipt']['credential_version'] ?? 0];
             $row['public_fingerprint'] = $row['receipt']['public_baseline_sha256'] ?? '';
             $row['plan_digest'] = $row['receipt']['plan_digest'] ?? '';
+        }
+        if (self::historicalPublisherKeyboardHold($row, $channel)) {
+            // Reuse receive()'s existing no-automatic-write boundary without
+            // pretending this native observation has an Aloft publisher plan.
+            $row['manual_button_repair'] = true;
+            $row['publisher_keyboard_pilot_hold'] = true;
         }
         unset($row['snapshot_json'], $row['receipt_json']);
         return $row;

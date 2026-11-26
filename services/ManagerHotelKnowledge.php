@@ -39,6 +39,29 @@ HOTEL;
     /** Only the retained reader supplies its complete, already validated projection. */
     public static function captureRetainedCandidate(array $candidate, string $requestScopeDigest, string $sourceGeneratedAt, string $requestCountry, int $now): array
     {
+        $capture = self::retainedCandidateCapture($requestScopeDigest, $sourceGeneratedAt, $requestCountry, $now);
+        return $capture($candidate);
+    }
+
+    /** Create one capture function for the whole retained response. */
+    public static function retainedCandidateCapture(string $requestScopeDigest, string $sourceGeneratedAt, string $requestCountry, int $now): Closure
+    {
+        $snapshot = null;
+        $resolved = false;
+        $resolve = static function () use (&$snapshot, &$resolved): ?array {
+            if (!$resolved) {
+                $resolved = true;
+                $snapshot = self::catalogueSnapshot();
+            }
+            return $snapshot;
+        };
+        return static fn(array $candidate): array => self::captureRetainedFrom($candidate, $requestScopeDigest,
+            $sourceGeneratedAt, $requestCountry, $now, $resolve);
+    }
+
+    private static function captureRetainedFrom(array $candidate, string $requestScopeDigest, string $sourceGeneratedAt,
+        string $requestCountry, int $now, Closure $resolve): array
+    {
         try {
             if ($now <= 0 || !self::hex($requestScopeDigest) || !self::retainedText($requestCountry, 400)
                 || !self::validRetainedCandidate($candidate, $sourceGeneratedAt, $now)) return self::held('selector_unavailable');
@@ -61,16 +84,112 @@ HOTEL;
                 ],
             ];
             if (!self::validRetainedSelector($selector)) return self::held('selector_unavailable');
-            return self::captureValidatedSelector($selector, $now);
+            $snapshot = $resolve();
+            return $snapshot === null ? self::held('knowledge_unavailable')
+                : self::captureFromSnapshot($snapshot, $selector, $now);
         } catch (Throwable $ignored) { return self::held('selector_unavailable'); }
+    }
+
+    /** A bundled catalogue is selected only when the active pointer is absent. */
+    private static function activeCatalogueSnapshot(string $root): ?array
+    {
+        $releases = dirname($root).'/max-search-bot-private-logs/hotel-catalogue-releases';
+        $pointer = $releases.'/current';
+        clearstatcache(true, $pointer);
+        if (!is_dir($releases) && !is_link($releases)) return file_exists($releases) ? null : [];
+        if (realpath($releases) !== $releases || !is_readable($releases) || !is_executable($releases)) return null;
+        if (@lstat($pointer) === false) return [];
+        $target = is_link($pointer) ? readlink($pointer) : false;
+        if (!is_string($target) || !preg_match('~\A'.preg_quote($releases, '~')
+            .'/([a-f0-9]{64})-([a-f0-9]{64})\z~D', $target, $identity) || realpath($target) !== $target) return null;
+        $receipt = self::read($target, 'release.json', 4096);
+        if ($receipt === null) return null;
+        try { $seal = json_decode($receipt, true, 8, JSON_THROW_ON_ERROR); }
+        catch (Throwable $ignored) { return null; }
+        if (!is_array($seal) || !self::keys($seal, ['contract','package_sha256','reader_sha256','catalogue_index_sha256'])
+            || $seal['contract'] !== 'anytour-hotel-catalogue-package-v1'
+            || $seal['package_sha256'] !== $identity[1] || $seal['reader_sha256'] !== $identity[2]
+            || !self::hex($seal['catalogue_index_sha256'])) return null;
+        $directory = $target.'/hotels';
+        $rawCatalogue = self::read($directory, 'catalogue.json', self::MAX_CATALOGUE_BYTES);
+        if ($rawCatalogue === null || !hash_equals($seal['catalogue_index_sha256'], hash('sha256', $rawCatalogue))) return null;
+        return [$directory, $rawCatalogue, $seal['reader_sha256']];
+    }
+
+    /** Resolve the active version once so later member reads cannot cross a switch. */
+    private static function catalogueSnapshot(): ?array
+    {
+        $root = dirname(__DIR__);
+        $snapshot = self::activeCatalogueSnapshot($root);
+        if ($snapshot === null) return null;
+        if ($snapshot !== []) {
+            [$directory, $rawCatalogue, $readerSha] = $snapshot;
+            return $readerSha === hash_file('sha256', __FILE__) ? [$directory, $rawCatalogue] : null;
+        }
+        $directory = $root.'/knowledge/hotels';
+        $rawCatalogue = self::read($directory, 'catalogue.json', self::MAX_CATALOGUE_BYTES);
+        return $rawCatalogue === null ? null : [$directory, $rawCatalogue];
+    }
+
+    /** Compare the candidate's checked-in reader bytes with the active receipt. */
+    public static function coreCatalogueCompatibility(string $root, string $candidateReaderSha): string
+    {
+        $installedReader = $root.'/services/ManagerHotelKnowledge.php';
+        if ($root === '/' || realpath($root) !== $root || !is_dir($root) || !self::hex($candidateReaderSha)
+            || is_link($installedReader) || !is_file($installedReader)) {
+            return 'invalid_input';
+        }
+        $snapshot = self::activeCatalogueSnapshot($root);
+        if ($snapshot === null) return 'invalid_active_catalogue';
+        if ($snapshot === []) return 'bundled';
+        return hash_equals($snapshot[2], $candidateReaderSha) ? 'compatible' : 'incompatible_reader';
+    }
+
+    /** The CLI publisher checks typed approvals and new bundles before switching the pointer. */
+    public static function validateReleaseAdditions(string $directory, array $members): bool
+    {
+        if (PHP_SAPI !== 'cli' || !$members || !array_is_list($members)) return false;
+        $rawIndex = self::read($directory, 'catalogue.json', self::MAX_CATALOGUE_BYTES);
+        if ($rawIndex === null) return false;
+        try {
+            $catalogue = json_decode($rawIndex, true, 16, JSON_THROW_ON_ERROR);
+            $shards = [];
+            [, $reason] = self::catalogueBinding($catalogue, ['source_identity'=>null],
+                static function (string $file) use ($directory, &$shards): ?string {
+                    return $shards[$file] = self::read($directory, $file, self::MAX_MANIFEST_BYTES);
+                });
+            if ($reason !== 'binding_unresolved') return false;
+            $remaining = array_fill_keys($members, true);
+            if (count($remaining) !== count($members)) return false;
+            foreach ($shards as $bytes) {
+                $manifest = json_decode($bytes, true, 24, JSON_THROW_ON_ERROR);
+                foreach ($manifest['bindings'] as $entry) {
+                    $name = $entry['bundle_file'];
+                    if (!isset($remaining[$name])) continue;
+                    $bundle = self::read($directory, $name, self::MAX_REFERENCE_BYTES);
+                    if ($bundle === null || !hash_equals($entry['bundle_sha256'], hash('sha256', $bundle))
+                        || !self::validBundle(json_decode($bundle, true, 32, JSON_THROW_ON_ERROR),
+                            $entry['accepted_binding'], $entry['binding_revision'])) return false;
+                    unset($remaining[$name]);
+                }
+            }
+            return !$remaining;
+        } catch (Throwable $ignored) {
+            return false;
+        }
     }
 
     /** Both authorized selector owners use the same complete admission pipeline. */
     private static function captureValidatedSelector(array $selector, int $now): array
     {
-        $directory = dirname(__DIR__).'/knowledge/hotels';
-        $rawCatalogue = self::read($directory, 'catalogue.json', self::MAX_CATALOGUE_BYTES);
-        if ($rawCatalogue === null) return self::held('knowledge_unavailable');
+        $snapshot = self::catalogueSnapshot();
+        return $snapshot === null ? self::held('knowledge_unavailable')
+            : self::captureFromSnapshot($snapshot, $selector, $now);
+    }
+
+    private static function captureFromSnapshot(array $snapshot, array $selector, int $now): array
+    {
+        [$directory, $rawCatalogue] = $snapshot;
         try { $catalogue = json_decode($rawCatalogue, true, 16, JSON_THROW_ON_ERROR); }
         catch (Throwable $ignored) { return self::held('manifest_invalid'); }
         [$entry, $reason] = self::catalogueBinding($catalogue, $selector,
@@ -246,10 +365,9 @@ HOTEL;
             || !array_is_list($core['accepted_chain']) || count($core['accepted_chain']) !== 3
             || !is_array($core['identity_anchor'] ?? null) || !is_array($core['proofs'] ?? null)) return false;
         $anchor = $core['identity_anchor'];
-        if (!self::keys($anchor, ['research_source_id','research_source_record_sha256','official_url','address','country','city'])
-            || !self::identifier($anchor['research_source_id'] ?? null) || !self::hex($anchor['research_source_record_sha256'] ?? null)
+        if (!self::identifier($anchor['research_source_id'] ?? null) || !self::hex($anchor['research_source_record_sha256'] ?? null)
             || !self::httpsUrl($anchor['official_url'] ?? null) || !self::text($anchor['address'] ?? null, 500)
-            || !self::text($anchor['country'] ?? null, 80) || !self::text($anchor['city'] ?? null, 160)
+            || !self::text($anchor['country'] ?? null, 80) || !self::validLocality($anchor)
             || count($core['proofs']) < 3 || count($core['proofs']) > 10) return false;
         foreach ($core['proofs'] as $name=>$hash) {
             if (!is_string($name) || !preg_match('/\A[a-z0-9]+(?:[-_.][a-z0-9]+)*\.(?:raw|json)\z/D', $name) || !self::hex($hash)) return false;
@@ -263,6 +381,25 @@ HOTEL;
             && self::id($chain[1]['catalog_revision'] ?? null)
             && ($chain[2]['namespace'] ?? null) === 'local-tv' && self::id($chain[2]['id'] ?? null)
             && self::id($chain[2]['catalog_revision'] ?? null);
+    }
+
+    /** An unversioned city core keeps its original canonical bytes and exact shape. */
+    private static function validLocality(array $anchor): bool
+    {
+        $common = ['research_source_id','research_source_record_sha256','official_url','address','country'];
+        if (!array_key_exists('schema_version', $anchor)) {
+            return self::keys($anchor, [...$common, 'city']) && self::text($anchor['city'] ?? null, 160);
+        }
+        if (!self::keys($anchor, [...$common, 'schema_version','locality','property_atoll_label','postal_code'])
+            || $anchor['schema_version'] !== 'resort_island_anchor_v1' || $anchor['country'] !== 'Maldives'
+            || !self::text($anchor['property_atoll_label'], 160)
+            || ($anchor['postal_code'] !== null && !self::text($anchor['postal_code'], 32))) return false;
+        $place = $anchor['locality'];
+        return is_array($place) && self::keys($place, ['kind','name','admin_atoll','authority_source_id','authority_source_record_sha256'])
+            && $place['kind'] === 'resort_island' && self::text($place['name'], 160) && self::text($place['admin_atoll'], 160)
+            && self::identifier($place['authority_source_id']) && self::hex($place['authority_source_record_sha256'])
+            && $place['authority_source_id'] !== $anchor['research_source_id']
+            && $place['authority_source_record_sha256'] !== $anchor['research_source_record_sha256'];
     }
 
     private static function validApproval($approval): bool
@@ -301,7 +438,7 @@ HOTEL;
                 || (!self::text($source['limitations'] ?? null, 2000) && ($source['limitations'] ?? null) !== '')
                 || !array_key_exists('publication_date', $source) || !self::dateOrNull($source['publication_date'])
                 || !self::date($source['retrieved_on'] ?? null)) return false;
-            $sources[$source['id']] = true;
+            $sources[$source['id']] = $source;
         }
         $claims = [];
         foreach ($bundle['facts'] as $fact) {
@@ -323,6 +460,19 @@ HOTEL;
                 if (!self::hex($hashes[$record['id']] ?? null)
                     || !hash_equals($hashes[$record['id']], hash('sha256', self::canonical($record)))) return false;
             }
+        }
+        $anchor = $core['identity_anchor'];
+        if (isset($anchor['locality'])) {
+            $propertyId = $anchor['research_source_id'];
+            $place = $anchor['locality'];
+            $authorityId = $place['authority_source_id'];
+            $hashes = $bundle['record_hashes']['sources'];
+            if (($hashes[$propertyId] ?? null) !== $anchor['research_source_record_sha256']
+                || ($hashes[$authorityId] ?? null) !== $place['authority_source_record_sha256']
+                || $sources[$propertyId]['kind'] !== 'official' || $sources[$authorityId]['kind'] !== 'official'
+                || $sources[$propertyId]['url'] !== $anchor['official_url']
+                || strtolower(parse_url($sources[$authorityId]['url'], PHP_URL_HOST))
+                    === strtolower(parse_url($anchor['official_url'], PHP_URL_HOST))) return false;
         }
         return true;
     }

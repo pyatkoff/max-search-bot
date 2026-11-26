@@ -236,6 +236,8 @@ final class ManagerPreparationMcpService
         if($dialogue&&DialogueReviewMcpAdapter::isHistory($args))$required=[ManagerPreparationOAuth::QUALITY_SCOPE];
         $retainedDialogue=in_array($name,DialogueReviewMcpAdapter::RETAINED_NAMES,true);
         if($retainedDialogue)$required=[ManagerPreparationOAuth::QUALITY_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE];
+        $businessIdentity=$dialogue&&DialogueReviewMcpAdapter::isBusinessIdentity($args);
+        if($businessIdentity)$required=[ManagerPreparationOAuth::QUALITY_SCOPE,ManagerPreparationOAuth::ARCHIVE_SCOPE,ManagerPreparationOAuth::FORECAST_SCOPE];
         $stepUp=$selection||$dialogue||$forecast||$archive||($hotel&&($legacy||in_array(ManagerPreparationOAuth::ARCHIVE_SCOPE,$scopes,true)))
             ||($development&&($legacy||in_array(ManagerPreparationOAuth::HOTEL_SCOPE,$scopes,true)||in_array(ManagerPreparationOAuth::DEVELOPMENT_SCOPE,$scopes,true)));
         if ($stepUp&&!ManagerPreparationOAuth::hasScopes($scopes,$required)&&$connection!==null
@@ -249,7 +251,7 @@ final class ManagerPreparationMcpService
                 if ($metadata!==$oauth->currentAuthorizationMetadata($connection,$admin,$scopes)) throw new DomainException();
                 return $challenge;
             }
-            if($name==='development_work_roadmap_admit'||$retainedDialogue){
+            if($name==='development_work_roadmap_admit'||$retainedDialogue||$businessIdentity){
                 $missing=array_values(array_diff($required,$scopes));
                 return self::capabilityScopeChallenge($scopes,$missing[0],$required);
             }
@@ -293,7 +295,9 @@ final class ManagerPreparationMcpService
                     $this->requireCurrentContext($admin,$connection,$sourceScopes);
                 };
             }
-            $data=(new DialogueReviewMcpAdapter($this->pdo,$this->dialogueStore,$this->clock,$selectionSourceAuthorize))->call($name,$args,$admin,$connection);
+            $identityAuthorize=$businessIdentity
+                ?function()use($admin,$connection,$required):void{$this->requireCurrentContext($admin,$connection,$required);}:null;
+            $data=(new DialogueReviewMcpAdapter($this->pdo,$this->dialogueStore,$this->clock,$selectionSourceAuthorize,$identityAuthorize))->call($name,$args,$admin,$connection);
         } elseif($forecast){
             if($this->forecastBudget===null)throw new RuntimeException();
             $authorize=function()use($admin,$connection,$required):void{$this->requireCurrentContext($admin,$connection,$required);};

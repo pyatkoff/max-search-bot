@@ -1,1 +1,30 @@
-{"project_key":"anytour","schema_version":"hotel_catalogue_v1","shards":[{"file":"manifest.json","git_blob_sha":"65cf17828a32decf4fc40b52d6a8b8ac0c07294e"},{"file":"manifest-0001.json","git_blob_sha":"6a775f14783d31d8e0edcf8fcd3a2a4f9d18b05a"},{"file":"manifest-0002.json","git_blob_sha":"53ff6ad31f6e2b5aa07520afe7eea0249b0b8a8f"},{"file":"manifest-0003.json","git_blob_sha":"65c14f3c887e641ac4e17c9d868f540ed6a1d2b1"},{"file":"manifest-0004.json","git_blob_sha":"f76c4fb9f409ae5f9d044d4561a7501e2dac261c"}]}
+{
+  "project_key": "anytour",
+  "schema_version": "hotel_catalogue_v1",
+  "shards": [
+    {
+      "file": "manifest.json",
+      "git_blob_sha": "65cf17828a32decf4fc40b52d6a8b8ac0c07294e"
+    },
+    {
+      "file": "manifest-0001.json",
+      "git_blob_sha": "6a775f14783d31d8e0edcf8fcd3a2a4f9d18b05a"
+    },
+    {
+      "file": "manifest-0002.json",
+      "git_blob_sha": "933ac9eee861655ded9de87150c4802d241a5269"
+    },
+    {
+      "file": "manifest-0003.json",
+      "git_blob_sha": "65c14f3c887e641ac4e17c9d868f540ed6a1d2b1"
+    },
+    {
+      "file": "manifest-0004.json",
+      "git_blob_sha": "f76c4fb9f409ae5f9d044d4561a7501e2dac261c"
+    },
+    {
+      "file": "manifest-0005.json",
+      "git_blob_sha": "2bcb2e47ab5d2099e9706cebcf874b1b9de2a205"
+    }
+  ]
+}

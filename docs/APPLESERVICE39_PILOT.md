@@ -1,6 +1,6 @@
 # AppleService39 MAX pilot
 
-## Read-only catalogue package rehearsal
+## Independent release of the 15 repair questions
 
 The existing pilot's 15 repair entries can be checked from a separate local
 copy before any provider or release operation. Use the exact source SHA-256
@@ -15,21 +15,36 @@ php tools/check_appleservice39_catalogue_package.php /path/to/appleservice39-pil
 Exit 0 means the bytes and all parsed entries match the canonical file in this
 checkout. Exit 2 means the pinned candidate passed validation and differs. A
 bad digest, a bad file or invalid catalogue exits 1. A CLI usage error exits
-64. Treat this comparison as staging evidence. Independent activation still
-requires the existing owner's authorization, installed-core compatibility
-and publication manifest checks for prices, source URLs and artwork.
+64. Treat this comparison as staging evidence.
 
-The repair webhook regression also exercises a switch and rollback in its own
-temporary directory. It copies the real catalogue reader and two immutable
-comparison files from AnyTour and Manager2, then switches a test pointer to
-a separately prepared package with one synthetic question change. The
-existing selection editor pointer and rollback primitives operate only on
-those temporary paths. Fresh PHP processes check the original, selected and
-restored bytes. A reader that opened the old package before the atomic
-rename can finish against the old bytes. Wrong digest, stale expected
-package, foreign operation and attempted repeat are checked in the same run.
-This is a filesystem and reader rehearsal. It is not admission or activation
-of AppleService39 files through the selection editor release workflow.
+The existing AppleService39 publisher can activate an independently approved
+file. Take the application SHA from the accepted deployment receipt and the
+package SHA-256 from the owner's independent review. For a first activation,
+the previous version is `bundled`. Later activations use the exact version
+from the active operation receipt.
+
+```sh
+node tools/appleservice39_catalogue_release.js activate \
+  "$APP" "$APP_SHA" "$PREVIOUS_VERSION" "$PACKAGE" "$APPROVED_SHA256" "$OPERATION"
+node tools/appleservice39_catalogue_release.js rollback \
+  "$APP" "$APP_SHA" "$ACTIVATION_OPERATION" "$ROLLBACK_OPERATION"
+```
+
+The same reader serves the selected questions to MAX and Telegram. The
+independent path accepts changes to `question` only. Model, service, price,
+source and launch payload remain pinned to the bundled catalogue. Publications
+and commercial changes continue through their existing publishers. The
+independent release has its own private pointer and receipts. It uses the
+common checkout lock briefly during activation or rollback so that a core
+update cannot race with it. An incoming core must preserve the reader and
+the bundled catalogue while an independent package is selected.
+
+Keep the same operation ID and arguments after a lost response. A request
+resumes its recorded switch or returns the existing receipt. Rollback uses
+its own operation ID and restores the version recorded by the specified
+activation. The repair webhook regression exercises these commands in an
+isolated checkout and compares the Apple reader, AnyTour catalogue index
+and Manager2 interface bytes across the switch and rollback.
 
 ## Search-intent successor
 

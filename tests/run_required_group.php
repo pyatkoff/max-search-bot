@@ -15,6 +15,36 @@ if (!is_array($catalog) || $catalog === []) {
 }
 
 $group = (string)($argv[1] ?? 'all');
+$profile = (string)($argv[2] ?? 'full');
+$appleLanes = [
+    'ci-apple-coverage' => 'php tests/run_appleservice39_coverage_regression.php',
+    'ci-apple-device' => 'php tests/run_appleservice39_device_publisher_regression.php',
+];
+$architectureProfiles = ['hotel-catalogue-data', 'telegram-public-observer', 'ci-architecture-core', ...array_keys($appleLanes)];
+if ($profile !== 'full' && !($group === 'architecture' && in_array($profile, $architectureProfiles, true))) {
+    fwrite(STDERR, "Invalid required-check profile for {$group}\n");
+    exit(2);
+}
+
+// These tests exercise the AppleService39 publisher and its own data.
+// All other architecture checks are required by both component profiles.
+$applePublisherChecks = [
+    'php tests/run_appleservice39_publisher_regression.php',
+    'php tests/run_appleservice39_search_publisher_regression.php',
+    'php tests/run_appleservice39_coverage_regression.php',
+    'php tests/run_appleservice39_device_publisher_regression.php',
+];
+
+if ($group === 'architecture' && str_starts_with($profile, 'ci-')) {
+    $commands = array_column($catalog['architecture'] ?? [], 'command');
+    foreach ($appleLanes as $command) {
+        if (count(array_keys($commands, $command, true)) !== 1) {
+            fwrite(STDERR, "Architecture lane command missing or repeated: {$command}\n");
+            exit(2);
+        }
+    }
+}
+
 if ($group === '--list') {
     foreach (array_keys($catalog) as $name) {
         echo $name . PHP_EOL;
@@ -51,6 +81,17 @@ foreach ($groups as $name) {
 
         $command = (string)$check['command'];
         $id = (string)$check['id'];
+        $excluded = match ($profile) {
+            'full' => false,
+            'ci-architecture-core' => in_array($command, $appleLanes, true),
+            default => isset($appleLanes[$profile])
+                ? $command !== $appleLanes[$profile]
+                : in_array($command, $applePublisherChecks, true),
+        };
+        if ($excluded) {
+            echo "CHECK_EXCLUDED {$id} ({$profile})\n";
+            continue;
+        }
         $type = (string)($check['type'] ?? 'regression');
         echo "== {$id} [{$type}] :: {$command} ==\n";
 

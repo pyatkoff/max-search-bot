@@ -251,6 +251,75 @@ try{
     dialogueMcpCheck('ordinary inventory advertises separately consented monthly lanes without payload',
         ($inventory['result']['structuredContent']['quality_history']['scope']??null)===$qualityScope
         &&array_keys($inventory['result']['structuredContent']['quality_history']['lanes'])===['native','archive','manual','prepared','virtual']);
+    $identityDescriptor=$inventory['result']['structuredContent']['quality_history']['lanes']['archive']['business_identity']??[];
+    $identityArgs=['cursor'=>$identityDescriptor['start_cursor']??''];
+    dialogueMcpCheck('finite Business overlap descriptor fixes the cohort and three independent grants',
+        $identityArgs['cursor']===DialogueReviewMcpAdapter::BUSINESS_IDENTITY_CURSOR
+        &&$identityDescriptor['selection_fence']===DialogueReviewMcpAdapter::BUSINESS_IDENTITY_FENCE
+        &&$identityDescriptor['cutoff_at_unix']===DialogueReviewMcpAdapter::BUSINESS_IDENTITY_CUTOFF
+        &&$identityDescriptor['selection_limit']===25&&$identityDescriptor['historical_snapshot']===false
+        &&$identityDescriptor['text_materialized']===false
+        &&$identityDescriptor['required_scopes']===[$qualityScope,$archiveScope,$forecastScope]);
+    $weekDescriptor=$inventory['result']['structuredContent']['quality_history']['lanes']['archive']['business_identity_week']??[];
+    $weekArgs=['cursor'=>$weekDescriptor['start_cursor']??''];
+    dialogueMcpCheck('weekly descriptor advertises actual created-time bounds and a finite complete-cohort strategy',
+        $weekArgs['cursor']===DialogueReviewMcpAdapter::BUSINESS_WEEK_CURSOR
+        &&$weekDescriptor['selection_fence']===$identityDescriptor['selection_fence']
+        &&$weekDescriptor['from_unix']===DialogueReviewMcpAdapter::BUSINESS_WEEK_FROM
+        &&$weekDescriptor['cutoff_at_unix']===$identityDescriptor['cutoff_at_unix']
+        &&$weekDescriptor['cutoff_at_unix']-$weekDescriptor['from_unix']===7*86400
+        &&$weekDescriptor['request_limit']===25&&!isset($weekDescriptor['selection_limit'])
+        &&$weekDescriptor['max_total_calls']===111&&$weekDescriptor['max_leaf_partitions']===100
+        &&$weekDescriptor['required_scopes']===$identityDescriptor['required_scopes']);
+    $monthDescriptor=$inventory['result']['structuredContent']['quality_history']['lanes']['archive']['business_identity_month']??[];
+    $monthArgs=['cursor'=>$monthDescriptor['start_cursor']??''];
+    dialogueMcpCheck('monthly descriptor fixes thirty days with the same fence cutoff permissions and finite budgets',
+        $monthArgs['cursor']==='qh.archive.business_identity30d.20261126'
+        &&$monthArgs['cursor']===DialogueReviewMcpAdapter::BUSINESS_MONTH_CURSOR
+        &&$monthDescriptor['operation']==='business_identity_window_summary'
+        &&$monthDescriptor['selection_fence']===$identityDescriptor['selection_fence']
+        &&$monthDescriptor['from_unix']===1793099100
+        &&$monthDescriptor['from_unix']===DialogueReviewMcpAdapter::BUSINESS_MONTH_FROM
+        &&$monthDescriptor['cutoff_at_unix']===$identityDescriptor['cutoff_at_unix']
+        &&$monthDescriptor['cutoff_at_unix']-$monthDescriptor['from_unix']===30*86400
+        &&$monthDescriptor['request_limit']===25&&!isset($monthDescriptor['selection_limit'])
+        &&$monthDescriptor['max_total_calls']===111&&$monthDescriptor['max_leaf_partitions']===100
+        &&$monthDescriptor['historical_snapshot']===false&&$monthDescriptor['text_materialized']===false
+        &&$monthDescriptor['required_scopes']===$identityDescriptor['required_scopes']);
+    $identityBefore=dialogueMcpCredentialRows($pdo);$identityCalls=count($calls);
+    foreach([$legacyScope,$dialogueScope,$qualityScope,$archiveScope,$forecastScope]as$scope){
+        $granted=explode(' ',$scope);
+        $response=$invoke('list_current_dialogues',$identityArgs,1,$contexts[$scope]['connection_id'],$granted);
+        $wanted=implode(' ',array_values(array_intersect(ManagerPreparationOAuth::SUPPORTED_SCOPES,
+            array_unique([...$granted,$qualityScope,$archiveScope,$forecastScope]))));
+        dialogueMcpCheck('Business overlap step-up preserves existing rights and requests all missing grants '.$scope,
+            str_contains(dialogueMcpChallenge($response),'scope="'.$wanted.'"')
+            &&count($calls)===$identityCalls&&dialogueMcpCredentialRows($pdo)===$identityBefore);
+    }
+    $forgedIdentity=$invoke('list_current_dialogues',$identityArgs,1,$connection,[$qualityScope,$archiveScope,$forecastScope]);
+    dialogueMcpCheck('claimed Business permissions cannot replace actual stored grants',
+        ($forgedIdentity['error']['code']??null)===-32001&&count($calls)===$identityCalls);
+    try{(new DialogueReviewMcpAdapter($pdo,$store,$clock))->call('list_current_dialogues',$identityArgs,1,$contexts[$allScope]['connection_id']);
+        throw new RuntimeException('FAIL Business reader admitted without authority callback');}
+    catch(DomainException $expected){dialogueMcpCheck('direct adapter requires its real disclosure authority callback',count($calls)===$identityCalls);}
+    $badIdentityLimit=$invoke('list_current_dialogues',$identityArgs+['limit'=>1],1,$contexts[$allScope]['connection_id'],explode(' ',$allScope));
+    dialogueMcpCheck('fixed Business cohort cannot be resized by the caller',($badIdentityLimit['error']['code']??null)===-32602);
+    foreach(['weekly'=>$weekArgs,'monthly'=>$monthArgs]as$label=>$windowArgs){
+        foreach([$windowArgs,['cursor'=>$windowArgs['cursor'].'.p3'],['cursor'=>$windowArgs['cursor'].'.p03']]as$partitionArgs){
+            $response=$invoke('list_current_dialogues',$partitionArgs,1,$contexts[$qualityScope]['connection_id'],[$qualityScope]);
+            dialogueMcpCheck('whole and child '.$label.' requests require the same independently granted archive and forecast rights',
+                str_contains(dialogueMcpChallenge($response),'scope="archive:read forecasts:read quality:read"')
+                &&count($calls)===$identityCalls&&dialogueMcpCredentialRows($pdo)===$identityBefore);
+        }
+        $forgedWindow=$invoke('list_current_dialogues',$windowArgs,1,$connection,[$qualityScope,$archiveScope,$forecastScope]);
+        dialogueMcpCheck($label.' scope claims cannot replace stored grants',($forgedWindow['error']['code']??null)===-32001&&count($calls)===$identityCalls);
+        foreach([['limit'=>1],['from'=>1795086300],['from_unix'=>1793099100],['cutoff_at_unix'=>1795691101],
+            ['days'=>30],['peer_suffix'=>'03'],['fence'=>'326089']]as$extra){
+            $response=$invoke('list_current_dialogues',$windowArgs+$extra,1,$contexts[$allScope]['connection_id'],explode(' ',$allScope));
+            dialogueMcpCheck($label.' protected entry has no caller-selected cohort or arbitrary period '.array_key_first($extra),
+                ($response['error']['code']??null)===-32602&&count($calls)===$identityCalls);
+        }
+    }
     $contextArgs=['dialogue_ref'=>'synthetic.ref','cursor'=>'synthetic.cursor','limit'=>10];
     $context=$invoke('get_dialogue_review_context',$contextArgs);
     dialogueMcpCheck('context dispatch preserves exact arguments and both returned JSON representations',
@@ -530,5 +599,202 @@ try{
     $nativeCall($native,$pairContext,'get_dialogue_review_context',['dialogue_ref'=>$sourceRef]);
     dialogueMcpCheck('canonical paired-scope source read changes no source draft event or read marker rows',
         (int)$pdo->query('SELECT total_changes()')->fetchColumn()===$nativeChanges);
+    // Exercise the fixed Business entry through the real grant boundary and reader.
+    // The shared disposable fixture supplies only synthetic metadata and visits.
+    require_once __DIR__.'/telegram_business_identity_summary_fixture.php';
+    telegramBusinessIdentityAssertions($pdo,static function(array $f)use($pdo,$oauth,$client,$qualityScope,$archiveScope,$forecastScope,$clock,&$now):void{
+        $now=$f['now'];
+        $pdo->exec('ALTER TABLE projects ADD COLUMN display_name TEXT');
+        $pdo->prepare('UPDATE projects SET display_name=? WHERE project_key=?')->execute(['Synthetic dialogue review','anytour']);
+        $f['message']((int)DialogueReviewMcpAdapter::BUSINESS_IDENTITY_FENCE);$f['visit'](1);
+        $rights=$qualityScope.' '.$archiveScope.' '.$forecastScope;
+        [, $ctx]=dialogueMcpGrant($oauth,$client,$rights);
+        $entry=new ManagerPreparationMcpService($pdo,clock:$clock);
+        $call=static fn(string $cursor=DialogueReviewMcpAdapter::BUSINESS_IDENTITY_CURSOR):array=>$entry->handle(dialogueMcpRpc('list_current_dialogues',
+            ['cursor'=>$cursor]),1,$ctx['connection_id'],$ctx['scopes']);
+        $before=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+        $packet=$call();$data=$packet['result']['structuredContent']??[];
+        if(($data['operation']??null)!=='business_identity_summary')throw new RuntimeException('Business MCP fixture result '.json_encode([
+            'error'=>$packet['error']??null,'status'=>$data['status']??null,'reason'=>$data['reason']??null]));
+        if(($data['counts']['verified_inbound_records']??null)!==1||($data['identities']['events']['same_observation_pair']??null)!==1)
+            throw new RuntimeException('Business MCP fixture counts '.json_encode(['counts'=>$data['counts']??null,'metrics'=>$data['identities']['events']??null]));
+        dialogueMcpCheck('real triple grant executes finite Business reader and both anonymous MCP representations',
+            ($data['operation']??null)==='business_identity_summary'
+            &&($data['counts']['verified_inbound_records']??null)===1
+            &&($data['identities']['events']['same_observation_pair']??null)===1
+            &&json_encode(json_decode($packet['result']['content'][0]['text'],true))===json_encode($data)
+            &&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$before
+            &&!str_contains(json_encode($packet),$f['peer'])&&!str_contains(json_encode($packet),$f['client_id']));
+        $windows=['weekly'=>[DialogueReviewMcpAdapter::BUSINESS_WEEK_CURSOR,DialogueReviewMcpAdapter::BUSINESS_WEEK_FROM],
+            'monthly'=>[DialogueReviewMcpAdapter::BUSINESS_MONTH_CURSOR,DialogueReviewMcpAdapter::BUSINESS_MONTH_FROM]];
+        $windowResults=[];
+        foreach($windows as$label=>[$prefix,$from]){
+            $packet=$call($prefix);$window=$packet['result']['structuredContent']??[];
+            if(($window['operation']??null)!=='business_identity_window_summary')throw new RuntimeException($label.' fixture response '.json_encode([
+                'error'=>$packet['error']??null,'reason'=>$window['reason']??null,'operation'=>$window['operation']??null]));
+            $windowResults[$label]=$window;
+            dialogueMcpCheck('actual '.$label.' MCP read uses the complete bounded date cohort and private wire representation',
+                ($window['operation']??null)==='business_identity_window_summary'
+                &&($window['period']['from_unix']??null)===$from
+                &&($window['period']['until_unix']??null)===DialogueReviewMcpAdapter::BUSINESS_IDENTITY_CUTOFF
+                &&($window['counts']['verified_inbound_records']??null)===1
+                &&($window['selection']['complete']??null)===true&&($window['partition']['peer_suffix']??null)===null
+                &&strlen($window['scope_fingerprint']??'')===64&&!isset($window['continuation'])
+                &&($packet['result']['isError']??null)===false
+                &&json_encode(json_decode($packet['result']['content'][0]['text'],true))===json_encode($window)
+                &&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$before
+                &&!str_contains(json_encode($packet),$f['peer'])&&!str_contains(json_encode($packet),$f['client_id']));
+            foreach(['1'=>1,'01'=>1,'2'=>0]as$suffix=>$expected){
+                $part=$call($prefix.'.p'.$suffix)['result']['structuredContent']??[];
+                dialogueMcpCheck('actual '.$label.' child selection preserves scope period and its disjoint peer group',
+                    ($part['counts']['verified_inbound_records']??null)===$expected
+                    &&($part['partition']['peer_suffix']??null)===(string)$suffix
+                    &&($part['period']['from_unix']??null)===$from
+                    &&($part['period']['until_unix']??null)===DialogueReviewMcpAdapter::BUSINESS_IDENTITY_CUTOFF
+                    &&($part['scope_fingerprint']??null)===$window['scope_fingerprint']&&!isset($part['continuation']));
+            }
+            foreach(['.p','.p001','.p-1','.p1x']as$bad){
+                $denied=$call($prefix.$bad);
+                dialogueMcpCheck('malformed partition cursor cannot execute or widen the '.$label.' reader',
+                    !isset($denied['result']['structuredContent']['identities'])
+                    &&($denied['result']['structuredContent']['operation']??null)!=='business_identity_window_summary');
+            }
+        }
+        foreach([$qualityScope,$archiveScope,$forecastScope]as$missingScope){
+            $pairedRights=implode(' ',array_values(array_diff($ctx['scopes'],[$missingScope])));
+            [, $pairedContext]=dialogueMcpGrant($oauth,$client,$pairedRights);
+            $credentialBefore=dialogueMcpCredentialRows($pdo);
+            $sourceReads=count(array_filter(TelegramBusinessIdentityTraceStatement::$queries,static fn(string $sql):bool=>str_contains($sql,'AS selected_created_at')));
+            $denied=$entry->handle(dialogueMcpRpc('list_current_dialogues',['cursor'=>DialogueReviewMcpAdapter::BUSINESS_MONTH_CURSOR]),
+                1,$pairedContext['connection_id'],$pairedContext['scopes']);
+            dialogueMcpCheck('monthly data stays unread when one actual independently granted right is missing '.$missingScope,
+                str_contains(dialogueMcpChallenge($denied),'scope="archive:read forecasts:read quality:read"')
+                &&!isset($denied['result']['structuredContent']['identities'])
+                &&count(array_filter(TelegramBusinessIdentityTraceStatement::$queries,static fn(string $sql):bool=>str_contains($sql,'AS selected_created_at')))===$sourceReads
+                &&dialogueMcpCredentialRows($pdo)===$credentialBefore);
+        }
+        // Dispatch must bind real stored creation clocks to thirty days, not reuse the seven-day from value.
+        $monthFrom=1793099100;$weekFrom=1795086300;$cutoff=1795691100;
+        $f['message'](1,['created_at'=>$monthFrom,'version_at'=>$monthFrom]);
+        $f['message'](2,['created_at'=>$monthFrom-1,'version_at'=>$cutoff-1]);
+        $f['message'](3,['created_at'=>$weekFrom-1,'version_at'=>$weekFrom-1]);
+        $f['message'](4,['created_at'=>$cutoff,'version_at'=>$cutoff]);
+        $f['message'](5,['created_at'=>$cutoff+1,'version_at'=>$cutoff+1]);
+        $f['message'](6,['created_at'=>null]);
+        $f['message'](7,['created_at'=>$monthFrom+1,'version_at'=>$cutoff+1]);
+        $f['visit'](2,['visit_at_unix'=>$monthFrom-300,'observed_at_unix'=>$monthFrom-299,'received_at_unix'=>$monthFrom-298]);
+        $boundaryBefore=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+        $month=$call(DialogueReviewMcpAdapter::BUSINESS_MONTH_CURSOR)['result']['structuredContent']??[];
+        $monthLeaf=$call(DialogueReviewMcpAdapter::BUSINESS_MONTH_CURSOR.'.p01')['result']['structuredContent']??[];
+        $week=$call(DialogueReviewMcpAdapter::BUSINESS_WEEK_CURSOR)['result']['structuredContent']??[];
+        $fixed=$call()['result']['structuredContent']??[];
+        dialogueMcpCheck('monthly MCP includes its exact start and cutoff plus older month records while excluding outside creation clocks',
+            ($month['counts']['verified_inbound_records']??null)===4&&($month['counts']['selected_records']??null)===6
+            &&($month['period']['dated_candidate_records']??null)===5&&($month['period']['from_unix']??null)===$monthFrom
+            &&($month['period']['until_unix']??null)===$cutoff&&($month['period']['bounds']??null)==='inclusive');
+        dialogueMcpCheck('monthly MCP preserves unknown membership later-edit exclusion and the twenty-one-day identity diagnostic',
+            ($month['counts']['excluded_metadata_records']??null)===1&&($month['counts']['cutoff_advanced_records']??null)===1
+            &&($month['period']['unknown_created_at_records']??null)===1
+            &&($month['period']['unknown_clock_scope']??null)==='retained_business_records_in_partition_not_proven_in_period'
+            &&($month['identities']['events']['verified_prior_match']??null)===4
+            &&($month['identities']['window_days']??null)===21&&($month['distinct']['telegram_peers']??null)===1);
+        dialogueMcpCheck('monthly child uses the monthly boundary and leaves the old weekly and fixed cohorts intact',
+            ($monthLeaf['counts']??null)===($month['counts']??null)&&($monthLeaf['period']??null)===($month['period']??null)
+            &&($monthLeaf['scope_fingerprint']??null)===($month['scope_fingerprint']??null)
+            &&($week['counts']['verified_inbound_records']??null)===2&&($week['period']['from_unix']??null)===$weekFrom
+            &&($fixed['counts']['verified_inbound_records']??null)===5&&($fixed['selection']['limit']??null)===25
+            &&($fixed['operation']??null)==='business_identity_summary'&&!isset($fixed['period'])
+            &&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$boundaryBefore);
+        $f['run']('DELETE FROM telegram_dialogue_messages WHERE id<?',[(int)DialogueReviewMcpAdapter::BUSINESS_IDENTITY_FENCE]);
+        $f['run']('DELETE FROM advertising_visit_observations WHERE source_cursor=?',['2']);
+        foreach([DialogueReviewMcpAdapter::BUSINESS_IDENTITY_CURSOR,DialogueReviewMcpAdapter::BUSINESS_WEEK_CURSOR,
+            DialogueReviewMcpAdapter::BUSINESS_WEEK_CURSOR.'.p01',DialogueReviewMcpAdapter::BUSINESS_MONTH_CURSOR,
+            DialogueReviewMcpAdapter::BUSINESS_MONTH_CURSOR.'.p01']as$cursor)
+        foreach([$qualityScope,$archiveScope,$forecastScope]as$withdrawnScope){
+            $sawSnapshot=false;$revoked=false;
+            TelegramBusinessIdentityTraceStatement::$duringExecute=static function(string $sql)use($pdo,$ctx,$withdrawnScope,&$sawSnapshot,&$revoked):void{
+                if($pdo->inTransaction()&&str_contains($sql,'advertising_visit_observations'))$sawSnapshot=true;
+                if($sawSnapshot&&!$pdo->inTransaction()&&!$revoked){
+                    $revoked=true;
+                    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')
+                        ->execute([implode(' ',array_values(array_diff($ctx['scopes'],[$withdrawnScope]))),$ctx['connection_id']]);
+                }
+            };
+            $denied=$call($cursor);TelegramBusinessIdentityTraceStatement::$duringExecute=null;
+            dialogueMcpCheck('Business aggregate suppressed after actual grant withdrawal '.$withdrawnScope,
+                $sawSnapshot&&$revoked&&($denied['error']['code']??null)===-32001
+                &&!isset($denied['result'])&&!str_contains(json_encode($denied),'same_observation_pair')&&!$pdo->inTransaction());
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')
+                ->execute([implode(' ',$ctx['scopes']),$ctx['connection_id']]);
+        }
+        // A whole-window source overflow returns only a finite manifest, never a partial count.
+        for($i=1;$i<=500;$i++)$f['message']($i);
+        $before=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+        foreach($windows as$label=>[$prefix,$from]){
+            $window=$windowResults[$label];$packet=$call($prefix);$overflow=$packet['result']['structuredContent']??[];
+            $children=$overflow['continuation']['child_cursors']??[];
+            dialogueMcpCheck($label.' overflow returns ten disjoint child cursors without partial identity totals',
+                ($overflow['ok']??null)===false&&($overflow['reason']??null)==='source_limit'
+                &&($packet['result']['isError']??null)===true
+                &&($overflow['selection']['fence']??null)===$window['selection']['fence']
+                &&($overflow['selection']['complete']??null)===false
+                &&($overflow['period']['from_unix']??null)===$from
+                &&($overflow['period']['until_unix']??null)===$window['period']['until_unix']
+                &&($overflow['partition']['basis']??null)===$window['partition']['basis']
+                &&$children===array_map(static fn(int $digit):string=>$prefix.'.p'.$digit,range(0,9))
+                &&($overflow['continuation']['max_total_calls']??null)===111
+                &&($overflow['continuation']['max_leaf_partitions']??null)===100
+                &&!isset($overflow['counts'])&&!isset($overflow['identities'])
+                &&json_encode(json_decode($packet['result']['content'][0]['text'],true))===json_encode($overflow)
+                &&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$before);
+            $overflowChild=$call($children[1])['result']['structuredContent']??[];
+            $leaves=$overflowChild['continuation']['child_cursors']??[];
+            dialogueMcpCheck($label.' suffix refinement prepends a digit and keeps its exact period and prefix',
+                $leaves===array_map(static fn(int $digit):string=>$prefix.'.p'.$digit.'1',range(0,9))
+                &&($overflowChild['period']['from_unix']??null)===$from
+                &&($overflowChild['continuation']['parent_suffix']??null)==='1');
+            $failedLeaf=$call($leaves[0])['result']['structuredContent']??[];
+            dialogueMcpCheck($label.' irreducible overflow terminates with explicitly unknown coverage',
+                ($failedLeaf['ok']??null)===false&&($failedLeaf['continuation']['child_cursors']??null)===[]
+                &&($failedLeaf['period']['from_unix']??null)===$from
+                &&($failedLeaf['partition']['peer_suffix']??null)==='01'
+                &&($failedLeaf['continuation']['recovery']??null)==='terminal_partition_unavailable'
+                &&($failedLeaf['continuation']['complete_retained_window']??null)===false
+                &&!isset($failedLeaf['counts'])&&!isset($failedLeaf['identities']));
+        }
+        foreach($windows as$label=>[$prefix,$from])foreach([$qualityScope,$archiveScope,$forecastScope]as$withdrawnScope){
+            $sawWindow=false;$revoked=false;
+            TelegramBusinessIdentityTraceStatement::$duringExecute=static function(string $sql)use($pdo,$ctx,$withdrawnScope,&$sawWindow,&$revoked):void{
+                if($pdo->inTransaction()&&str_contains($sql,'AS selected_created_at'))$sawWindow=true;
+                if($sawWindow&&!$pdo->inTransaction()&&!$revoked){
+                    $revoked=true;$pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')
+                        ->execute([implode(' ',array_values(array_diff($ctx['scopes'],[$withdrawnScope]))),$ctx['connection_id']]);
+                }
+            };
+            $denied=$call($prefix);TelegramBusinessIdentityTraceStatement::$duringExecute=null;
+            dialogueMcpCheck($label.' partition manifest rechecks each real grant after the failed snapshot '.$withdrawnScope,
+                $sawWindow&&$revoked&&($denied['error']['code']??null)===-32001&&!isset($denied['result'])&&!$pdo->inTransaction());
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')->execute([implode(' ',$ctx['scopes']),$ctx['connection_id']]);
+        }
+        foreach($windows as$label=>[$prefix,$from]){
+            TelegramBusinessIdentityTraceStatement::$duringExecute=static function(string $sql):void{
+                if(str_contains($sql,'AS selected_created_at'))throw new ArchiveResearchReadException('time_limit');
+            };
+            $timedOut=$call($prefix)['result']['structuredContent']??[];
+            TelegramBusinessIdentityTraceStatement::$duringExecute=null;
+            dialogueMcpCheck($label.' time limit never expands into more window requests',
+                ($timedOut['reason']??null)==='time_limit'&&!isset($timedOut['continuation'])&&!$pdo->inTransaction());
+        }
+        for($i=0;$i<99;$i++){
+            $account='6100000'.str_pad((string)$i,5,'0',STR_PAD_LEFT);$bot='ExtraFixture'.$i;$connection='extra-fixture-'.$i;
+            $f['run']('INSERT INTO telegram_archive_accounts VALUES(?,?,?,?,1,1,NULL)',['anytour',$bot,$account,$connection]);
+            $f['run']('INSERT INTO telegram_dialogue_connections VALUES(?,?,?,?,1)',['anytour',$bot,$connection,$account]);
+        }
+        foreach($windows as$label=>[$prefix,$from]){
+            $global=$call($prefix)['result']['structuredContent']??[];
+            dialogueMcpCheck($label.' global permission overflow has no ineffective partition fallback',
+                ($global['reason']??null)==='source_limit'&&!isset($global['continuation'])&&!isset($global['counts']));
+        }
+    });
     echo 'Dialogue review MCP regression: '.$passed." checks passed\n";
 }catch(Throwable $error){fwrite(STDERR,$error->getMessage()."\n");exit(1);}

@@ -3,6 +3,7 @@ import argparse
 import hashlib
 import json
 import re
+import subprocess
 import zipfile
 from pathlib import Path
 
@@ -20,11 +21,11 @@ def sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def document(item, limit):
+def document(item, limit, root=ROOT):
     path = item["path"]
     require(re.fullmatch(r"config/anytour_[a-z0-9_]+\.json", path), "invalid plan path")
-    f = ROOT / path
-    require(f.resolve(strict=True) == f and f.stat().st_size <= limit, "invalid plan file")
+    f = root / path
+    require(f.resolve(strict=True) == f and f.is_file() and f.stat().st_size <= limit, "invalid plan file")
     raw = f.read_bytes()
     require(sha(raw) == item["sha256"], "approved bytes changed")
     return json.loads(raw), raw
@@ -91,24 +92,140 @@ def approved_input(index_sha, archive):
     approvals = [p for p in json.loads(APPROVALS.read_bytes()) if p["sha256"] == index_sha]
     require(len(approvals) == 1, "missing or ambiguous release approval")
     index, _ = document(approvals[0], 64000)
-    require(index["schema"] == 1 and len(index["plans"]) == 1, "expected one independently executable chunk")
+    return checked_index(index, archive, ROOT)
+
+
+ROW_IDENTITY = ("hotel_id", "source_message_id", "target_message_id")
+MAX_CHUNK_ROWS = 40
+MAX_INSPECTION_ROWS = 100
+
+
+def checked_index(index, archive, root, *, inspection=False):
+    plans = index["plans"]
+    if inspection:
+        require(index["schema"] == 1 and 0 < len(plans) <= MAX_INSPECTION_ROWS, "invalid inspection index")
+    else:
+        require(index["schema"] == 1 and len(plans) == 1, "expected one independently executable chunk")
     by_hotel, channel = registry(archive, index)
-    item = index["plans"][0]
-    plan, raw = document(item, 64000)
-    require(len(raw) == item["bytes"] and hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest() == item["git_blob"]
-            and plan["native_preflight"] == index["native_preflight"] and 0 < len(plan["rows"]) <= 40, "approved chunk changed")
-    for key in ("hotel_id", "source_message_id", "target_message_id"):
-        values = [row[key] for row in plan["rows"]]
-        require(len(set(values)) == len(values), "duplicate approved " + key)
-    for row in plan["rows"]:
-        compare(row, by_hotel[row["hotel_id"]], channel)
-    return [dict(sha256=item["sha256"], operation=plan["operation"],
-                 hotels=[r["hotel_id"] for r in plan["rows"]], messages=[r["target_message_id"] for r in plan["rows"]])]
+    identities = {key: set() for key in ROW_IDENTITY}
+    operations = set()
+    chunks = []
+    for item in plans:
+        plan, raw = document(item, 64000, root)
+        rows = plan["rows"]
+        require(len(raw) == item["bytes"]
+                and git_blob(raw) == item["git_blob"]
+                and plan["native_preflight"] == index["native_preflight"]
+                and 0 < len(rows) <= MAX_CHUNK_ROWS, "approved chunk changed")
+        require(len(identities["hotel_id"]) + len(rows) <= MAX_INSPECTION_ROWS, "inspection row limit exceeded")
+        operation = plan["operation"]
+        if inspection:
+            require(isinstance(operation, str) and bool(operation) and operation not in operations,
+                    "invalid or duplicate inspection operation")
+            operations.add(operation)
+        for key, seen in identities.items():
+            values = {row[key] for row in rows}
+            require(len(values) == len(rows) and seen.isdisjoint(values), "duplicate approved " + key)
+            seen.update(values)
+        for row in rows:
+            compare(row, by_hotel[row["hotel_id"]], channel)
+        chunks.append(dict(sha256=item["sha256"], operation=operation,
+                           hotels=[r["hotel_id"] for r in rows], messages=[r["target_message_id"] for r in rows]))
+    return chunks
+
+
+def git_output(repo, *args):
+    result = subprocess.run(["git", "--no-replace-objects", "-C", str(repo), *args],
+                            capture_output=True, timeout=15, check=False)
+    require(result.returncode == 0, "Git source or application could not be verified")
+    return result.stdout
+
+
+def git_blob(raw):
+    return hashlib.sha1(b"blob " + str(len(raw)).encode() + b"\0" + raw).hexdigest()
+
+
+def verify_git_scope(repo, application_sha, data_sha, index_path, index_blob, index_sha, plans,
+                     *, allow_ranked_approval_append=True):
+    """Compare immutable Git objects; callers still need authenticated revisions."""
+    for commit in (application_sha, data_sha):
+        require(re.fullmatch(r"[a-f0-9]{40}", commit) is not None
+                and git_output(repo, "rev-parse", commit + "^{commit}").decode().strip() == commit,
+                "invalid Git commit identity")
+    require(application_sha != data_sha, "data commit equals application")
+    git_output(repo, "merge-base", "--is-ancestor", application_sha, data_sha)
+
+    blobs = {index_path: index_blob}
+    for plan in plans:
+        require(plan["path"] not in blobs, "duplicate Git data path")
+        blobs[plan["path"]] = plan["git_blob"]
+
+    raw_changes = git_output(repo, "diff-tree", "-r", "--raw", "-z", "--no-renames",
+                             "--no-commit-id", "--no-abbrev", application_sha, data_sha)
+    fields = raw_changes.rstrip(b"\0").split(b"\0")
+    require(len(fields) % 2 == 0, "invalid Git data diff")
+    changes = {}
+    for metadata, path in zip(fields[::2], fields[1::2]):
+        old_mode, new_mode, old_blob, new_blob, status = metadata.decode("ascii").lstrip(":").split()
+        require(new_mode == "100644", "Git data file must be regular")
+        changes[path.decode("utf-8")] = (old_mode, old_blob, new_blob, status)
+
+    approval_path = "config/anytour_ranked_approved_indexes.json"
+    approval_change = changes.pop(approval_path, None)
+    if approval_change is not None:
+        require(allow_ranked_approval_append, "Git approval list change outside the transfer data")
+        require(approval_path not in blobs and approval_change[0] == "100644"
+                and approval_change[3] == "M", "invalid Git approval list change")
+        previous = json.loads(git_output(repo, "cat-file", "blob", approval_change[1]))
+        revised = json.loads(git_output(repo, "cat-file", "blob", approval_change[2]))
+        entry = {"path": index_path, "sha256": index_sha}
+        require(isinstance(previous, list) and all(
+                    entry["path"] != old["path"] and entry["sha256"] != old["sha256"] for old in previous)
+                and revised == [*previous, entry], "Git approval list is not a single append")
+
+    require(set(changes) == set(blobs), "Git changes outside the transfer data")
+    for path, blob in blobs.items():
+        require(changes[path] == ("000000", "0" * 40, blob, "A"), "Git data blob changed: " + path)
+
+
+def inspect_input(index_sha, archive, root, index_path, git_source=None):
+    """Check unapproved input bytes; this result never grants execution permission."""
+    require(re.fullmatch(r"[a-f0-9]{64}", index_sha) is not None, "invalid index digest")
+    require(root.is_absolute() and root.resolve(strict=True) == root and root.is_dir(),
+            "invalid inspection root")
+    index, raw = document({"path": index_path, "sha256": index_sha}, 64000, root)
+    chunks = checked_index(index, archive, root, inspection=True)
+    result = {"evidence_only": True, "approval_verified": False, "write_admission": False,
+              "index_sha256": index_sha, "chunks": chunks}
+    if git_source is not None:
+        repo, application_sha, data_sha = git_source
+        verify_git_scope(repo, application_sha, data_sha, index_path, git_blob(raw), index_sha, index["plans"])
+        result["git_scope"] = {"application_sha": application_sha, "data_source_sha": data_sha}
+    return result
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("approved_index_sha256")
     parser.add_argument("original_zip", type=Path)
+    parser.add_argument("--inspect-root", type=Path,
+                        help="Read-only preparation root; never an approval or APPLY input")
+    parser.add_argument("--inspect-index", help="Relative config index inside the preparation root")
+    parser.add_argument("--git-root", type=Path, help="Git repository for the read-only scope comparison")
+    parser.add_argument("--application-sha", help="Exact baseline application commit")
+    parser.add_argument("--data-source-sha", help="Exact candidate data commit")
     args = parser.parse_args()
-    print(json.dumps(approved_input(args.approved_index_sha256, args.original_zip), ensure_ascii=False))
+    if (args.inspect_root is None) != (args.inspect_index is None):
+        parser.error("--inspect-root and --inspect-index must be supplied together")
+    git_source = (args.git_root, args.application_sha, args.data_source_sha)
+    if any(value is not None for value in git_source):
+        if args.inspect_root is None or any(value is None for value in git_source):
+            parser.error("Git scope comparison requires all three Git options and inspection mode")
+    else:
+        git_source = None
+    result = (approved_input(args.approved_index_sha256, args.original_zip)
+              if args.inspect_root is None else
+              inspect_input(args.approved_index_sha256, args.original_zip,
+                            args.inspect_root, args.inspect_index, git_source))
+    print(json.dumps(result, ensure_ascii=False))
+
