@@ -1,4 +1,4 @@
-name: "#1566 Prepare the exact Vilamendhoo route from the genuine late public receipt"
+name: "#1566 Check Amilla718 against unused commercial photo957 without replaying held source1981"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -6,158 +6,270 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: read
+  pull-requests: read
+# Bounded reads of the same two prepared pairs; no provider writes; strict actual application fences.
 jobs:
   registry:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 &&
-      github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
-      github.event.created == false && github.event.forced == false &&
-      github.event.before == '453ca1aab0e765b7d997575df17af4f1e52a2753' && github.run_attempt == 1
+      github.actor == 'pyatkoff' &&
+      github.event.sender.id == 226193297 &&
+      github.event.created == false &&
+      github.event.forced == false &&
+      github.event.before == 'fca82be481e850921dd4df5018079f828205f93e' &&
+      github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 6
-    env:
-      NATIVE_RUN_ID: "45799514607"
-      NATIVE_REPOSITORY_SHA: "a7da3955e984c3921fbf52ad3a9e1bb7e25f63a1"
-      NATIVE_BRANCH: "ops/anytour-hotel-ranked-data-1a2804c7f72bb3b049c09e42a17ea87eecb5822eee28c17c510c614121185eb7"
+    timeout-minutes: 8
     steps:
-      - name: Check out the trusted public verifier
+      - name: Check out the exact candidate packet
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check out main for the existing release verifier
         uses: actions/checkout@v4
         with:
           ref: 61e05da2e6bcf88082a9a6bb46858d05040a603f
+          path: accepted
           persist-credentials: false
-      - name: Authenticate the original transfer, job and immutable artifact
+      - name: Authenticate original1738 terminal before bounded host observation
+        working-directory: accepted
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          [[ "$NATIVE_RUN_ID" =~ ^[1-9][0-9]{0,19}$ && "$NATIVE_REPOSITORY_SHA" =~ ^[0-9a-f]{40}$ ]]
-          api="repos/$GITHUB_REPOSITORY/actions"
-          run="$api/runs/$NATIVE_RUN_ID"
-          gh api "$run" > "$RUNNER_TEMP/native-run.json"
-          jq -e --arg run "$NATIVE_RUN_ID" --arg sha "$NATIVE_REPOSITORY_SHA" --arg branch "$NATIVE_BRANCH" --arg repo "$GITHUB_REPOSITORY" \
-            '(.id|tostring)==$run and .head_repository.full_name==$repo and .repository.full_name==$repo and
-             .head_sha==$sha and .head_branch==$branch and .event=="push" and .run_attempt==1 and
-             .actor.id==226193297 and .triggering_actor.id==226193297 and .path==".github/workflows/edit-1566-ranked-46-historical-telegram.yml" and
-             .status=="completed" and (.conclusion=="success" or .conclusion=="failure")' "$RUNNER_TEMP/native-run.json" >/dev/null
-          case "$NATIVE_BRANCH" in
-            ops/anytour-hotel-ranked-46-apply-20261123) operation=hotel_ranked_46_transfer ;;
-            ops/anytour-hotel-ranked-plan-*)
-              index_sha=${NATIVE_BRANCH#ops/anytour-hotel-ranked-plan-}
-              [[ "$index_sha" =~ ^[a-f0-9]{64}$ ]]
-              operation=hotel_ranked_approved_input ;;
-            ops/anytour-hotel-ranked-data-*)
-              index_sha=${NATIVE_BRANCH#ops/anytour-hotel-ranked-data-}
-              [[ "$index_sha" =~ ^[a-f0-9]{64}$ ]]
-              operation=hotel_ranked_approved_input ;;
-            ops/anytour-hotel-ranked-37-continue-20261123) operation=hotel_ranked_37_continuation ;;
-            ops/anytour-hotel-ranked-resume-20261124) operation=hotel_ranked_resume ;;
-            ops/anytour-hotel-ranked-after-*)
-              parent=${NATIVE_BRANCH#ops/anytour-hotel-ranked-after-}
-              [[ "$parent" =~ ^[1-9][0-9]{0,15}$ && "$parent" != "$NATIVE_RUN_ID" ]]
-              printf 'NATIVE_PARENT_RUN_ID=%s\n' "$parent" >> "$GITHUB_ENV"
-              operation=hotel_ranked_unreached
-              ;;
-            *) exit 2 ;;
-          esac
-          index_sha=${index_sha:-30d58e6649877a0eb07deb7e2fddcfa99c92081aac5fbef8c3c2b1d7a4a92833}
-          data_root=""
-          if [[ "$NATIVE_BRANCH" == ops/anytour-hotel-ranked-data-* ]]; then
-            data_root="$RUNNER_TEMP/ranked-data"
-            export RANKED_DATA_ROOT="$data_root"
-            index=$(python3 - "$index_sha" "$data_root" <<'PY'
-          import os, pathlib, sys
-          sys.path.insert(0,'tools')
-          from collect_ranked_route_manifests import api
-          from prepare_ranked_telegram_routes import materialize_ranked_data
-          print(materialize_ranked_data(api, os.environ['NATIVE_REPOSITORY_SHA'], sys.argv[1], pathlib.Path(sys.argv[2]))['path'])
-          PY
-            )
-            printf 'RANKED_DATA_ROOT=%s\nRANKED_INDEX_SHA=%s\n' "$data_root" "$index_sha" >> "$GITHUB_ENV"
-          else
-          index=$(jq -er --arg sha "$index_sha" '[.[] | select(.sha256==$sha)] | select(length==1) | .[0].path' config/anytour_ranked_approved_indexes.json)
-          fi
-          [[ "$index" =~ ^config/anytour_[a-z0-9_]+\.json$ ]]
-          printf '%s  %s\n' "$index_sha" "${data_root:+$data_root/}$index" | sha256sum --check --status
-          export RANKED_APPROVED_INDEX="$index"
-          printf 'RANKED_APPROVED_INDEX=%s\n' "$index" >> "$GITHUB_ENV"
-          gh api "$run/attempts/1/jobs?per_page=100" > "$RUNNER_TEMP/native-jobs.json"
-          jq -e --arg run "$NATIVE_RUN_ID" --arg sha "$NATIVE_REPOSITORY_SHA" \
-            '.total_count==1 and (.jobs|length)==1 and (.jobs[0] |
-               (.run_id|tostring)==$run and .head_sha==$sha and .run_attempt==1 and .status=="completed" and .name=="transfer" and
-               (.conclusion=="success" or .conclusion=="failure") and
-               ([.steps[]|select(.name=="Apply the installed editor once and retain its original receipts")|.conclusion] == [.conclusion]) and
-               ([.steps[]|select(.name=="Save the original sanitized transfer result")|.conclusion] == ["success"]))' \
-            "$RUNNER_TEMP/native-jobs.json" >/dev/null
-          gh api "$run/artifacts?per_page=100" > "$RUNNER_TEMP/native-artifacts.json"
-          jq -e --arg run "$NATIVE_RUN_ID" --arg sha "$NATIVE_REPOSITORY_SHA" --arg branch "$NATIVE_BRANCH" \
-            'select(.total_count==(.artifacts|length)) | [.artifacts[]|select(.name=="issue-1566-hotel-ranked-46-transfer")] |
-             select(length==1) | .[0] | select((.workflow_run.id|tostring)==$run and .workflow_run.head_sha==$sha and
-               .workflow_run.head_branch==$branch and .expired==false and (.digest|test("^sha256:[0-9a-f]{64}$")) and
-               (.id|type=="number") and .size_in_bytes>0 and .size_in_bytes<=2000000)' \
-            "$RUNNER_TEMP/native-artifacts.json" > "$RUNNER_TEMP/native-artifact.json"
-          id=$(jq -r '.id' "$RUNNER_TEMP/native-artifact.json")
-          digest=$(jq -r '.digest | ltrimstr("sha256:")' "$RUNNER_TEMP/native-artifact.json")
-          gh api "$api/artifacts/$id/zip" > "$RUNNER_TEMP/native.zip"
-          printf '%s  %s\n' "$digest" "$RUNNER_TEMP/native.zip" | sha256sum --check --status
-          python3 - <<'PY'
-          import json, os, pathlib, zipfile
-          receipt = pathlib.Path(os.environ['RUNNER_TEMP'], 'native')
-          receipt.mkdir()
-          index_root = pathlib.Path(os.environ.get('RANKED_DATA_ROOT') or '.')
-          plans = json.loads((index_root / os.environ['RANKED_APPROVED_INDEX']).read_bytes())['plans']
-          names = {'summary.json'} | {f"{kind}-{p['sha256']}.json" for p in plans for kind in ('check', 'result')}
-          with zipfile.ZipFile(receipt.parent / 'native.zip') as archive:
-              if sorted(archive.namelist()) != sorted(names):
-                  raise ValueError('native_receipt_inventory_invalid')
-              for item in archive.infolist():
-                  if not 0 < item.file_size <= 1000000:
-                      raise ValueError('native_receipt_size_invalid')
-                  (receipt / item.filename).write_bytes(archive.read(item))
-          PY
-          printf 'RECEIPT_ID=%s\nRECEIPT_SHA256=%s\nWRITE_OPERATION=%s\n' "$id" "$digest" "$operation" >> "$GITHUB_ENV"
-      - name: Set up PHP for public HTML verification
-        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
-        with:
-          php-version: '8.3'
-          extensions: curl, dom, mbstring
-          coverage: none
-      - name: Authenticate the late observer and build route files read only
-        env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
+          node - <<'NODE'
+          const fs=require('node:fs'),R=require('./tools/deployment_release');
+          async function check(){
+            const api=R.makeReadApi(process.env.GITHUB_TOKEN);
+            const before=await R.readRecord(api);
+            const r=R.validateRelease(before.record).release;
+            const expected='61e05da2e6bcf88082a9a6bb46858d05040a603f';
+            if(r.repository_sha!==expected||r.application_sha!==expected||r.kind!=='installed'
+              ||r.release.run_id!=='45792813666'||r.release.run_attempt!==1
+              ||r.closure?.binding?.pr!==1738
+              ||r.closure?.binding?.comment_id!==6818332618
+              ||r.closure?.binding?.owner_id!==226193297
+              ||r.closure?.binding?.head_sha!=='d1236ffbf9ee1bd2aa19a1e554908f47aa99bbff'
+              ||r.closure?.binding?.updated_at!=='2026-11-26T09:30:49Z')throw Error('original1738_changed');
+            const resolved=await R.resolveCurrent(api,{sha:expected},before);
+            if(!resolved.ready||resolved.repository_sha!==expected||resolved.application_sha!==expected)
+              throw Error('original1738_not_canonically_accepted');
+            const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
+            const after=await R.readRecord(api);
+            if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
+            fs.mkdirSync('../pub',{recursive:true});
+            fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,
+              current_main_sha:main,observed_repository_sha:expected,application_sha:expected,
+              technical_acceptance_complete:true,write_admission:false,canonical:resolved,
+              record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,
+              original_installation_deploy:'45792813666',original_closer:r.closure.run_id,
+              original_guard_pr:1738,checked_at_utc:new Date().toISOString()})+'\n');
+            fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+expected+'\n');
+          }
+          check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
+          NODE
+      - name: Bind immutable packet to the admitted release and native run
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '9931623d23b085d2f344dde163b8d75e6982a753'
+          mkdir -p pub
           python3 - <<'PY'
-          import hashlib,io,json,os,subprocess,zipfile,pathlib
-          def read(p):
-              return subprocess.check_output(['gh','api',f"repos/{os.environ['GITHUB_REPOSITORY']}/{p}"],timeout=25)
-          r=json.loads(read('actions/runs/45799877337'))
-          obs=json.loads(read('actions/runs/45799877337/attempts/1/jobs?per_page=100'))
-          a=json.loads(read('actions/artifacts/15107016255'))
-          digest='8b0d8d0e8520bad522b5d70c4ab2f7f890b44effbf075455566ed763e976b46d'
-          assert r['actor']['id']==226193297 and r['head_sha']=='3d21cbcf0f04709a2b83898337b7718a7680a48c' and r['event']=='push' and r['run_attempt']==1
-          assert r['conclusion']=='success' and obs['total_count']==1 and obs['jobs'][0]['id']==139840014674
-          assert a['workflow_run']['id']==r['id'] and not a['expired'] and a['name']=='ranked-public-readback-late-45799514607'
-          assert a['digest']=='sha256:'+digest
-          body=read('actions/artifacts/15107016255/zip')
-          assert len(body)==a['size_in_bytes'] and hashlib.sha256(body).hexdigest()==digest
-          with zipfile.ZipFile(io.BytesIO(body)) as z:
-              assert z.namelist()==['ranked-public-readback.json'] and z.testzip() is None
-              packet=z.read('ranked-public-readback.json')
-          pathlib.Path('ranked-public-readback.json').write_bytes(packet)
+          import os,pathlib,re
+          p=pathlib.Path('tools/direct_demand/operations/read-1566-telegram-46-20261123.php')
+          program=p.read_text()
+          for name,pattern in [('APPLICATION_SHA',r'[a-f0-9]{40}'),('REPOSITORY_SHA',r'[a-f0-9]{40}'),('NATIVE_RUN_ID',r'[1-9][0-9]{0,19}')]:
+              value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
+              assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
+              program=program.replace('__'+name+'__',value)
+          # Execute the reviewed reader helpers for the same two prepared pairs.
+          # Preserve candidate holds, read-only SQL and the shared PRICE lease.
+          assert program.count("$out=['schema'=>1") == 1
+          program=program[:program.index("$out=['schema'=>1")]
+          entry=r'''function preparedLeaseAdmissionRead(bool $shared,array $blockers):array {
+           $prepared=$blockers===[];
+           if(!$shared)$blockers[]='price_shared_lease_not_acquired';
+           return ['preparation_ready'=>$prepared,'preview_ready'=>$blockers===[],'preview_blockers'=>$blockers];
+          }
+          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_archive_telegram_ranked_registry','ok'=>false,
+           'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,'native_run_attempt'=>1,
+           'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,'rows'=>[]];
+          $pdo=null;$lock=null;$acquired=null;$rates=[];$start=hrtime(true);$stage='runtime';
+          $pairs=[42647=>['source'=>'718','source_publication'=>null,'target'=>'957','target_date'=>1734269426,'target_caption'=>'726b58da499a96df4dd7252bc4acae7f29081a935fada66720afdce0fa21d91e','target_photo'=>'272c55af095ca3369ffb945ce6a98907ba63703707ce09c9ec55a747ff5a536a']];
+          try {
+           runtimeRead();requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
+           $out['resources_before']=resourcesRead();$out['resource_budget']=serverReadBudgetRead($out['resources_before']);
+           requireRead($out['resource_budget']['allowed'],'server_resource_hold');
+           $prior=[];$public=[];$stage='bounded_public';
+           foreach($pairs as $hotel=>$pair){
+            $prior[$hotel]=telegramMediaOperationRead($pair['target']);
+            [$sp,$tp]=telegramPreparedPairPublicRead($pair,$prior[$hotel],static function(string $channel,string $message)use(&$rates):array{
+             $views=[];foreach(['embed','archive'] as $kind){
+              $url=$kind==='embed'?'https://t.me/'.$channel.'/'.$message.'?embed=1&mode=tme':'https://t.me/s/'.$channel.'?before='.((int)$message+1);
+              $raw=captionPublicBytes($url,$rates);
+              try{requireRead($raw['ok'],'pair_public_unavailable');$views[$kind]=parsePublicRead($raw['body'],$channel,$message);}
+              catch(Throwable $e){return ['ok'=>false,'reason'=>reasonRead($e),'http'=>$raw['http']??null,'retry_after'=>$raw['retry_after']??null];}
+             }
+             try{$v=corroborateTargetKeyboard($views['embed'],$views['archive']);
+              requireRead($views['embed']['photo_marker_sha256']===$views['archive']['photo_marker_sha256'],'public_photo_changed');
+              $v['ok']=true;return $v;
+             }catch(Throwable $e){return ['ok'=>false,'reason'=>reasonRead($e)];}
+            });$public[$hotel]=['source'=>$sp,'target'=>$tp];
+           }
+           ob_start();try{require APP.'/config.php';require_once APP.'/services/ProjectConfig.php';
+           require_once APP.'/services/ChannelPostRegistryService.php';require_once APP.'/services/ChannelPostButtonTransport.php';require_once APP.'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
+           requireRead(ProjectConfig::projectId()==='anytour','project_changed');
+           require_once APP.'/hotel-posts-telegram-main19.php';$xml=anytourTelegramFeedRead();$feed=anytourTelegramFeedOfferUrls($xml);$routes=anytourTelegramFeedDestinationPosts($feed);
+           $out['current_feed_sha256']=hash('sha256',$xml);$out['feed_count']=count($feed);
+           $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$registry=new ChannelPostRegistryService($pdo);
+           $target=$registry->channel('anytour','telegram','anyru_bot','-1001845835645');
+           $source=$registry->channel('anytour','telegram','anyru_bot','-1002262666616');
+           requireRead(is_array($target)&&(int)$target['id']===6&&$target['source_key']==='tg_anytour_msk'&&is_array($source)&&(int)$source['id']===10,'channel_identity_changed');
+           $out['target_channel']=['registry_id'=>6,'chat_id'=>'-1001845835645','url'=>'https://t.me/anytour','config_version'=>(int)$target['config_version'],'button_text'=>$target['button_text'],'bot_url'=>$target['bot_url']];
+           $currentPin=null;$username=false;$stage='native_read_rights';
+           $readTransport=static function(string $platform,string $method,string $path,array $query,?array $body)use(&$currentPin,&$username,&$out):array{
+            requireRead($platform==='telegram'&&$method==='POST'&&$query===[]&&in_array($path,['getMe','getChatMember','getChat'],true)&&($path==='getMe'||(string)($body['chat_id']??'')==='-1001845835645'),'provider_read_scope_changed');
+            $r=ChannelPostApiTransport::buttonRequest($platform,$method,$path,$query,$body);
+            if(($r['http']??0)===429){$out['native_retry_after_seconds']=$r['data']['parameters']['retry_after']??null;throw new RuntimeException('provider_retry_after_hold');}
+            if($path==='getChat'){$chat=$r['data']['result']??[];$username=strtolower((string)($chat['username']??''))==='anytour';$currentPin=isset($chat['pinned_message']['message_id'])?(string)$chat['pinned_message']['message_id']:null;}
+            return $r;
+           };
+           $out['native_channel_rights']=(new ChannelPostButtonTransport($readTransport))->verifyChannel($target);
+           requireRead(!array_key_exists('native_retry_after_seconds',$out),'provider_retry_after_hold');
+           requireRead(($out['native_channel_rights']['receipt']['write_attempts']??null)===0,'read_only_transport_contract_changed');
+           $r=ChannelPostApiTransport::buttonRequest('telegram','POST','getChat',[],['chat_id'=>'-1002262666616']);
+           if(($r['http']??0)===429){$out['native_retry_after_seconds']=$r['data']['parameters']['retry_after']??null;throw new RuntimeException('provider_retry_after_hold');}
+           $chat=$r['data']['result']??[];
+           $sourceBinding=($r['http']??0)===200&&empty($r['transport_error'])&&($r['data']['ok']??null)===true&&($chat['type']??null)==='channel'&&(string)($chat['id']??'')==='-1002262666616'&&strtolower((string)($chat['username']??''))==='any_toour';
+           $out['native_public_channel_binding']=['anytour'=>$username,'any_toour'=>$sourceBinding];
+           $out['native_read_request_count']=(int)($out['native_channel_rights']['receipt']['request_count']??0)+1;
+           $stage='shared_price_lease';$path=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
+           requireRead(!is_link($path)&&is_file($path),'price_editor_lease_unknown');$lock=fopen($path,'rb');requireRead(is_resource($lock),'price_read_lease_unavailable');
+           $wait=hrtime(true);$shared=flock($lock,LOCK_SH|LOCK_NB);$acquired=$shared?hrtime(true):null;
+           $out['price_editor_shared_read_lease']=$shared;$out['preparation_during_price_hold']=!$shared;
+           $out['price_lease_wait_ms']=(int)((hrtime(true)-$wait)/1000000);runtimeRead();
+           $out['mysql_before']=mysqlResourcesRead($pdo);$pdo->beginTransaction();
+           foreach($pairs as $hotel=>$pair){
+            $stage='pair_'.$hotel;$assessment=telegramPreparedPairNativeRead($hotel,$pair,$public[$hotel],$prior[$hotel],($out['native_channel_rights']['state']??null)==='ready',$feed,$routes,
+             static fn(int $h,array $p):array=>telegramPreparedPairTargetRead($pdo,$registry,$h,$p),
+             static function(int $h,array $p)use($pdo,$registry):array{
+              if($p['source_publication']===null){$found=publicationRead($pdo,$registry,10,$p['source']);requireRead(is_array($found)&&is_int($found['publication_id']??null),'source_native_publication_unavailable');$p['source_publication']=$found['publication_id'];}
+              return telegramPreparedPairSourceRead($pdo,$registry,$h,$p);
+             },'telegramMediaOperationRead');
+            $blockers=[];$sn=null;$free=null;
+            if(($assessment['prepared_checks_pass']??false)!==true)$blockers[]=$assessment['hold_reason']??'prepared_checks_not_confirmed';
+            if(($assessment['candidate_preparation_allowed']??false)===true)$sn=publicationRead($pdo,$registry,10,$pair['source']);
+            $operation='anytour-issue1566-historical-tg-media-'.$pair['target'].'-v1';$q=$pdo->prepare('SELECT IS_FREE_LOCK(?)');$q->execute([$operation]);$free=$q->fetchColumn();$q->closeCursor();
+            if($free===false||$free===null||(int)$free!==1)$blockers[]='target_editor_busy_or_unknown';
+            if($currentPin===$pair['target'])$blockers[]='target_is_current_channel_pin';
+            if(!$username||!$sourceBinding)$blockers[]='native_public_channel_binding_not_confirmed';
+            $sp=$public[$hotel]['source'];$tp=$public[$hotel]['target'];
+            $sm=is_array($sn)&&($assessment['prepared_checks_pass']??false)===true&&$sn['current_token_resolves']===true&&!$sn['native_claim_held_or_unknown'];
+            if(!$sm)$blockers[]='source_not_confirmed';
+            $directory=OPERATIONS.'/'.$operation;
+            $admission=preparedLeaseAdmissionRead($out['price_editor_shared_read_lease'],$blockers);
+            $out['rows'][]=['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
+             'source_native'=>$sn,'target_native'=>$assessment['target_native']??null,'source_public'=>$sp,'target_public'=>$tp,
+             'source_matches'=>$sm,'historical_target_matches'=>($assessment['checks']['target_preimage']??false)===true,
+             'target_media_lock_free'=>$free!==false&&$free!==null&&(int)$free===1,'target_current_pin_matches'=>$currentPin===$pair['target'],
+             'prior_media_operation_directory_exists'=>file_exists($directory)||is_link($directory),
+             'existing_large_channel_hotel_registry_matches'=>array_merge($assessment['target_native_ids']??['unobserved'],$assessment['hotel_duplicate_publication_ids']??['unobserved']),
+             'prepared_assessment'=>$assessment,'preparation_ready'=>$admission['preparation_ready'],'preview_blockers'=>$admission['preview_blockers'],'preview_ready'=>$admission['preview_ready']];
+           }
+           $pdo->rollBack();$out['mysql_after']=mysqlResourcesRead($pdo);runtimeRead();$out['ok']=true;
+          }catch(Throwable $e){$out['failure_stage']=$stage;$out['failure_reason']=reasonRead($e);}
+          finally{if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();if(is_resource($lock)){if($acquired!==null)$out['price_lease_held_ms']=(int)((hrtime(true)-$acquired)/1000000);if($acquired!==null)flock($lock,LOCK_UN);fclose($lock);}}
+          $out['public_retry_after_holds']=$rates;$out['resources_after']=resourcesRead();$out['read_at_utc']=gmdate(DATE_ATOM);$out['read_elapsed_ms']=(int)((hrtime(true)-$start)/1000000);
+          if($out['ok'])$out['checkpoint_sha256']=hash('sha256',jsonRead($out));echo jsonRead($out),PHP_EOL;exit($out['ok']?0:2);
+          '''
+          pathlib.Path('pub/read-only.php').write_text(program+entry)
           PY
-          curl --fail --silent --show-error --proto '=https' --max-time 30 --max-filesize 4000000 \
-            --output "$RUNNER_TEMP/hotel-source.xml" https://app.anytoour.ru/feed/hotel-posts-telegram.xml
-          GITHUB_RUN_ID=45799877337 GITHUB_SHA=3d21cbcf0f04709a2b83898337b7718a7680a48c PUBLIC_ARTIFACT_ID=15107016255 \
-            PUBLIC_ARTIFACT_DIGEST=sha256:8b0d8d0e8520bad522b5d70c4ab2f7f890b44effbf075455566ed763e976b46d \
-            python3 tools/prepare_ranked_telegram_routes.py "$RUNNER_TEMP/hotel-source.xml" ranked-public-readback.json ranked-route-preview
-          jq -e '.changes|length==1 and .[0].offer_id=="tg_2490" and .[0].post_url=="https://t.me/anytour/912"' ranked-route-preview/route-candidate.json
-          jq -c '{changes,held,feed,public,native}' ranked-route-preview/route-candidate.json
-      - name: Preserve a prepared route for the existing ROUTE owner
+          python3 - <<'PY'
+          import pathlib
+          s=pathlib.Path('pub/read-only.php').read_text()
+          start=s.index('function preparedLeaseAdmissionRead(')
+          end=s.index("$out=['schema'=>1",start)
+          function=s[start:end]
+          cases=r"""
+          $a=preparedLeaseAdmissionRead(true,[]);
+          if($a!==['preparation_ready'=>true,'preview_ready'=>true,'preview_blockers'=>[]])exit(2);
+          $a=preparedLeaseAdmissionRead(false,[]);
+          if($a!==['preparation_ready'=>true,'preview_ready'=>false,'preview_blockers'=>['price_shared_lease_not_acquired']])exit(3);
+          $a=preparedLeaseAdmissionRead(true,['occupied']);
+          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['occupied']])exit(4);
+          $a=preparedLeaseAdmissionRead(false,['protected_review']);
+          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['protected_review','price_shared_lease_not_acquired']])exit(5);
+          echo "FOUR_PRICE_PREPARATION_ADMISSION_CASES_PASS\\n";
+          """
+          pathlib.Path('pub/price-preparation-test.php').write_text('<?php\n'+function+cases)
+          PY
+          php -l pub/read-only.php
+          php pub/price-preparation-test.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read source 718 and commercial post 957 without provider writes
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          status=0
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json || status=$?
+          python3 - <<'PY'
+          import json
+          d=json.load(open('pub/registry.json'))
+          assert d['operation']=='hotel_archive_telegram_ranked_registry' and d['issue']==1566
+          assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
+          print(json.dumps({'ok':d['ok'],'failure_stage':d.get('failure_stage'),'reason':d.get('failure_reason'),'rows':[{'hotel_id':r['hotel_id'],'ready':r['preview_ready'],'blockers':r['preview_blockers'],'checks':r['prepared_assessment']['checks'],'target_registry_or_duplicate':r['existing_large_channel_hotel_registry_matches']} for r in d['rows']]}))
+          PY
+          test "$status" -eq 0
+      - name: Preserve the original bounded pair observation
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-vilamendhoo-route-prepared-from-late-receipt
-          path: ranked-route-preview/
+          name: issue-1566-telegram-ranked-preflight
+          path: |
+            pub/registry.json
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
+
