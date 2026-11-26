@@ -11,12 +11,12 @@ permissions:
   issues: read
   pull-requests: read
 env:
-  MAX_PACKET_REF: 83ee93a8a07ad1518cd05f5664d3f8069dcd9e44
+  MAX_PACKET_REF: d0ec0e082323711bde6c98bdc7560f492332a55b
   MAX_PACKET_PATH: tools/direct_demand/operations/max-existing-photo/scope-stella-466-20261126.json
-  MAX_PACKET_SHA: 97a11a48855d1ec3ca12bccb6078ccb8b7ece4eae0a00fb8510974c0e9ba456d
-  MAX_REPOSITORY_SHA: 664390965a45cdcf5600ea6bbfa8ce1bf47d78e2
+  MAX_PACKET_SHA: 8dc642bc7e3472f9eabf8918e5edfd8295bf29b7058ef30f3ca8942f16506b6d
+  MAX_REPOSITORY_SHA: e1511db16f24822d1271ab5e444ca859997be31e
   MAX_ARCHIVE_ID: '15032515599'
-  MAX_NATIVE_ID: '15156475686'
+  MAX_NATIVE_ID: '15157790578'
 jobs:
   validate_source:
     if: github.event_name == 'pull_request'
@@ -68,7 +68,7 @@ jobs:
       github.event_name == 'push' && github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '8e2b2fe1eaea7e4299e40a57a072e90c0c6a66da' &&
+      github.event.before == '6f952b59cb76e0e564b68273c9afcca590a5431f' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
