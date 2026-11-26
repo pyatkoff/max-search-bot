@@ -74,13 +74,32 @@ the complete backend. Changes to this CI policy also exercise the scoped job
 while retaining the full backend.
 
 The required checks retain architecture, dialogue, website, diagnostics,
-inventory, syntax, guard and release priority. The dedicated catalogue job
+inventory, syntax, guard and release priority. The architecture run omits
+only four AppleService39 publisher scenarios (publisher, search publisher,
+coverage and device publisher) for this exact data profile. The dedicated catalogue job
 reads the full pinned catalogue through the current binding and bundle
 validation, runs the hotel HTTP permission, manager AI and retained Search3
 consumer suites, and replaces the unrelated Manager group plus the unchanged
 native MySQL matrix and Apple publisher check for this shape. The same
 aggregate must receive success from the catalogue job. The shared deployment,
 runtime release claims and installed reader stay on their ordinary paths.
+
+## AnyTour Telegram public readback
+
+The `telegram-public-observer` backend covers ordinary edits to
+`tools/verify_ranked_telegram_public.php` and
+`tests/ranked_telegram_public_cases.php` against current main. Additions,
+deletions, mode changes and changes to any other file use full verification.
+Production additionally requires the same authenticated installed parent and
+first-attempt push provenance as the hotel catalogue checks.
+
+This backend retains inventory, syntax, all five shared groups (including
+the Telegram readback regression under manager), and shared native MySQL
+regressions in PR CI. It omits the four AppleService39 publisher scenarios
+and the AppleService39 native publisher fixture in PR CI. AppleService39
+changes and shared runtime, schema, authorization, or workflow changes
+still receive full checks. The release and its health checks continue
+through the existing deploy workflow.
 
 ## Tour-selection component
 
@@ -387,26 +406,32 @@ heads without treating a cancelled run as passing evidence.
 
 ## Production verification critical path
 
-Production verification keeps the complete canonical catalog on PHP8.3; a
-successful PR run on PHP8.2 does not replace it. The architecture group, whose
-first command validates inventory, must succeed before the two isolated group
-runners start. One runner executes diagnostics; the other executes dialogue,
-website and manager. Each catalog group runs exactly once, including architecture.
-This allocation follows the original measured 238s of sequential group work:
-architecture 18s, diagnostics 150s and the other three groups 70s. The catalog
-coverage contract rejects missing, duplicate or unknown groups. PHP syntax runs
-alongside them.
+Production verification uses PHP8.3. The syntax job checks the exact
+release SHA and selects the verification profile. Architecture, diagnostics
+and application then run on isolated runners in parallel. The application
+runner executes dialogue, website and manager in the full profile. Each
+catalogue group runs once. The catalogue coverage contract rejects missing,
+duplicate or unknown groups.
 
 The always-running verify aggregate admits deployment only when
 inventory, syntax and both group runners succeed. Failure, cancellation, skip
 or a missing result blocks deployment. Every runner checks the same exact SHA;
 the production concurrency, current-main check and all server/post-deploy
 stages are unchanged. The standalone full-suite command remains available.
-Parallel placement reduces elapsed verification time; no test is removed,
-cached from a different source or silently marked successful. The first actual
-deployment must establish the new duration; the old timings are a baseline,
-not an end-to-end latency guarantee.
+The first comparable installation supplies the elapsed time for the parallel
+layout.
 
 Manual runs and production deployment verification retain the canonical full
 suite. No branch rule, application behavior, runtime configuration, data,
 migrations or authorization policy is changed.
+
+
+### Production verification for append-only hotel dossiers
+
+The existing production verifier keeps one installer. Its bounded catalogue profile requires an original main push, the exact first parent, an authenticated closed installation and operations record for that parent, and the same positive append-only proof used in PR CI. The current main and receipt are read again before selecting the profile. Manual runs, mixed changes, or missing evidence use the full verification profile.
+
+The data profile runs the shared catalogue, HTTP, AI and MCP checks in the required
+application job and the same scoped architecture command used by PR CI. Inventory,
+the common architecture checks, syntax, dialogue, website, diagnostics and the
+ordinary installation, provenance and terminal gates still run. The release
+mechanism uses the shared production checkout and lock.

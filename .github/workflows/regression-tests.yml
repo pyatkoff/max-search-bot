@@ -72,7 +72,14 @@ jobs:
       - name: Run required group
         env:
           REQUIRED_CHECK_REPORT: ${{ runner.temp }}/required-check-${{ matrix.group }}.json
-        run: php tests/run_required_group.php "${{ matrix.group }}"
+          REQUIRED_CHECK_GROUP: ${{ matrix.group }}
+          BACKEND_PROFILE: ${{ needs.change-scope.outputs.backend }}
+        run: |
+          if [[ "$REQUIRED_CHECK_GROUP" == architecture && ( "$BACKEND_PROFILE" == hotel-catalogue-data || "$BACKEND_PROFILE" == telegram-public-observer ) ]]; then
+            php tests/run_required_group.php architecture "$BACKEND_PROFILE"
+          else
+            php tests/run_required_group.php "$REQUIRED_CHECK_GROUP"
+          fi
       - name: Upload required-check timing report
         if: always()
         uses: actions/upload-artifact@v4
@@ -84,7 +91,7 @@ jobs:
 
   prepared-mysql:
     needs: change-scope
-    if: (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'full') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
+    if: (needs.change-scope.outputs.mode == 'full' && (needs.change-scope.outputs.backend == 'full' || needs.change-scope.outputs.backend == 'telegram-public-observer')) || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
     # Each matrix job owns a fresh MySQL service and runner. Never run these
     # destructive fixtures concurrently against one shared database.
     strategy:
@@ -197,11 +204,7 @@ jobs:
           extensions: mbstring, pdo_sqlite, dom
           coverage: none
       - name: Validate catalogue bytes and consumer boundaries
-        run: |
-          php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-read
-          php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-http
-          php tests/run_manager_ai_draft_service_regression.php
-          php tests/run_manager_preparation_mcp_regression.php
+        run: bash tools/check_hotel_catalogue_scope.sh
 
   oauth:
     needs: change-scope
@@ -252,7 +255,7 @@ jobs:
           test "$SYNTAX_RESULT" = success
           case "$CI_MODE:$BACKEND_PROFILE:$HOTEL_PROOF" in
             full:hotel-catalogue-data:false|full:full:true) test "$HOTEL_RESULT" = success ;;
-            oauth:full:false|full:full:false|tour-selection:full:false|full:workspace-style:false|tour-selection:selection-style:false) test "$HOTEL_RESULT" = skipped ;;
+            oauth:full:false|full:full:false|tour-selection:full:false|full:workspace-style:false|tour-selection:selection-style:false|full:telegram-public-observer:false) test "$HOTEL_RESULT" = skipped ;;
             *) exit 1 ;;
           esac
           case "$CI_MODE:$BACKEND_PROFILE" in
@@ -266,6 +269,12 @@ jobs:
               test "$REQUIRED_RESULT" = success
               test "$PREPARED_MYSQL_RESULT" = success
               test "$APPLESERVICE39_MYSQL_RESULT" = success
+              test "$OAUTH_RESULT" = skipped
+              ;;
+            full:telegram-public-observer)
+              test "$REQUIRED_RESULT" = success
+              test "$PREPARED_MYSQL_RESULT" = success
+              test "$APPLESERVICE39_MYSQL_RESULT" = skipped
               test "$OAUTH_RESULT" = skipped
               ;;
             tour-selection:selection-style|full:workspace-style|full:hotel-catalogue-data)

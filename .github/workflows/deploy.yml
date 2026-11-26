@@ -16,7 +16,39 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  verify-syntax:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: read
+      issues: read
+    outputs:
+      profile: ${{ steps.hotel_scope.outputs.profile }}
+    steps:
+      - name: Checkout exact verification SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 2
+          persist-credentials: false
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring
+          coverage: none
+      - name: PHP syntax check
+        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+
+      - name: Select bounded production verification profile
+        id: hotel_scope
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/deploy_hotel_catalogue_scope.js
+
   verify-inventory:
+    needs: verify-syntax
     runs-on: ubuntu-latest
     steps:
       - name: Checkout exact verification SHA
@@ -30,26 +62,14 @@ jobs:
           extensions: mbstring
           coverage: none
       - name: Verify required inventory and architecture
-        run: php tests/run_required_group.php architecture
-
-  verify-syntax:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout exact verification SHA
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring
-          coverage: none
-      - name: PHP syntax check
-        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+        env:
+          DEPLOY_CHECK_PROFILE: ${{ needs.verify-syntax.outputs.profile }}
+        run: |
+          test -n "$DEPLOY_CHECK_PROFILE"
+          php tests/run_required_group.php architecture "$DEPLOY_CHECK_PROFILE"
 
   verify-groups:
-    needs: verify-inventory
+    needs: verify-syntax
     strategy:
       fail-fast: false
       max-parallel: 2
@@ -75,11 +95,22 @@ jobs:
       - name: Run every required group in this lane
         env:
           DEPLOY_CHECK_GROUPS: ${{ matrix.groups }}
+          DEPLOY_CHECK_LANE: ${{ matrix.lane }}
+          DEPLOY_CHECK_PROFILE: ${{ needs.verify-syntax.outputs.profile }}
         run: |
+          set -euo pipefail
+          case "$DEPLOY_CHECK_PROFILE:$DEPLOY_CHECK_LANE" in
+            full:application|full:diagnostics|hotel-catalogue-data:diagnostics|telegram-public-observer:application|telegram-public-observer:diagnostics) ;;
+            hotel-catalogue-data:application) DEPLOY_CHECK_GROUPS='dialogue website' ;;
+            *) exit 1 ;;
+          esac
           test -n "$DEPLOY_CHECK_GROUPS"
           for check_group in $DEPLOY_CHECK_GROUPS; do
             php tests/run_required_group.php "$check_group"
           done
+          if [[ "$DEPLOY_CHECK_PROFILE:$DEPLOY_CHECK_LANE" == 'hotel-catalogue-data:application' ]]; then
+            bash tools/check_hotel_catalogue_scope.sh
+          fi
 
   deploy:
     if: always()
