@@ -56,7 +56,7 @@ assert all(legacy[n]["state"] == "untouched" for n in (2, 4, 5, 6, 7))
 # reaches the writer. A later write of a different row still has PHP's recheck.
 prepared_visits = []
 def prepare_visit(mode, hotel, checkpoint):
-    assert mode == "--batch-check" and checkpoint is None
+    assert mode == "--batch-prepare-check" and checkpoint is None
     prepared_visits.append(hotel)
     if hotel == 2:
         return {"state": "unobserved", "reason": "missing_process_receipt"}

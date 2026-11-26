@@ -104,11 +104,6 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: f0ac8ff44afc64386be1802068102ccc9c0a55d4
-          path: approved-editor
-          persist-credentials: false
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
           ref: ${{ github.sha }}
           path: workflow-source
           persist-credentials: false
@@ -200,8 +195,7 @@ jobs:
           node pub/admit.cjs verify-originals
           gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_ARCHIVE_ID/zip" > pub/old.zip
           gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_NATIVE_ID/zip" > pub/native.zip
-          src=approved-editor/tools/direct_demand/operations/max-existing-photo
-          install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
+          install -m600 "$tool"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
           install -m600 "$tool/run_batch.py" pub/stage/
           preparation=()
           if [[ -n "$MAX_PREPARED_ARTIFACT_ID" ]]; then

@@ -108,6 +108,16 @@ try {
         $a['plan']['caption'].=' 100 ₽';$bytes=maxEditJson($a['plan']);$a['sha256']=hash('sha256',$bytes);file_put_contents($temp,$bytes);
         check(refuses(fn()=>maxEditPlan($temp,$a['sha256'],$a),'reviewed_caption_invalid'),'PRICE cannot enter CONTENT');
     }
+    foreach ([
+        [['editor.php', '--prepare-check', $temp, $approval['sha256'], $app], null],
+        [['editor.php', '--prepare-check', $temp, $approval['sha256'], $app, str_repeat('a',64)], $approval],
+    ] as [$arguments, $batchApproval]) {
+        ob_start();
+        $status=maxEditRun($arguments,$batchApproval);
+        $receipt=json_decode((string)ob_get_clean(),true,16,JSON_THROW_ON_ERROR);
+        check($status===2 && $receipt['reason']==='exact_mode_plan_and_release_required',
+            'prepare-only mode requires its approved row and accepts no write checkpoint');
+    }
     $log=fopen($temp,'w+b');
     $calls=0;$reads=0;$p=$approval['plan'];
     $proof=['target_ms'=>$p['target_ms'],'target_url'=>$p['target_url'],'source_photo_id'=>'19'];

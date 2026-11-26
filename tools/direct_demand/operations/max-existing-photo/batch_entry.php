@@ -39,7 +39,14 @@ function maxBatchEntry(array $argv): int
             echo maxEditJson(['ready'=>array_keys($input['ready']), 'held'=>$input['held'], 'provider_writes'=>0]), "\n";
             return 0;
         }
-        maxEditNeed(($mode === '--batch-check' && count($argv) === 8) || ($mode === '--batch-apply' && count($argv) === 9), 'exact_batch_arguments_required');
+        $editorMode = match ($mode) {
+            '--batch-check' => '--check',
+            '--batch-prepare-check' => '--prepare-check',
+            '--batch-apply' => '--apply',
+            default => null,
+        };
+        maxEditNeed($editorMode !== null && count($argv) === ($editorMode === '--apply' ? 9 : 8),
+            'exact_batch_arguments_required');
         [, , $archive, $source, $sourceSha, $repo, $app, $id] = $argv;
         maxEditNeed(ctype_digit($id) && (string)(int)$id === $id, 'exact_hotel_required');
         $admitted = maxBatchLoad($archive, $source, $sourceSha, $repo, $app);
@@ -51,7 +58,7 @@ function maxBatchEntry(array $argv): int
         maxEditNeed(is_string($path), 'temporary_plan_unavailable');
         $contents = maxEditJson($approval['plan']);
         maxEditNeed(file_put_contents($path,$contents) === strlen($contents), 'temporary_plan_unavailable');
-        $args = [$argv[0], $mode === '--batch-apply' ? '--apply' : '--check', $path, $approval['sha256'], $app];
+        $args = [$argv[0], $editorMode, $path, $approval['sha256'], $app];
         if ($checkpoint !== null) $args[] = $checkpoint;
         return maxEditRun($args,$approval);
     } catch (Throwable $e) {

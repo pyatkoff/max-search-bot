@@ -59,7 +59,7 @@ def prepare_batch(scope, plan, visit):
         if reason is not None:
             result = {"state": "stopped_before_edit", "reason": reason}
         else:
-            result = preparation_row(hotel, visit("--batch-check", hotel, None))
+            result = preparation_row(hotel, visit("--batch-prepare-check", hotel, None))
             if result.get("reason") in SHARED_UNAVAILABLE:
                 shared_reason = result["reason"]
         rows.append({"hotel_id": hotel, **result})
