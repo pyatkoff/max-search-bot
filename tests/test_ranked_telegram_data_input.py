@@ -1,8 +1,10 @@
 """Offline packet fixtures: no provider, database, server, or approval mutations."""
+from copy import deepcopy
 import hashlib
 import importlib.util
 import json
 import os
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -66,18 +68,45 @@ class PacketInspection(unittest.TestCase):
         self.write_packet()
 
     def write_packet(self):
+        self.write_plans([("offline_fixture", self.plan_path, [self.plan_row])])
+
+    def write_plans(self, plans):
         raw = wire(self.native)
         with zipfile.ZipFile(self.archive, 'w') as z:
             z.writestr('registry.json', raw)
         proof = {k: self.native[k] for k in ('repository_sha', 'application_sha', 'checkpoint_sha256')}
         proof.update(run_id='1', run_attempt=1, artifact_zip_sha256=digest(self.archive.read_bytes()), registry_sha256=digest(raw))
-        plan = wire({'operation': 'offline_fixture', 'native_preflight': proof, 'rows': [self.plan_row]})
-        (self.root / self.plan_path).write_bytes(plan)
+        entries = []
+        for operation, path, rows in plans:
+            plan = wire({'operation': operation, 'native_preflight': proof, 'rows': rows})
+            (self.root / path).write_bytes(plan)
+            git_blob = hashlib.sha1(b'blob ' + str(len(plan)).encode() + b'\0' + plan).hexdigest()
+            entries.append({'path': path, 'sha256': digest(plan), 'bytes': len(plan), 'git_blob': git_blob})
         index = wire({'schema': 1, 'native_preflight': proof, 'native_zip_bytes': self.archive.stat().st_size,
-                      'plans': [{'path': self.plan_path, 'sha256': digest(plan), 'bytes': len(plan),
-                                 'git_blob': hashlib.sha1(b'blob ' + str(len(plan)).encode() + b'\0' + plan).hexdigest()}]})
+                      'plans': entries})
         (self.root / self.index_path).write_bytes(index)
         self.index_sha = digest(index)
+
+    def wave(self, sizes):
+        registry_rows = []
+        plans = []
+        for number, size in enumerate(sizes, 1):
+            rows = []
+            for _ in range(size):
+                hotel = len(registry_rows) + 1
+                source, target = str(2 * hotel - 1), str(2 * hotel)
+                source_url = 'https://t.me/any_toour/' + source
+                target_url = 'https://t.me/anytour/' + target
+                registry_row = deepcopy(self.row)
+                registry_row.update(hotel_id=hotel, source_message_id=source, target_message_id=target)
+                registry_row['source_native'].update(hotel_id=hotel, post_url=source_url)
+                registry_row['source_public']['url'] = source_url
+                registry_row['target_public']['url'] = target_url
+                registry_rows.append(registry_row)
+                rows.append(dict(self.plan_row, hotel_id=hotel, source_message_id=source, target_message_id=target))
+            plans.append((f'offline_chunk_{number}', f'config/anytour_packet_plan_{number}.json', rows))
+        self.native['rows'] = registry_rows
+        return plans
 
     def inspect(self):
         return M.inspect_input(self.index_sha, self.archive, self.root, self.index_path)
@@ -105,6 +134,120 @@ class PacketInspection(unittest.TestCase):
         M.document = lambda item, limit, root=None: original(item, limit, self.root if root is None else root)
         self.addCleanup(lambda: setattr(M, 'document', original))
         self.assertEqual(M.approved_input(self.index_sha, self.archive), self.inspect()['chunks'])
+
+    def test_16_50_and_100_row_inspection_remains_read_only(self):
+        for sizes in ([16], [40, 10], [40, 40, 20]):
+            with self.subTest(sizes=sizes):
+                self.write_plans(self.wave(sizes))
+                result = self.inspect()
+                self.assertTrue(result['evidence_only'])
+                self.assertFalse(result['approval_verified'])
+                self.assertFalse(result['write_admission'])
+                self.assertEqual([len(chunk['hotels']) for chunk in result['chunks']], sizes)
+                self.assertEqual([hotel for chunk in result['chunks'] for hotel in chunk['hotels']],
+                                 list(range(1, sum(sizes) + 1)))
+
+    def test_cross_chunk_conflicting_identities_are_rejected(self):
+        for key in ('hotel_id', 'source_message_id', 'target_message_id'):
+            with self.subTest(key=key):
+                plans = self.wave([1, 1])
+                plans[1][2][0][key] = plans[0][2][0][key]
+                self.write_plans(plans)
+                with self.assertRaisesRegex(ValueError, 'duplicate approved ' + key):
+                    self.inspect()
+
+    def test_repeated_operation_is_rejected(self):
+        first, second = self.wave([1, 1])
+        self.write_plans([first, (first[0], second[1], second[2])])
+        with self.assertRaisesRegex(ValueError, 'duplicate inspection operation'):
+            self.inspect()
+
+    def test_inspection_rejects_oversized_wave_or_chunk(self):
+        self.write_plans(self.wave([40, 40, 21]))
+        with self.assertRaisesRegex(ValueError, 'inspection row limit exceeded'):
+            self.inspect()
+        self.write_plans(self.wave([41]))
+        with self.assertRaisesRegex(ValueError, 'approved chunk changed'):
+            self.inspect()
+
+    def test_execution_index_still_requires_one_chunk(self):
+        self.write_plans(self.wave([1, 1]))
+        index = json.loads((self.root / self.index_path).read_bytes())
+        with self.assertRaisesRegex(ValueError, 'one independently executable chunk'):
+            M.checked_index(index, self.archive, self.root)
+
+    def git(self, *args):
+        return subprocess.check_output(
+            ['git', '-C', str(self.repo), '-c', 'user.name=Offline fixture',
+             '-c', 'user.email=fixture@example.com', '-c', 'commit.gpgsign=false', *args]
+        ).decode().strip()
+
+    def git_baseline(self):
+        self.repo = self.root / 'repo'
+        self.repo.mkdir()
+        self.git('init', '-q')
+        (self.repo / 'config').mkdir()
+        self.approvals = 'config/anytour_ranked_approved_indexes.json'
+        self.previous = [{'path': 'config/anytour_prior_index.json', 'sha256': 'a' * 64}]
+        (self.repo / self.approvals).write_bytes(wire(self.previous))
+        (self.repo / 'editor.php').write_text('original editor')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'Install original editor')
+        return self.git('rev-parse', 'HEAD')
+
+    def git_candidate(self, approvals=None):
+        index = json.loads((self.root / self.index_path).read_bytes())
+        for path in [self.index_path, *(item['path'] for item in index['plans'])]:
+            (self.repo / path).write_bytes((self.root / path).read_bytes())
+        if approvals is not None:
+            (self.repo / self.approvals).write_bytes(wire(approvals))
+        self.git('add', '.')
+        self.git('commit', '-qm', 'Prepare ranked Telegram data')
+        return self.git('rev-parse', 'HEAD')
+
+    def inspect_git(self, baseline, candidate):
+        return M.inspect_input(self.index_sha, self.archive, self.root, self.index_path,
+                               (self.repo, baseline, candidate))
+
+    def test_exact_git_scope_is_still_evidence_only(self):
+        baseline = self.git_baseline()
+        candidate = self.git_candidate(self.previous + [{'path': self.index_path, 'sha256': self.index_sha}])
+        result = self.inspect_git(baseline, candidate)
+        self.assertEqual(result['git_scope'], {'application_sha': baseline, 'data_source_sha': candidate})
+        self.assertFalse(result['approval_verified'])
+        self.assertFalse(result['write_admission'])
+
+    def test_git_scope_rejects_editor_change(self):
+        baseline = self.git_baseline()
+        (self.repo / 'editor.php').write_text('changed editor')
+        candidate = self.git_candidate()
+        with self.assertRaisesRegex(ValueError, 'outside the transfer data'):
+            self.inspect_git(baseline, candidate)
+
+    def test_git_scope_rejects_replaced_approval_history(self):
+        baseline = self.git_baseline()
+        candidate = self.git_candidate([{'path': self.index_path, 'sha256': self.index_sha}])
+        with self.assertRaisesRegex(ValueError, 'not a single append'):
+            self.inspect_git(baseline, candidate)
+
+    def test_git_scope_rejects_changed_packet_with_new_digests(self):
+        baseline = self.git_baseline()
+        candidate = self.git_candidate()
+        self.assertFalse(self.inspect_git(baseline, candidate)['write_admission'])
+        self.plan_row['next_caption'] = 'Different prepared caption'
+        self.write_packet()
+        with self.assertRaisesRegex(ValueError, 'Git data blob changed'):
+            self.inspect_git(baseline, candidate)
+
+    def test_git_scope_rejects_application_that_is_not_an_ancestor(self):
+        baseline = self.git_baseline()
+        candidate = self.git_candidate()
+        self.git('checkout', '--detach', baseline)
+        (self.repo / 'editor.php').write_text('different deployment')
+        self.git('add', '.')
+        self.git('commit', '-qm', 'Deploy unrelated changes')
+        with self.assertRaisesRegex(ValueError, 'Git source or application could not be verified'):
+            self.inspect_git(self.git('rev-parse', 'HEAD'), candidate)
 
     def test_native_hold_is_not_turned_into_permission(self):
         self.row['preview_ready'] = False
