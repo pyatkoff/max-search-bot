@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.repository.id == 1342493152 && github.event.created == false &&
-      github.event.forced == false && github.event.before == '091566f81ae6e11098a9d66d335a59912188b0d6' &&
+      github.event.forced == false && github.event.before == '68ee7d1060a9d53ede0eeab1caf22b09a2fa605b' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -29,4 +29,4 @@ jobs:
       - name: Authenticate the installed release and existing publisher before MAX merge
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/release_priority.js --admit 1741 5a195d0da5686de8ec6d5aab10ecf88764eca66b 2959179c360d359481dcf0ae47d0c2ef496237dd
+        run: node tools/release_priority.js --admit 1741 5a195d0da5686de8ec6d5aab10ecf88764eca66b 2959179c360d359481dcf0ae47d0c2ef496237dd --publisher 6818332618 226193297 2026-11-26T11:38:05Z
