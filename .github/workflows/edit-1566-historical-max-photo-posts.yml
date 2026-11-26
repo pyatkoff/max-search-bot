@@ -1,4 +1,4 @@
-name: "#1566 Correct only the two existing MAX headings after exact release 1728"
+name: "#1566 Apply only Rixos to the independently confirmed commercial MAX post"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -12,81 +12,141 @@ concurrency:
   group: anytour-authorized-channel-publication
   cancel-in-progress: false
 jobs:
-  verify_price:
+  edit_existing:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'c8ddfbe17655f7d07d11c65779d59bc0ee55cd9c' &&
+      github.event.before == '8e2b2fe1eaea7e4299e40a57a072e90c0c6a66da' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.sha }}
+          ref: aceadeddd35a89307a9a307e891214d9c0be2af6
           persist-credentials: false
-      - name: Checkout the exact PRICE release
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 4d1ac4a25c5403223d3811e61def23040b1872e3
+          ref: f0ac8ff44afc64386be1802068102ccc9c0a55d4
+          path: approved-editor
           persist-credentials: false
-          path: accepted-release
-      - name: Await the exact installed release and official end of its write slot
+      - name: Authenticate the original reads and compile the single approved input
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
           set -euo pipefail
           umask 077
-          mkdir -p pub
-          cat > pub/price-admit.cjs <<'NODE'
-          const R=require('../accepted-release/tools/deployment_release');
-          const P=require('../accepted-release/tools/release_priority');
-          const token=process.env.GH_TOKEN;
-          const api=R.makeReadApi(token);
-          const wait=require('node:timers/promises').setTimeout;
-          const root=R.API_ROOT, sha='4d1ac4a25c5403223d3811e61def23040b1872e3', runId=45697913521;
-          async function check() {
-            const [head, slot, run, other] = await Promise.all([
-              api('GET',root+'/git/ref/heads/main'),
-              api('GET',root+'/issues/comments/6818332618'),
-              api('GET',root+'/actions/runs/'+runId),
-              api('GET',root+'/issues/comments/6928374515')
-            ]);
-            if(head.object.sha!==sha || slot.user.id!==226193297 ||
-                run.id!==runId || run.repository.id!==1342493152 || run.head_sha!==sha ||
-                run.path!=='.github/workflows/deploy.yml' || run.event!=='push' || run.run_attempt!==1)
-              throw Error('release_identity_changed');
-            if (run.status==='completed' && run.conclusion!=='success')
-              throw Error('deployment_failed');
-            if (slot.body==='PR1728: выпуск занят' ||
-                (slot.body==='PR1728: установлено, выпуск свободен' && run.status!=='completed')) return false;
-            if(other.user.id!==226193297||!/^PR[0-9]+: установлено, выпуск свободен$/.test(other.body)||slot.body!=='PR1728: установлено, выпуск свободен') throw Error('release_slot_changed');
-            const record=await R.readRecord(api);
-            const binding=await R.resolveCurrent(api,{sha},record);
-            if (!binding.ready) return false;
-            if (binding.repository_sha!==sha || binding.application_sha!==sha) throw Error('installed_release_changed');
-            await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:sha},token,fetch);
-            return true;
+          mkdir -p pub/stage
+          cat > pub/admit.cjs <<'NODE'
+          const R=require('../tools/deployment_release')
+          const P=require('../tools/release_priority')
+          const api=R.makeReadApi(process.env.GITHUB_TOKEN)
+          const root=R.API_ROOT, app='aceadeddd35a89307a9a307e891214d9c0be2af6'
+          function check(ok,reason){if(!ok)throw Error(reason)}
+          async function run(){
+            const fresh=Date.parse('2026-11-26T13:44:17+00:00')
+            check(Date.now()>=fresh&&Date.now()-fresh<=720000,'route_receipt_stale')
+            const [main,hotelSlot,releaseSlot]=await Promise.all([api('GET',root+'/git/ref/heads/main'),
+              api('GET',root+'/issues/comments/6818332618'),api('GET',root+'/issues/comments/6682640708')])
+            check(main.object.sha===app&&hotelSlot.user.id===226193297&&hotelSlot.body==='PR1741: установлено, выпуск свободен'
+              &&releaseSlot.user.id===226193297&&releaseSlot.body==='PR1742: установлено, выпуск свободен','shared_release_changed')
+            const record=await R.readRecord(api)
+            const current=await R.resolveCurrent(api,{sha:app},record)
+            check(current.ready&&current.repository_sha===app&&current.application_sha===app,'current_release_changed')
+            await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:app},process.env.GITHUB_TOKEN,fetch)
           }
-          async function admit(once) {
-            const limit=3;
-            for(let n=0;n<limit;n++) {
-              try {
-                if(await check()) {
-                  console.log('PRICE_RELEASE_ACCEPTED '+sha);
-                  return;
-                }
-              } catch(error) {
-                if(error.message!=='record_changed') throw error;
-              }
-              if(n+1<limit) await wait(1500);
-            }
-            throw Error('write_slot_or_release_not_ready');
+          async function receipt(id,head,path,jobId,artifactId,digest,name){
+            const base=root+'/actions/runs/'+id
+            const [r,j,a]=await Promise.all([api('GET',base),api('GET',base+'/attempts/1/jobs?per_page=100'),api('GET',base+'/artifacts?per_page=100')])
+            check(r.id===id&&r.repository.id===1342493152&&r.actor.id===226193297&&r.head_sha===head&&r.path===path
+              &&r.event==='push'&&r.run_attempt===1&&r.status==='completed'&&r.conclusion==='success','original_read_changed')
+            check(j.total_count===1&&j.jobs[0].id===jobId&&j.jobs[0].conclusion==='success','original_job_changed')
+            const file=a.artifacts[0]
+            check(a.total_count===1&&file.id===artifactId&&file.name===name&&file.expired===false
+              &&file.digest==='sha256:'+digest&&file.workflow_run.id===id&&file.workflow_run.head_sha===head,'original_artifact_changed')
           }
-          admit(process.argv[2]==='--once').catch(e=>{console.error(e.message);process.exitCode=1;});
+          async function all(){
+            if(process.argv[2]==='verify-originals') await Promise.all([
+              receipt(45630394590,'3a9195debcfbeb703a220895871f5a40a61d3010','.github/workflows/read-1566-max-archive-20261123.yml',139261677044,15032515599,'354407dec77c2ffc3b8ed739e5a3f3aac422a0120578c0501183bbe36ea8d795','issue-1566-main-max-archive-inventory'),
+              receipt(45831791225,'8e2b2fe1eaea7e4299e40a57a072e90c0c6a66da','.github/workflows/read-1566-old-ordinary-max-posts.yml',139950158848,15122044230,'cf071668969c0fad12759f53aa241f8f76e5e512fd1cfd003c97c31cfa4a3f5f','max-commercial-album-sources')
+            ])
+            await run()
+          }
+          all().catch(error=>{console.error(error.code||error.message);process.exitCode=1})
           NODE
-          node pub/price-admit.cjs
+          node pub/admit.cjs verify-originals
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/15032515599/zip > pub/old.zip
+          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/15122044230/zip > pub/native.zip
+          src=approved-editor/tools/direct_demand/operations/max-existing-photo
+          php approved-editor/tests/run_1566_max_existing_photo_batch.php
+          python3 approved-editor/tests/run_1566_max_existing_photo_partial.py
+          install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,run_batch.py} pub/stage/
+          python3 - <<'PY'
+          import hashlib,json,pathlib,re,zipfile
+          stage=pathlib.Path('pub/stage')
+          def digest(raw):
+              return hashlib.sha256(raw).hexdigest()
+          def receipt(name,expected):
+              filename=pathlib.Path('pub',name+'.zip')
+              assert filename.stat().st_size<300000 and digest(filename.read_bytes())==expected
+              with zipfile.ZipFile(filename) as archive:
+                  assert archive.namelist()==['registry.json'] and archive.getinfo('registry.json').file_size<=2000000
+                  return archive.read('registry.json')
+          old_sha='354407dec77c2ffc3b8ed739e5a3f3aac422a0120578c0501183bbe36ea8d795'
+          native_sha='cf071668969c0fad12759f53aa241f8f76e5e512fd1cfd003c97c31cfa4a3f5f'
+          old=receipt('old',old_sha)
+          native=receipt('native',native_sha)
+          assert digest(native)=='347b85aab1607c2c03cf0b8d8b7fe303e5c4081ca762513d9ca30102ab16bb62'
+          read=json.loads(native)
+          row=json.loads(r'''{"hotel_id":2575,"name":"Rixos Al Mairid Ras Al Khaimah","source_id":1342,"source_mid":"mid.ffffb6caf0606fed01a1d46c23c52cc7","source_url":"https://max.ru/channel_anytour/AaHUbCPFLMc","target_mid":"mid.ffffc1752b045fed019aca84b9721cb5","target_url":"https://max.ru/anytour/AZrKhLlyHLU","target_ms":1764334287218,"target_fingerprint":"e3795cf0d15eac4e3ac05abea6a3d79d9b706416b7926a7d6234bd8f6c5658cc","caption_without_price":"✈️ Туры в Rixos Al Mairid Ras Al Khaimah\n📍 Рас-эль-Хайма, ОАЭ\nПесчаный пляж и номера в виллах для семейного отдыха у моря.","original_legacy_identity_sha256":"06c4ed395de06cf877c2b9e7332f7bbfa4f6f4fcc83cb9338c2400a607562b2b"}''')
+          app='aceadeddd35a89307a9a307e891214d9c0be2af6'
+          assert read['ok'] and read['target_editor_rights'] and read['archive_run']==45630394590
+          assert read['application_sha']==read['repository_sha']==app
+          assert read['provider_writes']==read['db_writes']==read['bot_starts']==0
+          assert read['button_text']=='✈️ Рассчитать на мои даты' and len(read['rows'])==1
+          proof=read['rows'][0]
+          assert all(proof[k]==row[k] for k in ('hotel_id','source_id','source_mid','target_mid','target_url','original_legacy_identity_sha256'))
+          assert proof['target_occupied']==proof['source_held']==proof['target_or_hotel_registry_conflicts']==0
+          assert proof['source_hotel_id_matches'] is False and proof['source_catalog_id']==0
+          assert proof['readable_source_hotel_identity'] and proof['source_button_resolves_publication']
+          assert proof['source_photo_matches_registry'] and proof['target_matches_native_archive']
+          route={'repository':'pyatkoff/tour-max','run_id':45832028822,'job_id':139950987300,'observed_utc':'2026-11-26T13:44:17+00:00','write_calls':0}
+          scope={'version':1,'archive_run_id':'45630394590','archive_sha256':old_sha,'archive_registry_sha256':digest(old),
+              'rows':[row],'native_source':{'operation':read['operation'],'run_id':45831791225,'attempt':1,'job_id':139950158848,
+              'workflow_head':'8e2b2fe1eaea7e4299e40a57a072e90c0c6a66da','artifact_id':15122044230,'zip_sha256':native_sha,'json_sha256':digest(native),
+              'repository_sha':app,'application_sha':app},'route_readback':route,
+              'price_review':{'mode':'caption_without_fixed_price'}}
+          encoded=(json.dumps(scope,ensure_ascii=False,indent=2)+'\n').encode()
+          (stage/'scope.json').write_bytes(encoded)
+          (stage/'native-targets.json').write_bytes(old)
+          (stage/'native-source.json').write_bytes(native)
+          pathlib.Path('pub/manifest.json').write_bytes(encoded)
+          entry=stage/'batch_entry.php'
+          code,count=re.subn(r"(const MAX_BATCH_SCOPE_SHA256 = ')[a-f0-9]{64}(')",lambda m:m[1]+digest(encoded)+m[2],entry.read_text())
+          assert count==1
+          entry.write_text(code)
+          PY
+          php -l pub/stage/batch_entry.php
+          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json 347b85aab1607c2c03cf0b8d8b7fe303e5c4081ca762513d9ca30102ab16bb62 aceadeddd35a89307a9a307e891214d9c0be2af6 aceadeddd35a89307a9a307e891214d9c0be2af6 > pub/batch-plan.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('pub/batch-plan.json'))
+          assert d['provider_writes']==0 and {int(k) for k in d['ready']}=={2575} and not d['held']
+          PY
+          cat > pub/stage/execute.sh <<'SH'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          umask 077
+          unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
+          stage="$(cd -- "$1" && pwd -P)"
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          test "$(git rev-parse HEAD)" = 'aceadeddd35a89307a9a307e891214d9c0be2af6'
+          python3 "$stage/run_batch.py" "$stage"
+          SH
+          tar -C pub/stage -cf pub/approved.tar editor.php batch_input.php batch_entry.php observe_pair.php scope.json native-targets.json native-source.json run_batch.py execute.sh
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -119,171 +179,113 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Call the existing CONTENT editor under the PRICE lock for these two headings only
+      - name: Recheck accepted release and slot immediately before the existing writer
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node pub/admit.cjs
+      - name: Edit only each verified existing ID and capture its independent receipt
+        env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
         run: |
           set -euo pipefail
           umask 077
-          cat > pub/max-headings.php <<'HANDLER'
-          <?php
-          declare(strict_types=1);
-          use function AnyTour\ExistingPostBatch\{editHotelExisting,publicHotelPost,readHotelMax,postPhotoIds,validHotelEditPlan};
-          ini_set('display_errors','0');
-          $root='/var/www/anytoour/data/www/app.anytoour.ru';
-          $ops='/var/www/anytoour/data/channel-post-operations';
-          $app='4d1ac4a25c5403223d3811e61def23040b1872e3';
-          $ids=[
-            ['hotel'=>1972,'id'=>3824,'mid'=>'mid.ffffc1752b045fed01a048e897ef69df','url'=>'https://max.ru/anytour/AaBI6Jfvad8',
-             'from'=>'Moreno Horizon Spa & Resort','to'=>'Moreno Horizon Spa and Resort'],
-            ['hotel'=>32342,'id'=>3826,'mid'=>'mid.ffffc1752b045fed019febad19a5633d','url'=>'https://max.ru/anytour/AZ_rrRmlYz0',
-             'from'=>'Vinpearl Resort & Spa Phu Quoc','to'=>'Vinpearl Resort and Spa Phu Quoc'],
-          ];
-          function ensureHeading(bool $ok,string $reason):void{if(!$ok)throw new RuntimeException($reason);}
-          function compactHeadingError(Throwable $e):string{return preg_match('/\A[a-z_]{3,80}\z/D',$e->getMessage())?$e->getMessage():'unclassified_read_or_write';}
-          ob_start();
-          $status=[];
-          $originalProof=json_decode('{"1972":["ae071ebae0dcf789bb083da45bd4788b5c9f1cb96a2e9d2b44f640ccefc9d71f","e2781998d5001daa2fb2b9e86fa424cc9c8702592feb127a798bef8d2b2671e2","5ab38aa5019579051ca85c35eedbd161a0156ff3ec1afcde8812908f949726e4"],"32342":["9ce427a22d9f3a0f5c231aed3f0d7749917b93ad4c9c7683eb260dbc6d353233","64e67479a5ff2b8bd79272eaf407afb361947e8cab48ca20791e1d6462657126","79555cf85a40c5cf7d360d0e7bcbb744a620d26d8e761553742e68e858fc5806"]}',true,16,JSON_THROW_ON_ERROR);
-          try {
-             ensureHeading(getcwd()===$root&&trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$app,'installed_head_changed');
-             $mode=$argv[1]??'';
-             ensureHeading(in_array($mode,['apply','read'],true),'unknown_operation_mode');
-             $receiptAt=strtotime('2026-11-25T20:57:29+00:00');
-             if($mode==='apply')ensureHeading($receiptAt>0&&time()>=$receiptAt&&time()-$receiptAt<=480,'route_receipt_not_fresh');
-             require_once $root.'/config.php';
-             require_once $root.'/tools/anytour_existing_post_batch.php';
-             require_once $root.'/services/PromotedHotelPriceWriter.php';
-             require_once $root.'/services/ChannelPostButtonTransport.php';
-             require_once $root.'/services/ChannelPostEntryService.php';
-             require_once $root.'/integrations/ChannelPostIncomingAdapter.php';
-             require_once $root.'/integrations/ChannelPostApiTransport.php';
-             ensureHeading(ProjectConfig::projectId()==='anytour','wrong_project');
-             $lock=$ops.'/monitor-price-after-collection-v1.jsonl';
-             ensureHeading(is_file($lock)&&!is_link($lock),'price_lock_missing');
-             $lease=fopen($lock,'rb');
-             ensureHeading(is_resource($lease)&&flock($lease,($mode==='apply'?LOCK_EX:LOCK_SH)|LOCK_NB),'shared_editor_busy');
-             $pdo=ConversationDb::connection();
-             if($mode==='read'){$pdo->exec('SET TRANSACTION READ ONLY');$pdo->beginTransaction();}
-             try{
-                $registry=new ChannelPostRegistryService($pdo);
-                foreach($ids as $t){
-                   $id=$t['id'];$base=['hotel_id'=>$t['hotel'],'publication_id'=>$id,'mid'=>$t['mid'],'url'=>$t['url']];
-                   $journal=$ops.'/issue-1566-edit-existing-'.$id.'.jsonl';
-                   $began=false;
-                   try{
-                      $post=$registry->publication($id);
-                      $snapshot=$post['snapshot']??[];
-                      ensureHeading(is_array($post)&&($post['state']??null)==='sent'
-                        &&($post['project_key']??null)==='anytour'&&($post['platform']??null)==='max'
-                        &&($post['channel_id']??null)==='-68765999669267'
-                        &&($post['message_id']??$post['external_message_id']??null)===$t['mid']
-                        &&($snapshot['post_url']??null)===$t['url']
-                        &&(int)($snapshot['metadata']['hotel_catalog_id']??0)===$t['hotel'],'publication_identity_changed');
-                      $check=$pdo->prepare("SELECT COUNT(*) FROM post_versions WHERE publication_id=? AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)");
-                      $check->execute([$id]);
-                      ensureHeading((int)$check->fetchColumn()===0,'publication_has_active_writer');
-                      $check->closeCursor();
-                      $raw=PromotedHotelPriceWriter::publicBytes($t['url']);
-                      $caption=PromotedHotelPriceWriter::maxPublicCaption($raw,$t['url']);
-                      $publicPage=new DOMDocument();
-                      ensureHeading(@$publicPage->loadHTML('<?xml encoding="UTF-8">'.$raw,LIBXML_NONET|LIBXML_NOERROR|LIBXML_NOWARNING),'public_html_unavailable');
-                      $xpath=new DOMXPath($publicPage);
-                      $photo=$xpath->query('//meta[@property="og:image"]')->item(0);
-                      $title=$xpath->query('//meta[@property="og:description"]')->item(0);
-                      $preview=$title instanceof DOMElement?strtok($title->getAttribute('content'),"\r\n"):'';
-                      $native=readHotelMax($t['mid'],'-68765999669267');
-                      $button=ChannelPostButtonTransport::buttonUrl($post);
-                      $context=ChannelPostEntryService::resolve('max',$post['start_payload'],$registry);
-                      $base['current_version']=(int)$post['version_id'];
-                      $base['public_preview_fingerprint']=hash('sha256',$photo instanceof DOMElement?$photo->getAttribute('content'):'');
-                      $base['public_button_label_visible']=str_contains($raw,$post['channel']['button_text']);
-                      $base['price_observed_at']=$snapshot['metadata']['promoted_price_observed_at']??null;
-                      $base['fixed_price_present']=preg_match('/\d[\d\s\x{00a0}\x{202f}]*(?:₽|руб)/iu',$caption)===1;
-                      $base['photo_fingerprint']=hash('sha256',json_encode(postPhotoIds($native,'max'),JSON_THROW_ON_ERROR));
-                      $base['button_fingerprint']=hash('sha256',$button);
-                      ensureHeading($caption===($snapshot['text']??null)&&($native['text']??null)===$caption,'public_or_native_caption_differs');
-                      ensureHeading(count(postPhotoIds($native,'max'))===1&&postPhotoIds($native,'max')===postPhotoIds($snapshot,'max')
-                         &&$photo instanceof DOMElement&&$photo->getAttribute('content')!=='','photo_identity_changed');
-                      ensureHeading($button!==''&&(int)($context['publication_id']??0)===$id
-                          &&(string)($context['external_message_id']??'')===$t['mid']
-                          &&ChannelPostIncomingAdapter::containsOnlyButton($native,$button,$post['channel']['button_text']),'hotel_button_changed');
-                      ensureHeading(isset($originalProof[$t['hotel']])
-                           &&$originalProof[$t['hotel']][0]===$base['photo_fingerprint']
-                           &&$originalProof[$t['hotel']][1]===$base['button_fingerprint'] ,
-                           'original_photo_or_button_fingerprint_changed');
-                      if(str_contains($caption,$t['to'])&&!str_contains($caption,$t['from'])&&str_contains((string)$preview,$t['to'])){
-                         $status[]=$base+['state'=>'already_publicly_verified','provider_writes'=>0,'caption_and_button_verified'=>true,'public_heading'=>$preview];
-                         continue;
-                      }
-                      if($mode==='read'){
-                         $status[]=$base+['state'=>'original_heading_retained','provider_writes'=>0,'public_heading'=>$preview,
-                            'journal_present'=>is_file($journal)&&filesize($journal)>0];
-                         continue;
-                      }
-                      ensureHeading(!is_link($journal)&&(!is_file($journal)||filesize($journal)===0),'previous_edit_needs_independent_read');
-                      if(preg_match('/\d[\d\s\x{00a0}\x{202f}]*(?:₽|руб)/iu',$caption)){
-                         $priceAt=strtotime((string)($snapshot['metadata']['promoted_price_observed_at']??''));
-                         ensureHeading($priceAt>0&&$priceAt<=time()&&time()-$priceAt<=129600,'fixed_price_not_current');
-                      }
-                      [$titleLine]=explode("\n",$caption,2);
-                      ensureHeading(str_contains($titleLine,$t['from']),'expected_original_heading_missing');
-                      $newLine=str_replace($t['from'],$t['to'],$titleLine,$changes);
-                      ensureHeading($changes===1&&!str_contains($newLine,'&'),'heading_replacement_not_exact');
-                      $next=$newLine.substr($caption,strlen($titleLine));
-                      $row=['platform'=>'max','hotel'=>$t['hotel'],'post'=>(string)$id,'mid'=>$t['mid'],'url'=>$t['url'],
-                         'button_sha'=>hash('sha256',$button),'old_caption_sha256'=>hash('sha256',$caption),'next'=>$next];
-                      ensureHeading(validHotelEditPlan($row),'editor_input_not_valid');
-                      ensureHeading(trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'))===$app,'installed_head_changed');
-                      $began=true;
-                      $status[]=$base+editHotelExisting($pdo,$registry,$row);
-                   }catch(Throwable $e){
-                      $state=$began&&is_file($journal)&&filesize($journal)>0?'unknown_read_before_retry':'held_before_verified_write';
-                      $status[]=$base+['state'=>$state,'reason'=>compactHeadingError($e)];
-                   }
-                }
-             }finally{
-                if($pdo->inTransaction())$pdo->rollBack();
-                flock($lease,LOCK_UN);fclose($lease);
-             }
-          }catch(Throwable $e){
-             $status[]=['state'=>'operation_held','reason'=>compactHeadingError($e)];
-          }
-          ob_end_clean();
-          echo 'MAX_1728_OPERATION='.json_encode(['app'=>$app,'mode'=>$argv[1]??'','route_read_run'=>45699823733,'route_read_job'=>139506680250,'at'=>gmdate('c'),'rows'=>$status],
-             JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).PHP_EOL;
-          HANDLER
-          php -l pub/max-headings.php
-          node pub/price-admit.cjs --once
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          status=0
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php /dev/stdin apply' < pub/max-headings.php > pub/heading-write.txt || status=$?
-          cat pub/heading-write.txt
-          if [[ "$status" != 0 ]]; then
-            echo 'MAX1728_TRANSPORT_UNKNOWN_READ_REQUIRED'
-            exit "$status"
-          fi
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -c '"'"'set -euo pipefail; umask 077; stage=$(mktemp -d /tmp/anytour-1566-old-max.XXXXXXXX); trap "rm -f -- \"$stage\"/*; rmdir -- \"$stage\"" EXIT; tar --no-same-owner --no-same-permissions -C "$stage" -xf -; bash "$stage/execute.sh" "$stage"'"'"'' < pub/approved.tar | tee pub/native-results.txt
           python3 - <<'PY'
           import json,pathlib
-          prefix="MAX_1728_OPERATION="
-          raw=pathlib.Path("pub/heading-write.txt").read_text()
-          records=[i[len(prefix):] for i in raw.splitlines() if i.startswith(prefix)]
-          assert len(records)==1
-          d=json.loads(records[0])
-          assert d["mode"]=="apply"
-          assert all(r.get("hotel_id") in (1972,32342) or r["state"]=="operation_held" for r in d["rows"])
+          expected = [r['hotel_id'] for r in json.loads(pathlib.Path('pub/manifest.json').read_bytes())['rows']]
+          rows = []
+          for line in pathlib.Path('pub/native-results.txt').read_text().splitlines():
+              if not line.startswith('RESULT '):
+                  continue
+              _, hotel, payload = line.split(' ', 2)
+              d = json.loads(payload)
+              assert d['hotel'] == int(hotel) and d.get('new_posts', 0) == 0 and d.get('ad_writes', 0) == 0
+              assert d['state'] in {'existing_max_message_updated_and_verified','stopped_before_edit','held_no_retry','untouched','unobserved'}
+              rows.append(d)
+          assert [r['hotel'] for r in rows] == expected
+          accepted = [r['hotel'] for r in rows if r['state'] == 'existing_max_message_updated_and_verified']
+          summary = {'state':'complete' if len(accepted)==len(expected) else 'partial' if accepted else 'none_accepted','native_accepted':accepted,'rows':rows}
+          pathlib.Path('pub/summary.json').write_text(json.dumps(summary,indent=2))
+          print('Native confirmations', len(accepted), 'of', len(expected), accepted)
           PY
-      - name: Preserve the exact receipt from the existing editor
+      - name: Read each same public MAX address independently
+        if: always()
+        run: |
+          set -euo pipefail
+          umask 077
+          test -f pub/native-results.txt || exit 0
+          python3 - <<'PY'
+          import json,urllib.request,urllib.error,hashlib,re,time
+          from html.parser import HTMLParser
+          from concurrent.futures import ThreadPoolExecutor
+          from pathlib import Path
+          from datetime import datetime,timezone
+          original=json.loads(Path('pub/manifest.json').read_text())['rows']
+          native=[json.loads(line.split(' ',2)[2]) for line in Path('pub/native-results.txt').read_text().splitlines() if line.startswith('RESULT ')]
+          accepted={r['hotel'] for r in native if r.get('state')=='existing_max_message_updated_and_verified'}
+          plans=[{'id':r['hotel_id'],'url':r['target_url'],'title':r['name'],'caption':r['caption_without_price']} for r in original if r['hotel_id'] in accepted]
+          class Page(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.parts=[]; self.hide=0; self.meta={}
+              def handle_starttag(self,t,a):
+                  if t in ('script','style'): self.hide+=1
+                  if t=='meta':
+                      d=dict(a)
+                      key=d.get('property') or d.get('name')
+                      if key: self.meta[key]=d.get('content','')
+              def handle_endtag(self,t):
+                  if t in ('script','style') and self.hide: self.hide-=1
+              def handle_data(self,v):
+                  if not self.hide and v.strip(): self.parts.append(v.strip())
+          def norm(v):
+              return re.sub(r'\s+',' ',v).strip()
+          def read(row):
+              try:
+                  req=urllib.request.Request(row['url'],headers={'User-Agent':'Mozilla/5.0','Cache-Control':'no-cache'})
+                  with urllib.request.urlopen(req,timeout=10) as r:
+                      raw=r.read(3000001)
+                      status,url=r.status,r.geturl()
+                  assert len(raw)<=3000000 and url==row['url']
+                  p=Page();p.feed(raw.decode('utf-8'))
+                  visible=norm('\n'.join(p.parts).split('Другие публикации канала',1)[0])
+                  declared=norm(p.meta.get('og:description',''))
+                  exact=norm(row['caption'])
+                  out={'hotel_id':row['id'],'url':url,'http':status,'named':row['title'] in visible or row['title'] in declared,
+                       'caption_matches':exact in visible or exact in declared,'photo_preview':bool(p.meta.get('og:image')),
+                       'public_button_label_visible':'Рассчитать на мои даты' in visible,
+                       'page_sha256':hashlib.sha256(raw).hexdigest(),
+                       'escaped_variant_visible': '&amp;' in visible or '&amp;' in declared}
+                  out['verified']=out['named'] and out['caption_matches'] and out['photo_preview']
+                  return out
+              except (OSError,ValueError,AssertionError) as e:
+                  return {'hotel_id':row['id'],'url':row['url'],'error':type(e).__name__,'verified':False}
+          with ThreadPoolExecutor(max_workers=3) as pool:
+              results=list(pool.map(read,plans))
+          if not all(r['verified'] for r in results):
+              time.sleep(5)
+              results=[r if r['verified'] else read(p) for r,p in zip(results,plans)]
+          out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
+          Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
+          print('MAX_COMMERCIAL_ALBUM_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
+          PY
+      - name: Preserve exact original receipts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-max-1728-existing-two-headings
-          path: pub/heading-write.txt
+          name: issue-1566-max-edits-existing-only
+          path: |
+            pub/manifest.json
+            pub/native-results.txt
+            pub/summary.json
+            pub/observation.json
           retention-days: 7
-          if-no-files-found: ignore
+          if-no-files-found: warn
       - name: Remove runner-only connection material
         if: always()
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
