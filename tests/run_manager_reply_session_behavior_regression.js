@@ -15,6 +15,21 @@ const snapshot=saved=>JSON.parse([...saved.values.values()][0]);
 const tick=()=>new Promise(setImmediate);
 const cases=[];function test(name,run){cases.push({name,run})}
 
+// Taking an unassigned dialogue is independent of notification shift state.
+// Keep this contract when integrating assistant post-send refresh into the composer.
+for(const status of ['waiting_manager','ai'])test('unassigned '+status+' can be taken with shift off but never exposes composer',async()=>{
+  const h=createHarness();await h.start();
+  h.W.S.manager.role='manager';h.W.S.manager.is_working=false;
+  const waiting={...h.conversation,id:102,status,manager_id:null};
+  h.setHook((url,request)=>url==='api.php'&&request.action==='detail'&&request.conversation_id===102?
+    response({ok:true,conversation:waiting,messages:[]}):null);
+  assert.equal(await h.C.open(102),true);
+  const actions=h.ids.get('conversationActions').children;
+  assert.equal(actions.filter(button=>button.textContent==='Взять'&&!button.disabled).length,1);
+  assert.equal(h.ids.get('composer').classList.contains('hidden'),true);
+  assertNoMutations(h);
+});
+
 function quickReplies(h){
   const buttons=[{dataset:{reply:'Synthetic greeting'}},{dataset:{reply:'Synthetic budget question'}}];
   const query=h.document.querySelectorAll;
@@ -152,6 +167,22 @@ for(const success of [true,false])test('explicit '+(success?'successful':'failed
   const next=createHarness({storage:saved});await next.start({open:false});assert.equal(next.ids.get('replyText').value,success?'':'Unsent synthetic draft');assert.equal(h.calls.filter(r=>r.action==='send').length,1);assertNoMutations(next);
 });
 
+test('confirmed manager send wakes existing AI preparation after authorized refreshed conversation',async()=>{
+  const h=createHarness();await h.start();await h.draft('Confirmed manager reply');
+  let wakeups=0;h.window.WorkspaceV2AiDraft={sync:()=>{wakeups++;assert.equal(h.ids.get('replyText').disabled,false);assert.equal(h.W.S.current,101)}};
+  h.setHook((url,r)=>r.action==='send'?response({ok:true}):null);
+  await h.C.sendReply();assert.equal(wakeups,1);
+  assert.equal(h.calls.filter(x=>x.action==='send').length,1);assert.equal(h.calls.filter(x=>x.action==='ensure_prepared').length,0);
+  assert.equal(h.ids.get('replyText').value,'');
+});
+for(const outcome of ['rejected','unknown','unreadable'])test('post-send AI wakeup is blocked for '+outcome,async()=>{
+  const h=createHarness();await h.start();await h.draft('Unsent manager reply');let wakeups=0;
+  h.window.WorkspaceV2AiDraft={sync:()=>{wakeups++}};
+  if(outcome==='rejected')h.setHook((url,r)=>r.action==='send'?response({ok:false},409):null);
+  else if(outcome==='unknown')h.setHook((url,r)=>r.action==='send'?response({ok:false,attempt:{state:'unknown'}}):null);
+  else h.setHook((url,r)=>r.action==='send'?response({ok:true}):url==='api.php'&&r.action==='detail'?response({ok:false},500):null);
+  await h.C.sendReply();assert.equal(wakeups,0);assert.equal(h.calls.filter(x=>x.action==='send').length,1);
+});
 test('successful send followed by quota failure removes the old persisted text',async()=>{
   const {saved,h}=await seeded();saved.denyWrite=true;h.setHook((url,r)=>r.action==='send'?response({ok:true}):null);await h.C.sendReply();assert.equal(saved.values.size,0);
   saved.denyWrite=false;const next=createHarness({storage:saved});await next.start();assert.equal(next.ids.get('replyText').value,'');

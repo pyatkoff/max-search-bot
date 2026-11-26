@@ -113,26 +113,36 @@ final class ManagerAssistantService
             if (self::ownConversation($conversationId, $actor) === null) return self::failure('not_found');
             $suffix = $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
             $q = $pdo->prepare('SELECT decision FROM manager_assistant_decisions WHERE manager_id=? AND conversation_id=? AND recommendation_revision=? AND project_key=?'.$suffix);
-            $key = [$actor, $conversationId, $revision, ProjectConfig::projectId()];
+            $key = [$actor, $conversationId, $current['decision_key'], ProjectConfig::projectId()];
             $q->execute($key);
             $stored = $q->fetchColumn();
             $previous = $stored === false ? null : (string)$stored;
-            if ($previous === $decision) {
+            // Legacy rows were keyed by the generated text revision. Preserve
+            // an existing manager refusal until their next explicit action.
+            // The first such action copies the decision into the stable key.
+            $legacyOnly = false;
+            if ($stored === false && !hash_equals($current['decision_key'], $revision)) {
+                $q->execute([$actor, $conversationId, $revision, ProjectConfig::projectId()]);
+                $legacy = $q->fetchColumn();
+                if ($legacy !== false) { $previous = (string)$legacy; $legacyOnly = true; }
+            }
+            if ($previous === $decision && !$legacyOnly) {
                 $pdo->commit(); $started = false;
                 return self::decisionResult($actor,$conversationId,$revision,$decision,true);
             }
-            if ($previous !== $expectedDecision) return self::failure('decision_conflict');
+            if ($previous !== $expectedDecision && $previous !== $decision) return self::failure('decision_conflict');
+            $idempotent = $previous === $decision;
             $now = gmdate('Y-m-d H:i:s');
-            if ($previous === null) {
+            if ($stored === false) {
                 $q = $pdo->prepare('INSERT INTO manager_assistant_decisions (manager_id,conversation_id,project_key,recommendation_revision,context_revision,instruction_revision,decision,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)');
-                $q->execute([$actor,$conversationId,ProjectConfig::projectId(),$revision,$current['context_revision'],$current['instruction_revision'],$decision,$now,$now]);
+                $q->execute([$actor,$conversationId,ProjectConfig::projectId(),$current['decision_key'],$current['context_revision'],$current['instruction_revision'],$decision,$now,$now]);
             } else {
                 $q = $pdo->prepare('UPDATE manager_assistant_decisions SET decision=?,updated_at=? WHERE manager_id=? AND conversation_id=? AND recommendation_revision=? AND project_key=? AND decision=?');
                 $q->execute(array_merge([$decision,$now],$key,[$previous]));
                 if ($q->rowCount() !== 1) return self::failure('decision_conflict');
             }
             $pdo->commit(); $started = false;
-            return self::decisionResult($actor,$conversationId,$revision,$decision,false);
+            return self::decisionResult($actor,$conversationId,$revision,$decision,$idempotent);
         } catch (Throwable $ignored) { return self::failure('assistant_unavailable'); }
         finally { if ($started && $pdo instanceof PDO && $pdo->inTransaction()) $pdo->rollBack(); }
     }
@@ -178,10 +188,14 @@ final class ManagerAssistantService
         $recommendation = $suspended?null:self::currentRecommendation($id, $actor,(string)$conversation['project_key']);
         if ($recommendation !== null) {
             $q = ConversationDb::connection()->prepare('SELECT decision FROM manager_assistant_decisions WHERE manager_id=? AND conversation_id=? AND recommendation_revision=? AND project_key=?');
-            $q->execute([$actualOwner,$id,$recommendation['revision'],$conversation['project_key']]);
+            $q->execute([$actualOwner,$id,$recommendation['decision_key'],$conversation['project_key']]);
             $decision = $q->fetchColumn();
+            if ($decision === false && !hash_equals($recommendation['decision_key'], $recommendation['revision'])) {
+                $q->execute([$actualOwner,$id,$recommendation['revision'],$conversation['project_key']]);
+                $decision = $q->fetchColumn();
+            }
             $recommendation['decision'] = $decision === false ? null : (string)$decision;
-            unset($recommendation['context_revision'], $recommendation['instruction_revision']);
+            unset($recommendation['decision_key'], $recommendation['context_revision'], $recommendation['instruction_revision']);
         }
         $taskRows = [];
         foreach (LeadTaskService::listForConversation($id) as $task) {
@@ -255,11 +269,109 @@ final class ManagerAssistantService
         $proposal = $prepared['proposal'];
         // Context alone does not include instruction/proposal identity. Bind both.
         $revision = hash('sha256', json_encode(['manager_assistant_recommendation_v1',$prepared['job_id'],$prepared['revision'],$proposal],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
-        return ['revision'=>$revision, 'context_revision'=>$prepared['revision'], 'instruction_revision'=>$instruction,
+        // Exact revision is still the UI/CAS fence. The private decision key
+        // instead binds to the canonical, current customer input and action.
+        // AI wording, job_id, instruction changes or TTL cannot resurrect
+        // a dismissed suggestion for precisely the same source and action.
+        // If no current input can be proven, retain the old exact behavior.
+        $source = ManagerPreparationEligibility::input(ConversationDb::connection(),$id);
+        $profilePin = self::profileDecisionPin($snapshot);
+        // A post-reply review is a strictly nonbinding suggestion grounded in a
+        // source-authenticated manager message, never proof of non-delivery.
+        $reviewEvidence = self::postReplyEvidence($proposal,$snapshot);
+        $internalReview = $reviewEvidence === null ? null : [
+            'kind'=>$reviewEvidence['kind'],'state'=>'needs_review',
+            'source_message_id'=>$reviewEvidence['source_message_id'],
+        ];
+        if ($reviewEvidence !== null) {
+            $decisionKey = hash('sha256',json_encode([
+                'manager_assistant_review_v1',(string)($snapshot['project_key'] ?? $project ?? ProjectConfig::projectId()),
+                $id,$source,$reviewEvidence['kind'],$reviewEvidence['source_message_id'],
+                $reviewEvidence['source_message_revision'],$reviewEvidence['trip_id'],$reviewEvidence['profile_sha256'],
+            ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        } else {
+            $decisionKey = $source === null || $profilePin === null ? $revision : hash('sha256', json_encode([
+                'manager_assistant_decision_source_v2',(string)($snapshot['project_key'] ?? $project ?? ProjectConfig::projectId()),
+                $id,$source,$profilePin,$proposal['next_action'],
+            ],JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        }
+        return ['revision'=>$revision, 'decision_key'=>$decisionKey, 'context_revision'=>$prepared['revision'], 'instruction_revision'=>$instruction,
             'latest_message_id'=>(int)$prepared['latest_message_id'], 'prepared_at'=>$prepared['prepared_at'], 'expires_at'=>$prepared['expires_at'],
             'next_action'=>$proposal['next_action'], 'reason'=>$proposal['reason'], 'checks'=>$proposal['checks'],
-            'should_draft'=>$proposal['should_draft'], 'history_incomplete'=>$proposal['history_incomplete'],
-            'evidence_message_ids'=>$proposal['evidence_message_ids']];
+            // Display-only preview. The composer still obtains and validates the
+            // body through prepared_preview before it may offer insertion.
+            'should_draft'=>$proposal['should_draft'], 'draft'=>$proposal['should_draft'] ? $proposal['draft'] : null,
+            'history_incomplete'=>$proposal['history_incomplete'],
+            'evidence_message_ids'=>$proposal['evidence_message_ids'],
+            'internal_review'=>$internalReview];
+    }
+
+    /**
+     * Only a source-validated model candidate may become an optional internal
+     * review suggestion. The candidate means "check whether it was done",
+     * NOT an active obligation, overdue task, or request to message a customer.
+     * This reuses the already prepared open-chat result; no new generator.
+     */
+    private static function postReplyEvidence(array $proposal,array $snapshot): ?array
+    {
+        if (($proposal['next_action'] ?? null) !== 'no_contact'
+            || ($proposal['should_draft'] ?? null) !== false
+            || !is_array($proposal['manager_promises'] ?? null)
+            || $proposal['manager_promises'] === []) return null;
+        try {
+            return self::verifiedReviewProjection(ManagerPromiseCandidates::project($proposal,$snapshot));
+        } catch (Throwable $ignored) { return null; }
+    }
+
+    /** Pure strict gate for normalized, already source-authenticated candidates. */
+    private static function verifiedReviewProjection(array $rows): ?array
+    {
+        if (count($rows) > 3) return null;
+        foreach ($rows as $candidate) {
+            if (!is_array($candidate)
+                || !in_array($candidate['kind'] ?? null,['send_calculation','send_selection'],true)
+                || ($candidate['profile_status'] ?? null) !== 'fresh'
+                || !is_int($candidate['source_message_id'] ?? null)
+                || $candidate['source_message_id'] <= 0
+                || !is_string($candidate['source_message_revision'] ?? null)
+                || !self::revision($candidate['source_message_revision'])
+                || !is_string($candidate['trip_id'] ?? null)
+                || preg_match('/\\A[a-f0-9]{32}\\z/D',$candidate['trip_id']) !== 1
+                || !is_string($candidate['profile_sha256'] ?? null)
+                || !self::revision($candidate['profile_sha256'])) continue;
+            return array_intersect_key($candidate,array_flip([
+                'kind','source_message_id','source_message_revision','trip_id','profile_sha256'
+            ]));
+        }
+        return null;
+    }
+
+    /**
+     * Persist a dismissal only across the same verified customer input and
+     * saved-request identity. A changed/unknown profile cannot silently inherit
+     * the previous decision; absence of a saved profile is explicit.
+     * Never use the model's reason/checks or job id as semantic identity.
+     */
+    private static function profileDecisionPin(array $snapshot): ?array
+    {
+        $reference = $snapshot['reference_context'] ?? null;
+        if (!$reference instanceof ManagerAiDraftReferenceContext || !is_array($snapshot['context'] ?? null)) return null;
+        $facts = $reference->forContext($snapshot['context']);
+        if (!is_array($facts)) return null;
+        return self::typedProfileDecisionPin($facts['request_profile'] ?? null);
+    }
+
+    /** Pure, bounded typed pin used only by the private decision key. */
+    private static function typedProfileDecisionPin(mixed $profile): ?array
+    {
+        if ($profile === null) return ['no_saved_profile'];
+        if (!is_array($profile) || !in_array($profile['status'] ?? null,['fresh','needs_review'],true)
+            || !is_string($profile['trip_id'] ?? null) || preg_match('/\A[a-f0-9]{32}\z/D',$profile['trip_id'])!==1
+            || !is_string($profile['profile_sha256'] ?? null) || !self::revision($profile['profile_sha256'])
+            || !is_int($profile['boundary_message_id'] ?? null) || $profile['boundary_message_id']<=0) return null;
+        // Version is omitted intentionally: re-saving unchanged curated data
+        // must not re-show dismissed advice; changed facts/trip/term do.
+        return ['saved_profile',$profile['trip_id'],$profile['profile_sha256'],$profile['boundary_message_id']];
     }
 
     private static function revision(string $value): bool { return preg_match('/\A[a-f0-9]{64}\z/D',$value) === 1; }

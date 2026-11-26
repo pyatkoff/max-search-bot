@@ -131,6 +131,35 @@ function assistantBusinessState(AssistantFixturePdo $pdo): array
 }
 
 try {
+    $profilePin = new ReflectionMethod(ManagerAssistantService::class,'typedProfileDecisionPin');
+    $same=['status'=>'fresh','trip_id'=>str_repeat('a',32),'profile_sha256'=>str_repeat('b',64),'boundary_message_id'=>2,'version'=>1];
+    $pin=$profilePin->invoke(null,$same);
+    assistantCheck('stable request identity uses canonical trip/profile/source boundary, never a model rewording',
+        $pin===['saved_profile',str_repeat('a',32),str_repeat('b',64),2]
+        && $profilePin->invoke(null,array_replace($same,['version'=>2,'status'=>'needs_review']))===$pin);
+    assistantCheck('independent new trip or changed confirmed conditions cannot inherit a dismissed recommendation',
+        $profilePin->invoke(null,array_replace($same,['trip_id'=>str_repeat('c',32)]))!==$pin
+        && $profilePin->invoke(null,array_replace($same,['profile_sha256'=>str_repeat('d',64)]))!==$pin
+        && $profilePin->invoke(null,array_replace($same,['boundary_message_id'=>3]))!==$pin);
+    assistantCheck('unavailable/stale request profile fails to exact-revision dismissal rather than guessing identity',
+        $profilePin->invoke(null,['status'=>'unavailable','version'=>1])===null
+        && $profilePin->invoke(null,array_replace($same,['status'=>'source_changed']))===null
+        && $profilePin->invoke(null,null)===['no_saved_profile']);
+
+    $reviewGate=new ReflectionMethod(ManagerAssistantService::class,'verifiedReviewProjection');
+    $reviewCandidate=['kind'=>'send_calculation','source_message_id'=>13,
+        'source_message_revision'=>str_repeat('a',64),'trip_id'=>str_repeat('b',32),
+        'profile_sha256'=>str_repeat('c',64),'profile_status'=>'fresh'];
+    $confirmed=$reviewGate->invoke(null,[$reviewCandidate]);
+    assistantCheck('source-authenticated manager quote may offer review without claiming a fulfilled or open task',
+        $confirmed!==null && $confirmed['kind']==='send_calculation'
+        && $confirmed['source_message_id']===13 && !isset($confirmed['quote'],$confirmed['profile_status']));
+    assistantCheck('unconfirmed changed-trip, missing proof and forged source cannot create post-reply review',
+        $reviewGate->invoke(null,[array_replace($reviewCandidate,['profile_status'=>'needs_review'])])===null
+        && $reviewGate->invoke(null,[array_replace($reviewCandidate,['source_message_revision'=>'invalid'])])===null
+        && $reviewGate->invoke(null,[array_replace($reviewCandidate,['source_message_id'=>0])])===null
+        && $reviewGate->invoke(null,[])===null);
+
     $pdo=assistantFixture(); [, $proposal]=assistantPrepare();
     $before=assistantBusinessState($pdo); $writes=$pdo->privateWrites;
     $detail=ManagerAssistantService::detail(1,1); $item=$detail['item']??[]; $recommendation=$item['recommendation']??[];
@@ -141,7 +170,7 @@ try {
     $detailBase['tasks']=array_map(static function(array $task):array{unset($task['promise']);return $task;},$detailBase['tasks']);
     assistantCheck('bounded promise enrichment retains every ordinary feed field and task',($feed['promise_coverage']??null)==='not_loaded' && ($item['promise_coverage']??null)==='checked' && $detailBase===$feedBase);
     assistantCheck('legacy optional schema is explicitly unavailable rather than an absent promise',count($item['tasks'])===2 && array_reduce($item['tasks'],static fn(bool $ok,array $task):bool=>$ok && ($task['promise']['availability']??null)==='unavailable' && ($task['promise']['reason']??null)==='storage_unavailable',true));
-    assistantCheck('projection contains no draft body private contacts or internal context hashes',array_intersect_key($recommendation,array_flip(['draft','context_revision','instruction_revision']))===[] && !str_contains(json_encode($detail),'PRIVATE') && $item['analysis_state']==='current' && $recommendation['should_draft']);
+    assistantCheck('projection previews only the prepared draft and hides private context hashes',$recommendation['draft']===$proposal['draft'] && array_intersect_key($recommendation,array_flip(['context_revision','instruction_revision']))===[] && !str_contains(json_encode($detail),'PRIVATE') && $item['analysis_state']==='current' && $recommendation['should_draft']);
     assistantCheck('existing open tasks retain canonical ordering and deadline semantics',array_column($item['tasks'],'id')===[2,1] && $item['tasks'][0]['due_state']==='unscheduled' && $item['tasks'][1]['due_state']==='overdue' && !$item['tasks_truncated']);
     assistantCheck('reads neither mark messages read nor change tasks routing shifts or private state',assistantBusinessState($pdo)===$before && $pdo->businessWriteAttempts===0 && $pdo->privateWrites===$writes);
 
@@ -172,6 +201,40 @@ try {
         $pdo->mutate($sql); $fresh=ManagerAssistantService::detail(1,1);
         assistantCheck($name.' hides old analysis retains tasks and rejects stale decision',!empty($fresh['ok']) && $fresh['item']['analysis_state']==='unavailable' && $fresh['item']['recommendation']===null && count($fresh['item']['tasks'])===2 && (ManagerAssistantService::decide(1,1,$old,'done')['error']??'')==='stale_context' && (int)$pdo->query('SELECT COUNT(*) FROM manager_assistant_decisions')->fetchColumn()===0);
     }
+
+    $pdo=assistantFixture(); assistantPrepare();
+    $original=ManagerAssistantService::detail(1,1)['item']['recommendation'];
+    $dismiss=ManagerAssistantService::decide(1,1,$original['revision'],'irrelevant');
+    $stored=$pdo->query("SELECT proposal_json FROM manager_prepared_replies WHERE status='ready'")->fetchColumn();
+    $changed=json_decode($stored,true,32,JSON_THROW_ON_ERROR);
+    $changed['reason']='Переформулирована проверка того же запроса клиента.';
+    $changed['draft']='Подскажите, пожалуйста, город вылета и подходящие даты поездки?';
+    $changed['checks']=['Проверить те же варианты ещё раз.'];
+    $json=ManagerAiDraftProposal::json($changed);
+    if($json===null)throw new RuntimeException('FAIL canonical regenerated proposal');
+    $stmt=$pdo->prepare("UPDATE manager_prepared_replies SET job_id=?,proposal_json=?,proposal_sha256=? WHERE status='ready'");
+    $stmt->execute([str_repeat('b',64),$json,hash('sha256',$json)]);
+    $renewed=ManagerAssistantService::detail(1,1)['item']['recommendation'];
+    assistantCheck('same canonical source and next action retains manager refusal across regenerated wording and job id',
+        !empty($dismiss['ok']) && $renewed['revision']!==$original['revision']
+        && $renewed['decision']==='irrelevant'
+        && (ManagerAssistantService::decide(1,1,$original['revision'],'open','irrelevant')['error']??'')==='stale_context');
+    $reopen=ManagerAssistantService::decide(1,1,$renewed['revision'],'open','irrelevant');
+    assistantCheck('current revision can undo a source-stable dismissal without touching tasks',
+        !empty($reopen['ok']) && ManagerAssistantService::detail(1,1)['item']['recommendation']['decision']==='open'
+        && $pdo->businessWriteAttempts===0);
+    $pdo=assistantFixture(); assistantPrepare();
+    $first=ManagerAssistantService::detail(1,1)['item']['recommendation'];
+    $pdo->prepare("INSERT INTO manager_assistant_decisions VALUES(?,?,?,?,?,?,?,?,?)")->execute([
+        1,1,'anytour',$first['revision'],str_repeat('0',64),str_repeat('1',64),'irrelevant',
+        gmdate('Y-m-d H:i:s'),gmdate('Y-m-d H:i:s')]);
+    $legacy=ManagerAssistantService::detail(1,1)['item']['recommendation'];
+    $migrate=ManagerAssistantService::decide(1,1,$legacy['revision'],'open','irrelevant');
+    assistantCheck('legacy exact-revision refusal remains visible and migrates on explicit undo',
+        $legacy['decision']==='irrelevant' && !empty($migrate['ok'])
+        && ManagerAssistantService::detail(1,1)['item']['recommendation']['decision']==='open'
+        && (int)$pdo->query("SELECT COUNT(*) FROM manager_assistant_decisions")->fetchColumn()===2
+        && $pdo->businessWriteAttempts===0);
 
     $pdo=assistantFixture(); assistantPrepare(); $old=ManagerAssistantService::detail(1,1)['item']['recommendation']['revision'];
     ManagerAssistantService::decide(1,1,$old,'done');

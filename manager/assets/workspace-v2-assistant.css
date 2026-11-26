@@ -20,3 +20,15 @@
 .assistantTask>.assistantPromiseFacts{display:flex;flex-direction:column;gap:5px;padding:9px 11px;border-left:3px solid var(--as-accent);background:var(--as-surface);min-width:0;overflow-wrap:anywhere}
 .assistantPromiseFacts>span{line-height:1.45}.assistantPromiseActions{display:flex;flex-wrap:wrap;gap:7px;margin-top:3px}.assistantPromiseActions:empty{display:none}.assistantPromiseActions button{min-height:44px;text-align:left;white-space:normal}
 @media(max-width:767px){.assistantPromiseActions button{flex:1 1 150px}.assistantTask>div{flex-wrap:wrap}}
+
+/* Compact recommendation: prepared text is a preview, never a composer value. */
+.assistantDraftPreview{margin:10px 0;padding:10px 12px;border-left:3px solid var(--accent,#377dff);background:rgba(55,125,255,.07);white-space:pre-wrap}
+.assistantTasks>summary{cursor:pointer;font-weight:700;padding:10px 0}
+
+.manager2 .assistantPlanView .assistantPlanCard{padding:12px;margin:0 0 10px;border:1px solid var(--as-line);border-radius:12px;background:var(--as-surface)}
+.manager2 .assistantPlanView .assistantPlanCard .assistantClient{margin:0;padding:0 0 6px;border:0;background:transparent;box-shadow:none}
+.manager2 .assistantPlanView .assistantPlanCard .assistantClient:focus-visible{outline:2px solid var(--as-accent);outline-offset:3px}
+.manager2 .assistantPlanView .assistantPlanDraft{margin:8px 0 10px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.5;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:4;overflow:hidden}
+.manager2 .assistantPlanView .assistantPlanControls{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 0}
+.manager2 .assistantPlanView .assistantPlanPrimary{background:var(--as-accent);color:#fff;font-weight:600}
+.manager2 .assistantPlanView .assistantPlanRefuse{background:transparent;color:var(--as-muted)}
