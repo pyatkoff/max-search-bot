@@ -1,4 +1,4 @@
-name: "#1566 Prepare data-only Utopia World source 571 and existing target 674"
+name: "#1566 Prepare three ranked Telegram transfers"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -8,7 +8,7 @@ permissions:
   actions: read
   issues: read
   pull-requests: read
-# Bounded read of one existing Telegram pair; no provider writes; strict actual application fences.
+# Bounded selection of existing Telegram pairs. Only the accepted application may be observed over SSH.
 jobs:
   registry:
     if: >-
@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '821fad7a7c72922212f6b1f640a792d21f24b288' && github.run_attempt == 1
+      github.event.before == '60b7aaf4441af456733b4b07f28fd3cfa137ccea' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -30,10 +30,10 @@ jobs:
       - name: Check out main for the existing release verifier
         uses: actions/checkout@v4
         with:
-          ref: 664390965a45cdcf5600ea6bbfa8ce1bf47d78e2
+          ref: refs/heads/main
           path: accepted
           persist-credentials: false
-      - name: Authenticate original1746 terminal before bounded host observation
+      - name: Authenticate the current accepted release before bounded host observation
         working-directory: accepted
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -41,27 +41,62 @@ jobs:
         run: |
           set -euo pipefail
           node - <<'NODE'
-          const fs=require('node:fs'),R=require('./tools/deployment_release');
-          async function check(){
-            const api=R.makeReadApi(process.env.GITHUB_TOKEN), before=await R.readRecord(api);
-            const r=R.validateRelease(before.record).release, expected='664390965a45cdcf5600ea6bbfa8ce1bf47d78e2';
-            if(r.repository_sha!==expected||r.application_sha!==expected||r.kind!=='installed'||
-              r.release.run_id!=='45899459761'||r.release.run_attempt!==1||r.closure?.run_id!=='45900908430'||
-              r.closure?.binding?.pr!==1746||r.closure?.binding?.comment_id!==6818332618||
-              r.closure?.binding?.owner_id!==226193297)throw Error('original1746_changed');
-            const resolved=await R.resolveCurrent(api,{sha:expected},before);
-            if(!resolved.ready||resolved.repository_sha!==expected||resolved.application_sha!==expected)throw Error('installation_not_accepted');
-            const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
-            if(main!==expected)throw Error('main_changed');
-            const after=await R.readRecord(api);
-            if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
-            fs.mkdirSync('../pub',{recursive:true});
-            fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,current_main_sha:main,
-              application_sha:expected,write_admission:false,canonical:resolved,record_commit:before.commit,record_blob:before.blob,
-              original_installation_deploy:r.release.run_id,original_closer:r.closure.run_id,checked_at_utc:new Date().toISOString()})+'\n');
-            fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+expected+'\n');
+          const fs = require('node:fs');
+          const { execFileSync } = require('node:child_process');
+          const release = require('./tools/deployment_release');
+
+          function currentMain(api) {
+            return api('GET', release.API_ROOT + '/git/ref/heads/main').then(ref => ref.object.sha);
           }
-          check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
+
+          async function check() {
+            const repositorySha = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+            const api = release.makeReadApi(process.env.GITHUB_TOKEN);
+            if (!release.sha(repositorySha) || await currentMain(api) !== repositorySha) {
+              throw Error('main_changed');
+            }
+
+            const before = await release.readRecord(api);
+            const { release: accepted, installation } = release.validateRelease(before.record);
+            if (accepted.phase !== 'pending_terminal' ||
+                accepted.release.run_attempt !== 1 ||
+                !release.positive(accepted.closure?.run_id)) {
+              throw Error('current_release_terminal_unavailable');
+            }
+
+            await release.requireAncestry(api, accepted.repository_sha, repositorySha);
+            const resolved = await release.resolveCurrent(api, { sha: accepted.repository_sha }, before);
+            if (!resolved.ready || resolved.repository_sha !== accepted.repository_sha ||
+                resolved.application_sha !== accepted.application_sha || resolved.kind !== accepted.kind) {
+              throw Error('installation_not_accepted');
+            }
+
+            const after = await release.readRecord(api);
+            if (before.blob !== after.blob || before.record_digest !== after.record_digest) {
+              throw Error('accepted_record_changed');
+            }
+            if (await currentMain(api) !== repositorySha) throw Error('main_changed');
+
+            const baselineCurrent = resolved.repository_sha === repositorySha &&
+              resolved.application_sha === repositorySha;
+            fs.mkdirSync('../pub', { recursive: true });
+            fs.writeFileSync('../pub/accepted-read-admission.json', JSON.stringify({
+              read_only: true, current_main_sha: repositorySha, application_sha: resolved.application_sha,
+              write_admission: false, baseline_current_for_writer: baselineCurrent, canonical: resolved,
+              record_commit: before.commit, record_blob: before.blob,
+              original_installation_deploy: installation.run_id,
+              original_closer: accepted.closure.run_id, checked_at_utc: new Date().toISOString()
+            }) + '\n');
+            console.log('Accepted Telegram read baseline', repositorySha, resolved.application_sha,
+              installation.run_id, accepted.closure.run_id, 'current_for_writer=' + baselineCurrent);
+            fs.appendFileSync(process.env.GITHUB_ENV,
+              'REPOSITORY_SHA=' + repositorySha + '\nAPPLICATION_SHA=' + resolved.application_sha +
+              '\nRANKED_BASELINE_CURRENT=' + (baselineCurrent ? '1' : '0') + '\n');
+          }
+          check().catch(error => {
+            console.error('readonly_accepted_installation_refused', error.code || error.message);
+            process.exitCode = 1;
+          });
           NODE
       - name: Bind immutable packet to the admitted release and native run
         shell: bash
@@ -78,20 +113,31 @@ jobs:
               value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
               assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
               program=program.replace('__'+name+'__',value)
-          # Execute the reviewed reader helpers for the same two prepared pairs.
+          baseline = os.environ['RANKED_BASELINE_CURRENT']
+          assert baseline in ('0', '1')
+          # Execute the reviewed reader helpers for the three exact pairs below.
           # Preserve candidate holds, read-only SQL and the shared PRICE lease.
           assert program.count("$out=['schema'=>1") == 1
           program=program[:program.index("$out=['schema'=>1")]
-          entry=r'''function preparedLeaseAdmissionRead(bool $shared,array $blockers):array {
+          entry=r'''function preparedLeaseAdmissionRead(bool $shared,array $blockers,bool $baselineCurrent = true):array {
            $prepared=$blockers===[];
            if(!$shared)$blockers[]='price_shared_lease_not_acquired';
+           if(!$baselineCurrent)$blockers[]='accepted_application_not_current_for_writer';
            return ['preparation_ready'=>$prepared,'preview_ready'=>$blockers===[],'preview_blockers'=>$blockers];
           }
           $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_archive_telegram_ranked_registry','ok'=>false,
            'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,'native_run_attempt'=>1,
-           'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,'rows'=>[]];
+           'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,
+           'baseline_current_for_writer'=>__RANKED_BASELINE_CURRENT__,'rows'=>[]];
           $pdo=null;$lock=null;$acquired=null;$rates=[];$start=hrtime(true);$stage='runtime';
-          $pairs=[1569=>['source'=>'571','source_publication'=>1262,'target'=>'674','target_date'=>1718108038,'target_caption'=>'daca99cd3dd8604db0d9ef6a52d09f1c7a283d479901779ab84e77c4fe38cd2e','target_photo'=>'981199596f1f20ff68516b556b5cd4763d714e519f72e1d05d1d388a181dbacc']];
+          $pairs=[
+           1096=>['source'=>'302','source_publication'=>703,'target'=>'743','target_date'=>1720786286,
+            'target_caption'=>'9a88cffcaf33c34b55bb9f0fdb305293c5b1f257d3f4400df1b0d9370c019cb8','target_photo'=>'6cccc168e0d17038412fc598bf3d30980247aaa4f0bafb3ba3c51a86317fc4d7'],
+           1257=>['source'=>'251','source_publication'=>596,'target'=>'865','target_date'=>1726832184,
+            'target_caption'=>'335a062aa572c9928913b15ec2d8984a622850eac7361b46427108cfda572f71','target_photo'=>'d247ab8a936e228655bf8fd8b234abe3b8b281d03ffbf12a04e33d94b04e2a4e'],
+           1149=>['source'=>'741','source_publication'=>1632,'target'=>'890','target_date'=>1728041035,
+            'target_caption'=>'1ec0795474b7e3fed4e8ee20c2c17ae63f3c66f09492d513c514b142706db073','target_photo'=>'45f2652b6923f3e047c29a3ae29907e3b2a219e7ec0cf0beb044fca27dab4598'],
+          ];
           try {
            runtimeRead();requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
            for($sample=0;$sample<3;++$sample){
@@ -178,7 +224,7 @@ jobs:
             $sm=is_array($sn)&&($assessment['prepared_checks_pass']??false)===true&&$sn['current_token_resolves']===true&&!$sn['native_claim_held_or_unknown'];
             if(!$sm)$blockers[]='source_not_confirmed';
             $directory=OPERATIONS.'/'.$operation;
-            $admission=preparedLeaseAdmissionRead($out['price_editor_shared_read_lease'],$blockers);
+            $admission=preparedLeaseAdmissionRead($out['price_editor_shared_read_lease'],$blockers,$out['baseline_current_for_writer']);
             $out['rows'][]=['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
              'source_native'=>$sn,'target_native'=>$assessment['target_native']??null,'source_public'=>$sp,'target_public'=>$tp,
              'source_matches'=>$sm,'historical_target_matches'=>($assessment['checks']['target_preimage']??false)===true,
@@ -193,6 +239,8 @@ jobs:
           $out['public_retry_after_holds']=$rates;$out['resources_after']=resourcesRead();$out['read_at_utc']=gmdate(DATE_ATOM);$out['read_elapsed_ms']=(int)((hrtime(true)-$start)/1000000);
           if($out['ok'])$out['checkpoint_sha256']=hash('sha256',jsonRead($out));echo jsonRead($out),PHP_EOL;exit($out['ok']?0:2);
           '''
+          assert entry.count('__RANKED_BASELINE_CURRENT__') == 1
+          entry=entry.replace('__RANKED_BASELINE_CURRENT__', 'true' if baseline == '1' else 'false')
           pathlib.Path('pub/read-only.php').write_text(program+entry)
           PY
           python3 - <<'PY'
@@ -210,7 +258,9 @@ jobs:
           if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['occupied']])exit(4);
           $a=preparedLeaseAdmissionRead(false,['protected_review']);
           if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['protected_review','price_shared_lease_not_acquired']])exit(5);
-          echo "FOUR_PRICE_PREPARATION_ADMISSION_CASES_PASS\\n";
+          $a=preparedLeaseAdmissionRead(true,[],false);
+          if($a!==['preparation_ready'=>true,'preview_ready'=>false,'preview_blockers'=>['accepted_application_not_current_for_writer']])exit(6);
+          echo "FIVE_PREPARATION_ADMISSION_CASES_PASS\\n";
           """
           pathlib.Path('pub/price-preparation-test.php').write_text('<?php\n'+function+cases)
           PY
@@ -248,7 +298,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read existing TV1569 source 571 and target 674 without provider writes
+      - name: Read three existing Telegram pairs without provider writes
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
