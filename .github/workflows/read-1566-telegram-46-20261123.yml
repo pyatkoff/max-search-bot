@@ -1,4 +1,4 @@
-name: "#1566 Pick commercial legacy target candidates from the eleven new windows"
+name: "#1566 Verify the first empty-keyboard nominee from the new gap windows"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,86 +13,245 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '76b976406945de03bf273bf1884c56a9c65d004f' && github.run_attempt == 1
+      github.event.before == 'be22c7e54ecf87c11a26f0b13bb21a03b6a317d7' &&
+      github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    timeout-minutes: 12
     steps:
-      - name: Read the exact frozen active plans for exclusions
-        uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
         with:
-          ref: 43c684f3d220f4808efe898d1ba14608f960fda7
-          path: accepted
-          persist-credentials: false
-      - name: Classify new evidence without Telegram requests or production access
-        env:
-          GH_TOKEN: ${{ github.token }}
+          php-version: '8.2'
+          extensions: curl, dom, mbstring
+          coverage: none
+      - name: Read exact post 912 and compare its photo and caption with the new archive receipt
         shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          from collections import Counter
-          import hashlib, io, json, os, re, subprocess, zipfile
-          from pathlib import Path
-          repo=os.environ['GITHUB_REPOSITORY']
-          def get(path):
-              return subprocess.check_output(['gh','api',f'repos/{repo}/{path}'],timeout=35)
-          run=json.loads(get('actions/runs/45793051934'))
-          assert run['head_sha']=='76b976406945de03bf273bf1884c56a9c65d004f' and run['run_attempt']==1 and run['conclusion']=='success'
-          assert run['actor']['id']==226193297 and run['event']=='push'
-          info=json.loads(get('actions/artifacts/15103676430'))
-          digest='3d06b3fc214abd2ed02dc435ce50379d66ccf017900f9846eaee8d9bc351758b'
-          assert info['workflow_run']['id']==run['id'] and not info['expired'] and info['digest']=='sha256:'+digest
-          raw=get('actions/artifacts/15103676430/zip')
-          assert len(raw)==info['size_in_bytes']==438249 and hashlib.sha256(raw).hexdigest()==digest
-          with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-              assert 'archive-windows.json' in archive.namelist() and archive.testzip() is None
-              assert archive.getinfo('archive-windows.json').file_size<=6000000
-              document=json.loads(archive.read('archive-windows.json'))
-          assert document['native_run_id']==str(run['id']) and document['reader_source_sha']==run['head_sha']
-          assert document['write_admission'] is False and document['provider_writes']==0
-          known={1058,1099,1103,1109,1111,1535,1559,1584,1585,1620,1651,1653,1654,1664,1665,1679,1695,1696,1713,1725}
-          for file in sorted(Path('accepted/config').glob('anytour*.json')):
-              if file.stat().st_size>500000:
-                  continue
-              obj=json.loads(file.read_bytes())
-              if isinstance(obj,dict):
-                  known.update(int(row['target_message_id']) for row in obj.get('rows',[])
-                      if isinstance(row,dict) and str(row.get('target_message_id','')).isdigit())
-          scopes=Counter()
-          mask=re.compile(r'отзыв|гости (?:отмечают|рассказывают)|впечатл|туристы (?:вернул|поделил)|наш[аеи]? менеджер|'
-              r'загадк|поздравл|с праздником|угада[йе]|розыгрыш|голосуй|конкурс|доминикан',re.I)
-          sold=re.compile(r'от [\d\s]+\s*(?:₽|RUB)|(?:₽|RUB)|вылет|стоимость|ночей',re.I)
-          hotel_cta=re.compile(r'рассчитать на мои даты|в этот отель|узнать стоимость тура|хочу в этот отель',re.I)
-          leads=[]
-          for row in document['rows']:
-              mid=int(row['target_message_id'])
-              public=row.get('public',{})
-              caption=public.get('caption') or ''
-              labels=[b.get('text','') for b in public.get('buttons',[]) if isinstance(b,dict)]
-              scope=('known' if mid in known else
-                  'occupied_hotel' if any(hotel_cta.search(label) for label in labels) or 'Подберём тур на ваши даты' in caption else
-                  'protection_or_editorial' if mask.search(caption) else
-                  'other_format' if not public.get('single_photo') else
-                  'other_single_photo' if not sold.search(caption) else
-                  'commercial_keyboard_review' if labels else 'commercial_empty_keyboard_review')
-              scopes[scope]+=1
-              if scope.startswith('commercial_'):
-                  lead={'mid':mid,'scope':scope,'caption':caption[:1800],'buttons':labels,'date':public.get('published_at'),
-                      'caption_sha256':public.get('caption_sha256'),'photo_marker_sha256':public.get('photo_marker_sha256'),
-                      'caption_links':len(public.get('caption_links',[])),'write_admission':False}
-                  leads.append(lead)
-                  print(json.dumps(lead,ensure_ascii=False))
-          out={'archive_run':run['id'],'observed':len(document['rows']),'windows':len(document['windows']),
-              'windows_http_200':sum(w.get('http')==200 for w in document['windows']),'scope':dict(scopes),
-              'native_ready':0,'telegram_requests':0,'provider_writes':0,'write_admission':False}
-          Path('pub').mkdir()
-          Path('pub/next-archive-candidates.json').write_text(json.dumps({**out,'leads':leads},ensure_ascii=False))
-          print(json.dumps(out,ensure_ascii=False))
-          PY
-      - name: Preserve the gap shortlist with exact references
+          mkdir -p pub
+          test -d pub && test -w pub
+          cat > /tmp/pilot-public.php <<'PHP'
+          <?php
+          declare(strict_types=1);
+          function requireRead(bool $ok, string $reason): void
+          {
+              if (!$ok) throw new RuntimeException($reason);
+          }
+          function jsonRead(array $value): string
+          {
+              return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+          }
+          function reasonRead(Throwable $e): string
+          {
+              return get_class($e) === RuntimeException::class
+                  && preg_match('/\A[a-z_]{1,100}\z/D', $e->getMessage()) === 1 ? $e->getMessage() : 'read_evidence_unavailable';
+          }
+          function publicRetryLimit(?string $raw, int $now): array
+          {
+              if ($raw !== null && (strlen($raw)>160 || preg_match('/\A[\x20-\x7E]*\z/D',$raw)!==1)) $raw=null;
+              $seconds = null;
+              if ($raw !== null && preg_match('/\A[0-9]{1,8}\z/D',$raw) === 1) $seconds=(int)$raw;
+              elseif ($raw !== null) {
+                  $when=DateTimeImmutable::createFromFormat(DateTimeInterface::RFC7231,$raw,new DateTimeZone('UTC'));
+                  if ($when!==false && $when->format(DateTimeInterface::RFC7231)===$raw) $seconds=max(0,$when->getTimestamp()-$now);
+              }
+              return ['observed_at_utc'=>gmdate(DATE_ATOM,$now), 'retry_after_raw'=>$raw,
+                  'retry_after_seconds'=>$seconds, 'resume_not_before_unix'=>$seconds===null?null:$now+$seconds];
+          }
+          function albumStructureRead(DOMDocument $dom, DOMXPath $xp, DOMNode $node, string $url, string $message, string $body): array
+          {
+              $cls=static fn(string $c):string=>'contains(concat(" ",normalize-space(@class)," ")," '.$c.' ")';
+              $texts=$xp->query('.//*['.$cls('tgme_widget_message_text').']',$node);
+              $photos=$xp->query('.//*['.$cls('tgme_widget_message_photo_wrap').']',$node);
+              $other=$xp->query('.//video|.//audio|.//*['.$cls('tgme_widget_message_video_thumb').' or '.$cls('tgme_widget_message_roundvideo').']',$node);
+              $videos=$xp->query('.//video|.//*['.$cls('tgme_widget_message_video_thumb').']',$node);
+              $roundVideos=$xp->query('.//*['.$cls('tgme_widget_message_roundvideo').']',$node);
+              $times=$xp->query('.//time[@datetime]',$node);
+              $links=$xp->query('.//a[@href]',$node);
+              requireRead($texts&&$photos&&$other&&$times&&$links&&$texts->length<=6&&$photos->length<=6&&$other->length<=6&&$times->length<=6&&$links->length<=100,'album_structure_unbounded');
+              $captions=[];foreach($texts as $text){$html='';foreach($text->childNodes as $child)$html.=$dom->saveHTML($child);
+                  $plain=html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$html)),ENT_QUOTES|ENT_HTML5,'UTF-8');
+                  requireRead(mb_check_encoding($plain,'UTF-8')&&mb_strlen($plain,'UTF-8')<=12000,'album_text_unbounded');
+                  $captions[]=['text'=>$plain,'sha256'=>hash('sha256',$plain),'owner_data_post'=>$node->getAttribute('data-post')];}
+              $dates=[];foreach($times as $time)$dates[]=$time->getAttribute('datetime');
+              $members=[];$buttons=[];foreach($links as $link){$href=$link->getAttribute('href');
+                  if(preg_match('~\Ahttps://t\.me/anytour/(931|932|933|934|935|936)(?:\?[^\s<>]*)?\z~D',$href,$m))$members[]=$m[1];
+                  if(str_contains(' '.$link->getAttribute('class').' ',' tgme_widget_message_inline_button '))$buttons[]=['text'=>mb_substr(trim($link->textContent),0,180),'url_sha256'=>hash('sha256',$href)];}
+              $caption=count($captions)===1?$captions[0]['text']:null;
+              return ['url'=>$url,'caption'=>$caption,'caption_sha256'=>$caption===null?null:hash('sha256',$caption),'html_sha256'=>hash('sha256',$body),
+                  'published_at'=>count($dates)===1?$dates[0]:null,'published_unixtime'=>count($dates)===1?(new DateTimeImmutable($dates[0]))->getTimestamp():null,
+                  'single_photo'=>false,'photo_url'=>'','photo_marker_sha256'=>null,'photo_count'=>$photos->length,'other_media_count'=>$other->length,
+                  'video_count'=>$videos->length,'roundvideo_count'=>$roundVideos->length,'buttons'=>$buttons,
+                  'format_observation'=>['requested_mid'=>$message,'root_data_post'=>$node->getAttribute('data-post'),'caption_nodes'=>$captions,'dates'=>$dates,
+                      'linked_album_mids'=>array_values(array_unique($members)),'caption_mid_confirmed'=>false,'native_album_membership_confirmed'=>false,'keyboard_admission_confirmed'=>false]];
+          }
+          
+          function parsePublicRead(string $body, string $channel, string $message): array
+          {
+              $url = 'https://t.me/' . $channel . '/' . $message;
+              $doc = new DOMDocument('1.0', 'UTF-8');
+              $prior = libxml_use_internal_errors(true);
+              try { $loaded = $doc->loadHTML($body, LIBXML_NONET); }
+              finally { libxml_clear_errors(); libxml_use_internal_errors($prior); }
+              requireRead($loaded, 'public_post_invalid');
+              $xp = new DOMXPath($doc);
+              $nodes = $xp->query('//*[@data-post="' . $channel . '/' . $message . '"]');
+              requireRead($nodes && $nodes->length === 1, 'public_identity_changed');
+              $node = $nodes->item(0);
+              if($channel==='anytour' && in_array($message,['931','932','933','934','935','936'],true)) return albumStructureRead($doc,$xp,$node,$url,$message,$body);
+              $cls = static fn(string $c): string => 'contains(concat(" ",normalize-space(@class)," ")," ' . $c . ' ")';
+              $text = $xp->query('.//*[' . $cls('tgme_widget_message_text') . ']', $node);
+              $photos = $xp->query('.//*[' . $cls('tgme_widget_message_photo_wrap') . ']', $node);
+              $dates = $xp->query('.//time[@datetime]', $node);
+              $other = $xp->query('.//video|.//audio|.//*[' . $cls('tgme_widget_message_video_thumb')
+                  . ' or ' . $cls('tgme_widget_message_roundvideo') . ' or ' . $cls('tgme_widget_message_grouped') . ']', $node);
+              $videos = $xp->query('.//video|.//*['.$cls('tgme_widget_message_video_thumb').']', $node);
+              $roundVideos = $xp->query('.//*['.$cls('tgme_widget_message_roundvideo').']', $node);
+              requireRead($text && $photos && $dates && $other && $text->length === 1 && $dates->length === 1,
+                  'public_caption_or_date_unavailable');
+              $html = '';
+              foreach ($text->item(0)->childNodes as $child) $html .= $doc->saveHTML($child);
+              $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i', "\n", $html)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+              requireRead($caption !== '' && mb_check_encoding($caption, 'UTF-8') && mb_strlen($caption, 'UTF-8') <= 12000,
+                  'public_caption_invalid');
+              $single = $photos->length === 1 && $other->length === 0;
+              $photo = $single ? $photos->item(0) : null;
+              $marker = $photo ? trim($photo->getAttribute('class')) : '';
+              $photoUrl = '';
+              if ($photo && $photo->getAttribute('href') === $url
+                  && preg_match('/(?:^|\s)[0-9]{5,}(?:_[0-9]+)?(?:\s|$)/D', $marker) === 1
+                  && preg_match('~background-image:\s*url\([\'"]?(https://[^\'")]+)[\'"]?\)~', $photo->getAttribute('style'), $match) === 1) {
+                  $parsed = parse_url($match[1]);
+                  if (is_array($parsed) && ($parsed['scheme'] ?? '') === 'https'
+                      && preg_match('/\A(?:[a-z0-9-]+\.)*(?:cdn-telegram\.org|telegram-cdn\.org|telesco\.pe)\z/D', $parsed['host'] ?? '') === 1
+                      && !isset($parsed['user']) && !isset($parsed['pass']) && !isset($parsed['port'])) $photoUrl = $match[1];
+              }
+              $buttons = [];
+              $links = $xp->query('.//a[' . $cls('tgme_widget_message_inline_button') . ']', $node);
+              requireRead($links && $links->length <= 20, 'public_keyboard_unbounded');
+              foreach ($links as $link) {
+                  $href = $link->getAttribute('href');
+                  $buttons[] = ['text' => trim($link->textContent),
+                      'hotel_url' => preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{8,60}\z~D', $href) === 1 ? $href : null,
+                      'url_sha256' => hash('sha256', $href)];
+              }
+              $captionLinks = [];
+              $anchors = $xp->query('.//a[@href]', $text->item(0));
+              if ($anchors) foreach ($anchors as $anchor) {
+                  if (count($captionLinks) >= 40) break;
+                  $href = $anchor->getAttribute('href');
+                  $captionLinks[] = ['text'=>mb_substr(trim($anchor->textContent),0,180),
+                      'url_sha256'=>hash('sha256',$href),
+                      'public_bot_url'=>preg_match('~\\Ahttps://t\\.me/anyru_bot\\?start=(?:tg_anytour_msk|p_[A-Za-z0-9_-]{8,60})\\z~D',$href) === 1 ? $href : null];
+              }
+              $documentAnchors = [];
+              $documentLinks = $xp->query('//a[@href]');
+              if ($documentLinks) foreach ($documentLinks as $anchor) {
+                  if (count($documentAnchors) >= 80) break;
+                  $href = $anchor->getAttribute('href');
+                  $documentAnchors[] = ['text'=>mb_substr(trim($anchor->textContent),0,180),
+                      'class'=>substr($anchor->getAttribute('class'),0,256), 'url_sha256'=>hash('sha256',$href),
+                      'public_start_url'=>preg_match('~\Ahttps://t\.me/[A-Za-z0-9_]{5,32}\?start=[A-Za-z0-9_-]{1,128}\z~D',$href)===1 ? $href : null];
+              }
+              return ['url' => $url, 'caption' => $caption, 'caption_sha256' => hash('sha256', $caption),
+                  'html_sha256' => hash('sha256', $body), 'published_at' => $dates->item(0)->getAttribute('datetime'),
+                  'published_unixtime' => (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp(),
+                  'single_photo' => $single && $photoUrl !== '', 'photo_url' => $photoUrl,
+                  'photo_count' => $photos->length, 'other_media_count' => $other->length,
+                  'video_count'=>$videos->length, 'roundvideo_count'=>$roundVideos->length, 'caption_links'=>$captionLinks,
+                  'document_anchors'=>$documentAnchors, 'document_anchors_truncated'=>$documentLinks && $documentLinks->length>80,
+                  'photo_marker_sha256' => $marker !== '' ? hash('sha256', $marker) : null, 'buttons' => $buttons];
+          }
+          
+          function corroborateTargetKeyboard(array $embedded, array $archive): array
+          {
+              requireRead($embedded['url'] === $archive['url']
+                  && $embedded['published_unixtime'] === $archive['published_unixtime']
+                  && $embedded['caption_sha256'] === $archive['caption_sha256'],
+                  'target_keyboard_archive_identity_changed');
+              requireRead($embedded['buttons'] === [] || $embedded['buttons'] === $archive['buttons'],
+                  'target_keyboard_archive_changed');
+              $embedded['buttons'] = $archive['buttons'];
+              $embedded['target_keyboard_archive_verified'] = true;
+              return $embedded;
+          }
+          
+          
+          function captionPublicBytes(string $url,array &$rates,int $limit=1000000):array{
+           $host=(string)parse_url($url,PHP_URL_HOST);if(isset($rates[$host]))return ['ok'=>false,'reason'=>'public_retry_after_held','retry_after'=>$rates[$host],'http_attempts'=>0];
+           $body='';$retry=null;$c=curl_init($url);curl_setopt_array($c,[CURLOPT_FOLLOWLOCATION=>false,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>15,CURLOPT_USERAGENT=>'Mozilla/5.0',CURLOPT_HEADERFUNCTION=>static function($c,string $line)use(&$retry):int{if(stripos($line,'retry-after:')===0)$retry=trim(substr($line,12));return strlen($line);},CURLOPT_WRITEFUNCTION=>static function($c,string $chunk)use(&$body,$limit):int{if(strlen($body)+strlen($chunk)>$limit)return 0;$body.=$chunk;return strlen($chunk);}]);$ok=curl_exec($c)!==false&&curl_errno($c)===0;$status=(int)curl_getinfo($c,CURLINFO_HTTP_CODE);curl_close($c);
+           if($status===429)$rates[$host]=publicRetryLimit($retry,time());return ['ok'=>$ok&&$status===200,'http'=>$status,'body'=>$body,'body_sha256'=>hash('sha256',$body),'http_attempts'=>1,'retry_after'=>$status===429?$rates[$host]:null];
+          }
+          
+          function publicPairRead(string $channel,string $mid,array &$rates): array
+          {
+              $single=captionPublicBytes('https://t.me/'.$channel.'/'.$mid.'?embed=1&mode=tme',$rates);
+              requireRead($single['ok'],'public_embed_unavailable');
+              $window=captionPublicBytes('https://t.me/s/'.$channel.'?before='.((int)$mid+1),$rates);
+              requireRead($window['ok'],'public_archive_unavailable');
+              $embed=parsePublicRead($single['body'],$channel,$mid);
+              $archive=parsePublicRead($window['body'],$channel,$mid);
+              $v=corroborateTargetKeyboard($embed,$archive);
+              requireRead($embed['photo_marker_sha256']===$archive['photo_marker_sha256']
+                   &&$archive['single_photo']&&$embed['single_photo'],'public_pair_photo_changed');
+              return $v;
+          }
+          $spec=[['hotel_id'=>2490,'source'=>'685','target'=>'912','name'=>'Vilamendhoo','target_caption'=>'3cd892fca7a6be4c3e7acff75c693632e3d8b4b6503df46ebe102c8ebf43ac62','target_photo'=>'6a6cfef412570cbe77299c1590db24716f89330b07613b5411ae38cb4d35b049']];
+          $rates=[];
+          $out=['schema'=>1,'issue'=>1566,'native_run_id'=>getenv('GITHUB_RUN_ID'),
+              'reader_source_sha'=>getenv('GITHUB_SHA'),'observed_at_utc'=>gmdate(DATE_ATOM),
+              'provider_writes'=>0,'production_writes'=>0,'sql_queries'=>0,'write_admission'=>false,'rows'=>[]];
+          foreach($spec as $item){
+              $row=['hotel_id'=>$item['hotel_id'],'source_mid'=>$item['source'],'target_mid'=>$item['target'],
+                  'native_ready'=>false,'photo_visual_review_complete'=>false,'mode'=>'full_replacement'];
+              foreach(['source'=>'any_toour','target'=>'anytour'] as $key=>$channel){
+                  try{
+                      $v=publicPairRead($channel,$item[$key],$rates);
+                      $buttons = array_map(static fn(array $b)=>['label'=>$b['text'],'hotel_specific'=>$b['hotel_url']!==null,
+                          'url_sha256'=>$b['url_sha256']],$v['buttons']);
+                      $summary=['caption_prefix'=>mb_substr($v['caption'],0,160),'caption_sha256'=>$v['caption_sha256'],
+                          'photo_marker_sha256'=>$v['photo_marker_sha256'],'published_unixtime'=>$v['published_unixtime'],
+                          'published_at'=>$v['published_at'],'buttons'=>$buttons,
+                          'single_photo'=>true,'video_count'=>$v['video_count'],'caption_entry_links'=>count($v['caption_links'])];
+                      if($key==='source'){
+                          $summary['confirmed_title_and_hotel_button']=mb_stripos(mb_substr($v['caption'],0,170),$item['name'])!==false
+                              &&count($buttons)===1&&$buttons[0]['hotel_specific']===true;
+                      }else{
+                          $summary['archive_preimage_equal']=$v['caption_sha256']===$item['target_caption']
+                              &&$v['photo_marker_sha256']===$item['target_photo'];
+                          $summary['protected_text_hint']=preg_match('/отзыв|туристы поделил|впечатлен|впечатлён|менеджер.*видео|с дн[её]м|поздрав/iu',$v['caption'])===1;
+                          $summary['empty_keyboard']=$buttons===[];
+                          if($summary['archive_preimage_equal']&&$summary['empty_keyboard']&&!$summary['protected_text_hint']){
+                              $actual=captionPublicBytes($v['photo_url'],$rates,550000);
+                              if($actual['ok']){
+                                  $size=getimagesizefromstring($actual['body']);
+                                  if(is_array($size)&&($size['mime']??null)==='image/jpeg'&&$size[0]*$size[1]<=25000000){
+                                      $summary['actual_photo_sha256']=hash('sha256',$actual['body']);
+                                      $summary['actual_photo_bytes']=strlen($actual['body']);
+                                      requireRead(file_put_contents('pub/target-912.jpg',$actual['body'])===strlen($actual['body']),'photo_save_failed');
+                                      foreach(str_split(base64_encode($actual['body']),12000) as $offset=>$encoded){
+                                          echo 'TARGET912_PHOTO:',(string)$offset,':',$encoded,"\n";
+                                      }
+                                  }
+                              }
+                          }
+                      }
+                      $row[$key]=$summary;
+                  }catch(Throwable $e){$row[$key]=['hold'=>reasonRead($e)];}
+              }
+              $out['rows'][]=$row;
+              echo jsonRead($row),"\n";
+          }
+          $out['retry_after_holds']=$rates;
+          requireRead(file_put_contents('pub/next-empty-keyboard-pair.json',jsonRead($out)."\n")!==false,'observation_save_failed');
+          PHP
+          php -l /tmp/pilot-public.php
+          php /tmp/pilot-public.php
+      - name: Preserve exact preimages and the actual legacy photo
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-telegram-next-archive-shortlist
-          path: pub/next-archive-candidates.json
+          name: issue-1566-telegram-next-empty-keyboard-pair
+          path: pub/*
           retention-days: 7
           if-no-files-found: error
+
