@@ -36,6 +36,15 @@ final class MonthlyReplyQualityReadService
             'selection_limit'=>25,'historical_snapshot'=>false,'text_materialized'=>false,
             'meaning'=>'anonymous retained Business peer overlap with verified tgmini visits; no conversion or brand proof',
             'required_scopes'=>['quality:read','archive:read','forecasts:read']];
+        $lanes['archive']['business_identity_week']=['start_cursor'=>'qh.archive.business_identity7d.20261126',
+            'operation'=>'business_identity_window_summary','selection_fence'=>'326088',
+            'from_unix'=>1795086300,'cutoff_at_unix'=>1795691100,'bounds'=>'inclusive','clock_basis'=>'typed_stored_created_at',
+            'request_limit'=>25,'cohort_limit'=>'complete_retained_window_within_shared_source_budget',
+            'historical_snapshot'=>false,'text_materialized'=>false,
+            'partition_strategy'=>'follow_returned_children_only_after_partitionable_source_limit',
+            'max_partition_depth'=>2,'max_leaf_partitions'=>100,'max_total_calls'=>111,
+            'meaning'=>'anonymous seven-day retained Business identity overlap; unknown clocks remain separate; no conversion or brand proof',
+            'required_scopes'=>['quality:read','archive:read','forecasts:read']];
         return ['requires_explicit_consent'=>true,'scope'=>'quality:read','lanes'=>$lanes,
             'period'=>'previous calendar month day at00:00 Moscow through the first lane read','max_inventory_limit'=>25,
             'retention'=>'retained rows only; deleted or overwritten versions may be absent',
