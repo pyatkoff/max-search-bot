@@ -1,4 +1,4 @@
-name: "#1566 Read the fourteen additional source publications from the accepted demand snapshot"
+name: "#1566 Preflight Utopia World in historical Telegram post 674"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -8,7 +8,7 @@ permissions:
   actions: read
   issues: read
   pull-requests: read
-# Bounded reads of 14 published sources; no provider writes; strict actual application fences.
+# Bounded read of one existing Telegram pair; no provider writes; strict actual application fences.
 jobs:
   registry:
     if: >-
@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '80d3824cb0d8e89dbe3893fc6071a985d70594be' && github.run_attempt == 1
+      github.event.before == '7e8dc1f8636c1f6279a26af711d2dc905c13024f' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
@@ -83,84 +83,75 @@ jobs:
           assert program.count("$out=['schema'=>1") == 1
           program=program[:program.index("$out=['schema'=>1")]
           entry=r'''
-          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_rank14_source_preparation','ok'=>false,
+          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_exact_1569_674_pair_read','ok'=>false,
             'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,
             'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,'rows'=>[]];
-          $pdo=null;$start=hrtime(true);
+          $pdo=null;$lock=null;$start=hrtime(true);$rates=[];
+          $pair=['source'=>'571','source_publication'=>1262,'target'=>'674','target_date'=>1718108038,
+            'target_caption'=>'daca99cd3dd8604db0d9ef6a52d09f1c7a283d479901779ab84e77c4fe38cd2e',
+            'target_photo'=>'981199596f1f20ff68516b556b5cd4763d714e519f72e1d05d1d388a181dbacc'];
           try {
             runtimeRead();
             requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
-            $out['resources_before']=resourcesRead();
-            $out['resource_budget']=serverReadBudgetRead($out['resources_before']);
+            $out['resource_budget']=serverReadBudgetRead(resourcesRead());
             requireRead($out['resource_budget']['allowed'],'server_resource_hold');
-            ob_start();try{
+            $prior=telegramMediaOperationRead($pair['target']);
+            [$sp,$tp]=telegramPreparedPairPublicRead($pair,$prior,static function(string $channel,string $message)use(&$rates):array {
+              try {
+                $snapshots=[];
+                foreach(['embed','archive'] as $kind) {
+                  $url=$kind==='embed'?'https://t.me/'.$channel.'/'.$message.'?embed=1&mode=tme':
+                    'https://t.me/s/'.$channel.'?before='.((int)$message+1);
+                  $read=captionPublicBytes($url,$rates);
+                  requireRead($read['ok'],'pair_public_unavailable');
+                  $snapshots[$kind]=parsePublicRead($read['body'],$channel,$message);
+                }
+                $seen=corroborateTargetKeyboard($snapshots['embed'],$snapshots['archive']);
+                $seen['ok']=true;
+                return $seen;
+              } catch(Throwable $e) {return ['ok'=>false,'reason'=>reasonRead($e)];}
+            });
+            $out['public_evidence']=['source'=>array_intersect_key($sp,array_flip(['ok','reason','caption_sha256','published_unixtime','single_photo'])),
+              'target'=>array_intersect_key($tp,array_flip(['ok','reason','caption_sha256','published_unixtime','single_photo','photo_marker_sha256'])),
+              'target_buttons'=>isset($tp['buttons'])?count($tp['buttons']):null];
+            ob_start();try {
               require APP.'/config.php';
               require_once APP.'/services/ProjectConfig.php';
               require_once APP.'/services/ChannelPostRegistryService.php';
               require_once APP.'/services/ChannelPostButtonTransport.php';
               require_once APP.'/services/ChannelPostRuntime.php';
               require_once APP.'/hotel-posts-telegram-main19.php';
-            }finally{ob_end_clean();}
+              require_once APP.'/tools/anytour_existing_post_batch.php';
+            } finally {ob_end_clean();}
             requireRead(ProjectConfig::projectId()==='anytour','project_changed');
             $feed=anytourTelegramFeedOfferUrls(anytourTelegramFeedRead());
             $routes=anytourTelegramFeedDestinationPosts($feed);
             $pdo=ConversationDb::connection();
             $pdo->exec('SET SESSION TRANSACTION READ ONLY');
             $registry=new ChannelPostRegistryService($pdo);
-            $channel=$registry->channel('anytour','telegram','anyru_bot','-1001845835645');
-            requireRead(is_array($channel)&&(int)$channel['id']===6,'channel_identity_changed');
-            $out['mysql_before']=mysqlResourcesRead($pdo);
-            $transactionStart=hrtime(true);
+            $rights=\AnyTour\ExistingPostBatch\transferChannelRights($registry);
+            $out['native_channel_rights']=(int)($rights['id']??0)===6;
+            $lease=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
+            requireRead(!is_link($lease)&&is_file($lease),'price_editor_lease_unknown');
+            $lock=fopen($lease,'rb');
+            requireRead(is_resource($lock)&&flock($lock,LOCK_SH|LOCK_NB),'price_editor_busy_or_unknown');
+            runtimeRead();
             $pdo->beginTransaction();
-            $ranked=json_decode(<<<'HOTEL_RANK_SCOPE'
-          [{"hotel_id":7458,"source_mid":"684","name":"Four Seasons Resort The Nam Hai, Hoi An","dialogues":3},{"hotel_id":1569,"source_mid":"571","name":"Utopia World","dialogues":2},{"hotel_id":1033,"source_mid":"212","name":"Barut Hemera","dialogues":1},{"hotel_id":1096,"source_mid":"302","name":"Club Hotel Phaselis Rose","dialogues":1},{"hotel_id":1124,"source_mid":"421","name":"Club Hotel Sidelya","dialogues":1},{"hotel_id":1143,"source_mid":"235","name":"Crystal Paraiso Aqua Collection","dialogues":1},{"hotel_id":1149,"source_mid":"741","name":"Qvor Kirman Premium","dialogues":1},{"hotel_id":1196,"source_mid":"440","name":"Viking Garden Hotel & Spa","dialogues":1},{"hotel_id":1246,"source_mid":"351","name":"Holiday Park Resort","dialogues":1},{"hotel_id":1257,"source_mid":"251","name":"Bellis Deluxe Hotel","dialogues":1},{"hotel_id":1258,"source_mid":"280","name":"IC Hotels Green Palace","dialogues":1},{"hotel_id":1354,"source_mid":"197","name":"Mirage Park Resort","dialogues":1},{"hotel_id":1420,"source_mid":"540","name":"Papillon Ayscha","dialogues":1},{"hotel_id":1456,"source_mid":"362","name":"Sealife Kemer Resort","dialogues":1}]
-          HOTEL_RANK_SCOPE,true,32,JSON_THROW_ON_ERROR);
-            $sourceReady=0;
-            $largeDuplicate=$pdo->prepare("SELECT p.id FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id WHERE p.post_channel_id=6 AND (JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id'))=? OR JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.logical_id')) IN (?,?)) LIMIT 2");
-            foreach($ranked as $rank) {
-              if((hrtime(true)-$transactionStart)>750000000){$out['remaining_reason']='bounded_transaction_budget';break;}
-              $hotel=(int)$rank['hotel_id'];
-              $item=$rank+['write_admission'=>false,'public_preimage_checked'=>false];
-              try{
-                requireRead($hotel>0&&!preg_match('~доминикан|dominican|punta cana~iu',$rank['name']),'excluded_country');
-                $feedUrl=$feed['tg_'.$hotel]??null;$routeUrl=$routes['tg_'.$hotel]??null;
-                $item+=['feed_source_url'=>$feedUrl,'current_destination'=>$routeUrl];
-                requireRead(is_string($feedUrl)&&preg_match('~\\Ahttps://t\\.me/any_toour/([1-9][0-9]{0,9})\\z~D',$feedUrl,$match)===1,'source_not_current_small_feed');
-                $sourceMid=$match[1];
-                requireRead($sourceMid===$rank['source_mid'],'source_mid_changed_since_public_read');
-                $largeDuplicate->execute([(string)$hotel,'commercial-hotel-'.$hotel.'-v1','commercial-main-hotel-'.$hotel.'-v1']);
-                $item['hotel_existing_large_matches']=count($largeDuplicate->fetchAll(PDO::FETCH_COLUMN));
-                requireRead($item['hotel_existing_large_matches']===0,'hotel_already_reserved_or_published');
-                requireRead($routeUrl===$feedUrl,'route_already_changed_or_unconfirmed');
-                $source=publicationRead($pdo,$registry,10,$sourceMid);
-                requireRead(is_array($source),'source_native_publication_unavailable');
-                $media=$source['attachments']??[];
-                $item+=['source_mid'=>$sourceMid,'source_publication_id'=>$source['publication_id'],
-                  'source_version_id'=>$source['version_id'],'source_content_hash'=>$source['content_hash'],
-                  'source_caption_sha256'=>$source['caption_sha256'],
-                  'source_exact_hotel'=>(int)($source['hotel_id']??0)===$hotel,
-                  'source_sent'=>$source['state']==='sent','source_one_live_button'=>$source['current_token_resolves']&&$source['one_expected_button'],
-                  'source_held'=>$source['native_claim_held_or_unknown'],
-                  'source_reusable_photo'=>count($media)===1&&($media[0]['reusable_telegram_photo']??false)];
-                requireRead($item['source_exact_hotel']&&$item['source_sent']&&$item['source_one_live_button']&&!$item['source_held']&&$item['source_reusable_photo'],'source_current_identity_hold');
-                $item+=['preparation_state'=>'native_source_candidate','next_gate'=>'compare_published_preimage_and_find_reviewed_target'];
-                ++$sourceReady;
-              }catch(Throwable $e){$item['hold_reason']=reasonRead($e);}
-              $out['rows'][]=$item;
-            }
-            $out['rank_scope_count']=count($ranked);$out['rank_observed_count']=count($out['rows']);
-            $out['native_source_candidates']=$sourceReady;$out['candidate_pairs_prepared']=0;$out['ready_to_write']=0;
-            $out['demand_source']='original44654456925/artifact14592532135; issue1566/comment7201739471';
-            $out['demand_period_moscow']='2026-11-13/2026-11-19';$out['offer_clicks_verified']=false;
-                      $pdo->rollBack();
-            $out['transaction_ms']=round((hrtime(true)-$transactionStart)/1000000,2);
-            $out['mysql_after']=mysqlResourcesRead($pdo);
+            $out['rows'][]=telegramPreparedPairNativeRead(1569,$pair,['source'=>$sp,'target'=>$tp],$prior,
+              $out['native_channel_rights'],$feed,$routes,
+              static fn(int $hotel,array $params):array=>telegramPreparedPairTargetRead($pdo,$registry,$hotel,$params),
+              static fn(int $hotel,array $params):array=>telegramPreparedPairSourceRead($pdo,$registry,$hotel,$params),
+              'telegramMediaOperationRead');
+            $pdo->rollBack();
             runtimeRead();
             $out['ok']=true;
-          }catch(Throwable $e){$out['failure_reason']=reasonRead($e);}
-          finally {if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();}
-          $out['resources_after']=resourcesRead();
-          $out['elapsed_ms']=round((hrtime(true)-$start)/1000000,2);
+          } catch(Throwable $e) {$out['failure_reason']=reasonRead($e);}
+          finally {
+            if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();
+            if(is_resource($lock)){flock($lock,LOCK_UN);fclose($lock);}
+          }
+          $out['public_retry_after_holds']=$rates;
+          $out['elapsed_ms']=(int)((hrtime(true)-$start)/1000000);
           echo jsonRead($out),PHP_EOL;
           exit($out['ok']?0:2);
           '''
@@ -199,7 +190,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Observe the fourteen exact sources, current registry and route without writing
+      - name: Observe exact source 571 and target 674 without writing
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -215,7 +206,7 @@ jobs:
           python3 - <<'PY'
           import json
           d=json.load(open('pub/registry.json'))
-          assert d['operation']=='hotel_rank14_source_preparation' and d['issue']==1566
+          assert d['operation']=='hotel_exact_1569_674_pair_read' and d['issue']==1566
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
           print(json.dumps(d,ensure_ascii=False))
           PY
