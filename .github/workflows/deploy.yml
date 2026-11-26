@@ -301,7 +301,7 @@ jobs:
           fi
           PR1662_CHECKOUT
             fi
-            printf '%s\n' "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'ERROR: tracked production drift detected'; git status --short; rm -f '$remote_bundle'; exit 1; fi; git fetch '$remote_bundle' HEAD; git cat-file -e '$EXPECTED_SHA^{commit}'; deploy_hotel_catalogue_guard \"\$(pwd -P)\" '$EXPECTED_SHA'; git reset --hard '$EXPECTED_SHA'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; php tools/structured_runtime_log_smoke.php; rm -f '$remote_bundle'; echo production_sha=\$(git rev-parse HEAD)"
+            printf '%s\n' "set -e; cd /var/www/anytoour/data/www/app.anytoour.ru; if ! git diff --quiet || ! git diff --cached --quiet; then echo 'ERROR: tracked production drift detected'; git status --short; rm -f '$remote_bundle'; exit 1; fi; git fetch '$remote_bundle' HEAD; git cat-file -e '$EXPECTED_SHA^{commit}'; if ! deploy_hotel_catalogue_guard \"\$(pwd -P)\" '$EXPECTED_SHA'; then rm -f '$remote_bundle'; exit 1; fi; git reset --hard '$EXPECTED_SHA'; test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA'; exec 8<&-; php tools/structured_runtime_log_smoke.php; rm -f '$remote_bundle'; echo production_sha=\$(git rev-parse HEAD)"
           } > "$sync_script"
           scp "${ssh_opts[@]}" "$bundle_file" "$DEPLOY_USER@$DEPLOY_HOST:$remote_bundle"
           ssh "${ssh_opts[@]}" "$DEPLOY_USER@$DEPLOY_HOST" 'bash -s' < "$sync_script"

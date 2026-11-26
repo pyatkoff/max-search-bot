@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Source in the checkout-sync shell. FD 8 holds the catalogue publisher's
-# operation lock until that shell exits, including the checkout switch.
+# operation lock through the checkout switch. Shell exit also releases it.
 deploy_hotel_catalogue_guard() {
   local app="$1" candidate="$2"
   local private_root="${app%/*}/max-search-bot-private-logs"
