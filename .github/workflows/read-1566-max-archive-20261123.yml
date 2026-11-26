@@ -1,4 +1,4 @@
-name: "Read current feed photos, prices and large MAX post revisions"
+name: "Inspect four large MAX publications using the existing PRICE reader"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,155 +17,11 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'ccd7e8b40fdddf2f9b6d8679ac0193da07ca814f' &&
+      github.event.before == 'ff8ae222106e775254b01bfe18a704cbb6ca3f33' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - name: Read both public XML endpoints without visiting advertising links
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from concurrent.futures import ThreadPoolExecutor
-          import base64
-          import datetime
-          from zoneinfo import ZoneInfo
-          import hashlib
-          import json
-          import urllib.request
-          import html
-          from html.parser import HTMLParser
-          import os
-          import pathlib
-          import re
-          import subprocess
-          import urllib.parse
-          import xml.etree.ElementTree as ET
-
-          def read(scope):
-              url=f"https://app.anytoour.ru/feed/hotel-posts-{scope}.xml"
-              output=pathlib.Path(os.environ["RUNNER_TEMP"])/(scope+".xml")
-              proc=subprocess.run(["curl","--silent","--show-error","--connect-timeout","5","--max-time","15","--max-filesize","8000000",
-                   "--proto","=https","--write-out","%{http_code} %{time_connect} %{time_appconnect} %{time_starttransfer} %{size_download}",
-                   "--output",str(output),url],capture_output=True,text=True,timeout=18)
-              detail={"exit":proc.returncode,"http_and_timings":proc.stdout.strip()}
-              if proc.returncode or not proc.stdout.startswith("200 "):
-                  return scope,detail
-              try:
-                  data=output.read_bytes()
-                  root=ET.fromstring(data)
-                  rows=root.findall(".//offer")
-                  ids=[o.get("id") for o in rows]
-                  ids_unique=all(ids) and len(ids)==len(set(ids))
-                  expected=json.loads('{"max_99713":null,"max_73343":null,"max_43689":null,"max_139":null,"max_2470":null,"max_56092":null,"max_59114":null,"max_63191":null,"max_76588":null,"max_77914":null,"max_106":null,"max_111":null,"max_114":null,"max_2588":null,"max_57028":null,"max_65877":null,"max_63674":null,"max_64918":null,"max_358":null,"max_107938":null,"max_954":null,"max_73055":null,"max_47025":null,"max_12107":null,"max_132":null,"max_469":null,"max_12111":null,"max_70048":null,"max_82606":null,"max_1344":null,"max_260":null,"max_2493":null,"max_3452":null,"max_4181":null,"max_37668":null,"max_43676":null,"max_64895":null,"max_73974":null,"max_74503":null,"max_1972":null,"max_32342":null,"max_241":null,"max_15693":null,"max_293":null,"max_408":null,"max_1260":null,"max_24909":null,"max_800":null,"max_949":null}')
-                  exact={}
-                  for o in rows:
-                      oid=o.get("id")
-                      if oid not in expected:
-                          continue
-                      url=o.findtext("url","")
-                      plain=urllib.parse.unquote(url)
-                      match=re.search(r"_ctx1_([A-Za-z0-9_-]+)",plain)
-                      context=json.loads(base64.urlsafe_b64decode(match[1]+"="*(-len(match[1])%4))) if match else {}
-                      ts=re.findall(r"Цена найдена мониторингом (\d{2}\.\d{2}\.\d{4}, \d{2}:\d{2}) МСК\.",o.findtext("description",""))
-                      stamp=datetime.datetime.strptime(ts[0],"%d.%m.%Y, %H:%M").replace(tzinfo=ZoneInfo("Europe/Moscow")) if len(ts)==1 else None
-                      freshness=datetime.datetime.now(ZoneInfo("Europe/Moscow"))-stamp if stamp else None
-                      exact[oid]={"offer_context":context.get("offer_id")==oid,"alias":context.get("post_id"),"origin_host":urllib.parse.urlsplit(url).hostname,"direct_anytour":urllib.parse.urlsplit(url).hostname in ("max.ru","www.max.ru") and urllib.parse.urlsplit(url).path.startswith("/anytour/"),
-                                  "observed_msk":stamp.isoformat() if stamp else None,
-                                  "price_within_36h":freshness is not None and 0<=freshness.total_seconds()<=129600,
-                                  "url_sha256":hashlib.sha256(url.encode()).hexdigest(),
-                                  "attribution_macros":all("{"+k+"}" in plain for k in ("yclid","campaign_id","region_id")),
-                                  "price":o.findtext("price",""),"picture_present":bool(o.findtext("picture",""))}
-                  return scope,dict(detail,offers=len(ids),unique=ids_unique,exact=exact)
-              except (ET.ParseError,OSError,ValueError) as exc:
-                  return scope,dict(detail,error=type(exc).__name__)
-
-          class Preview(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.meta={}
-              def handle_starttag(self, tag, attrs):
-                  if tag=="meta":
-                      d=dict(attrs)
-                      if d.get("property"):
-                          self.meta[d["property"]]=d.get("content","")
-
-          def page(entry):
-              key,url=entry
-              try:
-                  req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
-                  with urllib.request.urlopen(req,timeout=10) as r:
-                      raw=r.read(3000001)
-                      assert r.status==200 and r.geturl()==url and len(raw)<=3000000
-                  parser=Preview()
-                  parser.feed(raw.decode("utf-8"))
-                  caption=parser.meta.get("og:description","")
-                  img=parser.meta.get("og:image","").strip()
-                  image_response=None
-                  if key in ("469_source","469_target") and img:
-                      target=urllib.parse.urlsplit(img)
-                      assert target.scheme=="https" and target.port in (None,443) and target.username is None and target.password is None
-                      assert re.fullmatch(r"[a-z0-9.-]+\.[a-z]{2,}",target.hostname or "") and len(img)<1800
-                      probe=subprocess.run(["curl","--silent","--show-error","--proto","=https","--connect-timeout","4","--max-time","10","--max-filesize","8000000","--range","0-255","--output","/dev/null","--write-out","%{http_code} %{content_type} %{size_download}",img],capture_output=True,text=True,timeout=12)
-                      fields=probe.stdout.strip().split()
-                      image_response={"verified":probe.returncode==0 and len(fields)==3 and fields[0] in ("200","206") and fields[1].startswith("image/") and fields[2].isdigit() and int(fields[2])>0,
-                         "http":fields[0] if fields else None,"content_type":fields[1] if len(fields)>1 else None}
-                  return key,{"image_response":image_response,"photo_preview":bool(img),"photo_sha256":hashlib.sha256(img.encode()).hexdigest() if img else None,
-                       "sultan_gardens_heading":"Sultan Gardens" in caption[:180],
-                       "literal_amp_escape":bool(re.search(r"&amp;|&#0*38;|&#x0*26;",caption,re.I)),
-                       "amp_character_present":"&" in caption,
-                       "heading":caption.splitlines()[0][:120] if caption else None}
-              except (OSError,ValueError,AssertionError):
-                  return key,{"result":"public_read_unavailable"}
-
-          with ThreadPoolExecutor(max_workers=3) as pool:
-              feeds=dict(pool.map(read,("max","all")))
-              pages={}
-          print("HOTEL_FEED_RECOVERY_READ="+json.dumps({"observed_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                "feeds":feeds,"public_posts":pages,"route_writes":0,"feed_writes":0,"ad_clicks":0},separators=(",",":")))
-          PY
-
-      - name: Read visible prices and photo previews on the exact three MAX posts
-        continue-on-error: true
-        run: |
-          python3 - <<'PY'
-          from concurrent.futures import ThreadPoolExecutor
-          from html.parser import HTMLParser
-          import json, re, urllib.request
-
-          class MaxPreview(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.meta={}
-              def handle_starttag(self, tag, attrs):
-                  if tag=="meta":
-                      fields=dict(attrs)
-                      if fields.get("property"):
-                          self.meta[fields["property"]]=fields.get("content","")
-
-          def inspect(row):
-              offer,url,expected=row
-              try:
-                  req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0","Cache-Control":"no-cache"})
-                  with urllib.request.urlopen(req,timeout=10) as response:
-                      raw=response.read(3000001)
-                      assert response.status==200 and response.geturl()==url and len(raw)<=3000000
-                  page=MaxPreview()
-                  page.feed(raw.decode("utf-8"))
-                  caption=page.meta.get("og:description","")
-                  prices=[re.sub(r"[^0-9]", "", amount) for amount in
-                          re.findall(r"([0-9]+(?:[ \u00a0\u202f][0-9]{3})*)\s*(?:₽|руб)",caption)]
-                  return offer,{"caption_ok":bool(caption),"heading":caption.splitlines()[0][:96] if caption else "",
-                                "photo_preview":bool(page.meta.get("og:image","")),"visible_prices":prices,
-                                "expected":expected,"matches_feed":expected in prices}
-              except (OSError,AssertionError,ValueError):
-                  return offer,{"result":"public_read_unavailable"}
-
-          with ThreadPoolExecutor(max_workers=3) as pool:
-              out=dict(pool.map(inspect,[["max_12107","https://max.ru/anytour/AZwjaZt4Kz8","138354"],["max_469","https://max.ru/anytour/AZ6sX9HGLTk","140889"],["max_12111","https://max.ru/anytour/AZ6wa60cTlw","145346"]]))
-          print("MAX_ATTRIBUTED_PUBLIC_POSTS="+json.dumps(out,ensure_ascii=False,separators=(",",":")))
-          PY
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -198,7 +54,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read canonical identity, exact PRICE journal and visible content under the existing shared lease
+      - name: Inspect pinned PRICE operations for two routed hotels
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -207,80 +63,7 @@ jobs:
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
                    -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
                    -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' <<'PHP'
-          <?php
-          declare(strict_types=1);
-          use function AnyTour\ExistingPostBatch\maxTransferRead;
-          ini_set('display_errors','0');
-          $root='/var/www/anytoour/data/www/app.anytoour.ru';
-          $base='/var/www/anytoour/data/channel-post-operations';
-          $app=trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'));
-          $out=['ok'=>false,'at'=>gmdate('c'),'application_sha'=>$app,'provider_writes'=>0,'db_writes'=>0,'rows'=>[]];
-          ob_start();
-          try {
-              if(getcwd()!==$root || !in_array($app,['69e41c8011b4c67692f631cf435dd20d90676c72'],true)) throw new RuntimeException('installed_head_changed');
-              require_once $root.'/config.php';
-              require_once $root.'/services/PromotedHotelPriceWriter.php';
-              require_once $root.'/services/ChannelPostEntryService.php';
-              require_once $root.'/tools/anytour_existing_post_max_transfer.php';
-              if(ProjectConfig::projectId()!=='anytour') throw new RuntimeException('wrong_project');
-              $path=$base.'/monitor-price-after-collection-v1.jsonl';
-              $lease=is_file($path)&&!is_link($path)?fopen($path,'rb'):null;
-              if(!is_resource($lease)||!flock($lease,LOCK_SH|LOCK_NB)) throw new RuntimeException('editor_busy');
-              $db=ConversationDb::connection();
-              $db->exec('SET TRANSACTION READ ONLY');
-              $db->beginTransaction();
-              try {
-                  $registry=new ChannelPostRegistryService($db);
-                  $config=json_decode(file_get_contents($root.'/config/promoted_hotel_price_targets.json'),true,32,JSON_THROW_ON_ERROR);
-                  foreach(json_decode('[{"hotel_id":12107,"platform":"max","publication_id":3604,"url":"https://max.ru/anytour/AZwjaZt4Kz8","mid":"mid.ffffc1752b045fed019c23699b782b3f","price":"138354","observed":"2026-11-24T23:14:00+03:00"},{"hotel_id":469,"platform":"max","publication_id":3606,"url":"https://max.ru/anytour/AZ6sX9HGLTk","mid":"mid.ffffc1752b045fed019eac5fd1c62d39","price":"140889","observed":"2026-11-24T23:14:00+03:00"},{"hotel_id":12111,"platform":"max","publication_id":3607,"url":"https://max.ru/anytour/AZ6wa60cTlw","mid":"mid.ffffc1752b045fed019eb06bad1c4e5c","price":"145346","observed":"2026-11-25T10:22:00+03:00"},{"hotel_id":64895,"platform":"max","publication_id":3617,"url":"https://max.ru/anytour/AZ-OUsaPJjg","mid":"mid.ffffc1752b045fed019f8e52c68f2638","price":"129010","observed":"2026-11-26T03:28:00+03:00"},{"hotel_id":260,"platform":"max","publication_id":3611,"url":"https://max.ru/anytour/AZ7UVbXteP8","mid":"mid.ffffc1752b045fed019ed455b5ed78ff","price":"125304","observed":"2026-11-26T07:48:00+03:00"},{"hotel_id":73055,"platform":"max","publication_id":3864,"url":"https://max.ru/anytour/AZxcpmMWNUI","mid":"mid.ffffc1752b045fed019c5ca663163542","price":"122500","observed":"2026-11-26T07:55:00+03:00"}]',true,32,JSON_THROW_ON_ERROR) as $plan) {
-                      $id=$plan['publication_id']; $item=$plan;
-                      try {
-                          $post=$registry->publication($id);
-                          $snapshot=$post['snapshot']??[];
-                          $meta=$snapshot['metadata']??[];
-                          $item['registry_identity']=is_array($post)&&($post['platform']??null)==='max'
-                              &&($post['channel_id']??null)==='-68765999669267'
-                              &&($post['message_id']??$post['external_message_id']??null)===$plan['mid']
-                              &&($snapshot['post_url']??null)===$plan['url']&&(int)($meta['hotel_catalog_id']??0)===$plan['hotel_id'];
-                          $item['registry_state']=$post['state']??null; $item['version']=$post['version_id']??null;
-                          $bindings=array_values(array_filter($config,static fn($r)=>$r['platform']==='max'&&$r['hotel_id']===$plan['hotel_id']));
-                          $item['price_bound']=count($bindings)===1&&$bindings[0]['url']===$plan['url']&&$bindings[0]['publication_id']===$id;
-                          $item['price_observation']=$meta['promoted_price_observed_at']??null;
-                          $item['feed_observation_installed']=is_string($item['price_observation'])&&strtotime($item['price_observation'])===strtotime($plan['observed']);
-                          $receipt=$base.'/promoted-hotel-price-revisions-v1/'.$id.'.json';
-                          $j=is_file($receipt)&&!is_link($receipt)&&filesize($receipt)<=4096?json_decode(file_get_contents($receipt),true,16,JSON_THROW_ON_ERROR):[];
-                          $item['price_receipt_state']=$j['state']??null;
-                          $item['price_receipt_matches_version']=($j['hotel']??null)===$plan['hotel_id']&&($j['platform']??null)==='max'
-                              &&($j['url']??null)===$plan['url']&&($j['new_version']??null)===(int)$item['version']
-                              &&($j['next_hash']??null)===hash('sha256',(string)($snapshot['text']??''));
-                          $pub=PromotedHotelPriceWriter::maxPublicCaption(PromotedHotelPriceWriter::publicBytes($plan['url']),$plan['url']);
-                          $item['public_caption_matches_registry']=$pub===($snapshot['text']??null);
-                          $visible=[];
-                          preg_match_all('/(?:от\s+)?(\d+(?:[\s\x{00a0}\x{202f}]\d{3})*)\s*(?:₽|руб)/iu',$pub,$matches);
-                          foreach($matches[1]??[] as $digits) $visible[]=preg_replace('/\D/u','',$digits);
-                          $item['public_price_matches_feed']=in_array($plan['price'],$visible,true);
-                          $item['public_amounts']=array_slice(array_values(array_unique($visible)),0,6);
-                          if($item['registry_identity']&&$item['registry_state']==='sent') {
-                              [$msg,$seen]=maxTransferRead(['message_id'=>$plan['mid'],'url'=>$plan['url'],'channel_id'=>'-68765999669267']);
-                              $btn=ChannelPostButtonTransport::buttonUrl($post);
-                              $ctx=ChannelPostEntryService::resolve('max',$post['start_payload'],$registry);
-                              $item['native_photo_matches']=count($seen['attachments'])===1
-                                  &&isset($seen['attachments'][0]['photo_id'])
-                                  &&$seen['attachments'][0]['photo_id']===($snapshot['attachments'][0]['photo_id']??null);
-                              $item['native_caption_matches']=$seen['text']===($snapshot['text']??null);
-                              $item['native_hotel_button_matches']=$btn!==''&&ChannelPostIncomingAdapter::containsOnlyButton($seen,$btn,$post['channel']['button_text'])
-                                  &&(int)($ctx['publication_id']??0)===$id;
-                          }
-                      }catch(Throwable $e){$item['failure']=preg_match('/\A[a-z_]{3,64}\z/D',$e->getMessage())?$e->getMessage():'read_unavailable';}
-                      $out['rows'][]=$item;
-                  }
-                  $out['ok']=true;
-              }finally{$db->rollBack();flock($lease,LOCK_UN);fclose($lease);}
-          }catch(Throwable $e){$out['failure']=preg_match('/\A[a-z_]{3,64}\z/D',$e->getMessage())?$e->getMessage():'reader_unavailable';}
-          ob_end_clean();
-          echo 'MAX_FRESH_PRICE_PUBLICATIONS='.json_encode($out,JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR).PHP_EOL;
-          PHP
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; test "$(GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD)" = "69e41c8011b4c67692f631cf435dd20d90676c72"; for id in 3604 3607 3611 3617; do printf "PRICE_INSPECT_ID=%s\n" "$id"; php tools/apply_promoted_hotel_prices.php --inspect-max-publication "$id" || true; done'
       - name: Remove runner-only connection material
         if: always()
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
