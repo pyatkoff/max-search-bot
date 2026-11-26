@@ -415,6 +415,42 @@ function telegramBusinessIdentityAssertions(PDO $pdo,?callable $fixtureConsumer=
                 || preg_match('/\$\.(?:text|caption|attachments|links)/i',$q)===1),'week_never_selects_message_content');
         $private($r); $counts($r);
 
+        // The same SQL reader also owns the fixed thirty-day cohort; no second date parser.
+        $monthFrom=1793099100;
+        $reset();
+        $message(10,['created_at'=>$monthFrom,'version_at'=>$monthFrom]);
+        $message(20,['created_at'=>$monthFrom-1,'version_at'=>$cutoff-1]);
+        $message(30,['created_at'=>$from-1,'version_at'=>$from-1]);
+        $message(40,['created_at'=>$cutoff,'version_at'=>$cutoff]);
+        $message(50,['created_at'=>$cutoff+1,'version_at'=>$cutoff+1]);
+        $message(60,['created_at'=>null]);
+        $message(70,['created_at'=>$monthFrom+1,'version_at'=>$cutoff+1]);
+        $visit(1,['visit_at_unix'=>$monthFrom-300,'observed_at_unix'=>$monthFrom-299,'received_at_unix'=>$monthFrom-298]);
+        $monthBefore=$fingerprint();
+        $month=$windowRead(null,null,null,$monthFrom);
+        $check($month['period']['from_unix']===$monthFrom && $month['period']['until_unix']===$cutoff
+            && $cutoff-$monthFrom===30*86400 && $month['period']['bounds']==='inclusive',
+            'month_uses_the_fixed_thirty_day_inclusive_interval');
+        $check($month['counts']['selected_records']===5 && $month['counts']['verified_inbound_records']===3
+            && $month['period']['dated_candidate_records']===4,
+            'month_includes_start_middle_and_cutoff_but_not_old_edited_or_future_created');
+        $check($month['period']['unknown_created_at_records']===1 && $month['counts']['excluded_metadata_records']===1
+            && $month['counts']['cutoff_advanced_records']===1 && $month['period']['invalid_clock_records']===0,
+            'month_keeps_unknown_membership_and_later_edits_out_of_verified_totals');
+        $check($metric($month,'verified_prior_match')===3 && $month['distinct']['telegram_peers']===1
+            && $month['identities']['window_days']===21 && $metric($month,'verified_prior_match_21d')===1,
+            'thirty_day_message_cohort_does_not_widen_twenty_one_day_visit_diagnostic');
+        $monthLeaf=$windowRead('01',null,null,$monthFrom);
+        $check($monthLeaf['counts']===$month['counts'] && $monthLeaf['identities']===$month['identities']
+            && $monthLeaf['scope_fingerprint']===$month['scope_fingerprint'] && $monthLeaf['period']===$month['period'],
+            'monthly_leaf_keeps_the_same_period_peer_and_complete_history');
+        $unchangedWeek=$windowRead();
+        $check($unchangedWeek['counts']['verified_inbound_records']===1 && $unchangedWeek['counts']['selected_records']===2
+            && $unchangedWeek['period']['dated_candidate_records']===1 && $unchangedWeek['period']['unknown_created_at_records']===1
+            && $unchangedWeek['period']['from_unix']===$from && $monthBefore===$fingerprint(),
+            'month_read_neither_changes_week_bounds_nor_mutates_sources');
+        $private($month); $counts($month);
+
         foreach(['missing'=>null,'string'=>(string)$messageAt,'text_date'=>'2026-11-26 11:04:00',
             'zero'=>0,'before_epoch'=>1,'after_snapshot'=>$now+1]as$label=>$invalidCreated) {
             $reset(); $message(10,['created_at'=>$invalidCreated]); $r=$windowRead();

@@ -15,24 +15,26 @@ final class DialogueReviewMcpAdapter
     public const BUSINESS_IDENTITY_CUTOFF=1795691100; // 26 November 2026, 14:05 Europe/Moscow.
     public const BUSINESS_WEEK_CURSOR='qh.archive.business_identity7d.20261126';
     public const BUSINESS_WEEK_FROM=1795086300; // 19 November 2026, 14:05 Europe/Moscow.
+    public const BUSINESS_MONTH_CURSOR='qh.archive.business_identity30d.20261126';
+    public const BUSINESS_MONTH_FROM=1793099100; // 27 October 2026, 14:05 Europe/Moscow.
     public static function isBusinessIdentity(array $args):bool
     {
-        return($args['cursor']??null)===self::BUSINESS_IDENTITY_CURSOR||self::isBusinessWeek($args);
+        return($args['cursor']??null)===self::BUSINESS_IDENTITY_CURSOR||self::businessWindowProfile($args)!==null;
     }
-    private static function isBusinessWeek(array $args):bool
+    private static function businessWindowProfile(array $args):?array
     {
-        return is_string($args['cursor']??null)
-            &&preg_match('/\A'.preg_quote(self::BUSINESS_WEEK_CURSOR,'/').'(?:\.p[0-9]{1,2})?\z/D',$args['cursor'])===1;
+        if(!is_string($args['cursor']??null))return null;
+        foreach([self::BUSINESS_WEEK_CURSOR=>self::BUSINESS_WEEK_FROM,self::BUSINESS_MONTH_CURSOR=>self::BUSINESS_MONTH_FROM]as$base=>$from){
+            if(preg_match('/\A'.preg_quote($base,'/').'(?:\.p([0-9]{1,2}))?\z/D',$args['cursor'],$match)===1)
+                return['base_cursor'=>$base,'from'=>$from,'suffix'=>$match[1]??null];
+        }
+        return null;
     }
-    private static function businessWeekSuffix(array $args):?string
+    private static function businessWindowContinuation(array $window):array
     {
-        return $args['cursor']===self::BUSINESS_WEEK_CURSOR?null:substr($args['cursor'],strlen(self::BUSINESS_WEEK_CURSOR)+2);
-    }
-    private static function businessWeekContinuation(?string $suffix):array
-    {
-        $children=[];
+        $suffix=$window['suffix'];$children=[];
         if($suffix===null||strlen($suffix)<2){
-            for($digit=0;$digit<10;$digit++)$children[]=self::BUSINESS_WEEK_CURSOR.'.p'.$digit.($suffix??'');
+            for($digit=0;$digit<10;$digit++)$children[]=$window['base_cursor'].'.p'.$digit.($suffix??'');
         }
         return['strategy'=>'disjoint_zero_padded_decimal_peer_suffix','parent_suffix'=>$suffix,
             'child_cursors'=>$children,'max_depth'=>2,'max_leaf_partitions'=>100,'max_total_calls'=>111,
@@ -96,7 +98,7 @@ final class DialogueReviewMcpAdapter
         }
         $history=$retained||self::isHistory($args);
         $businessIdentity=self::isBusinessIdentity($args);
-        $businessWeek=self::isBusinessWeek($args);
+        $businessWindow=self::businessWindowProfile($args);
         if($businessIdentity&&(!$inventory||$retained||(isset($args['limit'])&&$args['limit']!==25)))throw new InvalidArgumentException();
         $operation=$inventory?'inventory':'context';
         try{
@@ -104,8 +106,8 @@ final class DialogueReviewMcpAdapter
                 if(!is_callable($this->businessIdentityAuthorize))throw new DomainException();
                 require_once __DIR__.'/ArchiveResearchReadService.php';
                 $reader=new ArchiveResearchReadService($this->pdo,$this->clock,null,true);
-                $result=$businessWeek?$reader->businessIdentityWindow($this->businessIdentityAuthorize,
-                    self::BUSINESS_IDENTITY_FENCE,self::BUSINESS_WEEK_FROM,self::BUSINESS_IDENTITY_CUTOFF,self::businessWeekSuffix($args))
+                $result=$businessWindow!==null?$reader->businessIdentityWindow($this->businessIdentityAuthorize,
+                    self::BUSINESS_IDENTITY_FENCE,$businessWindow['from'],self::BUSINESS_IDENTITY_CUTOFF,$businessWindow['suffix'])
                     :$reader->businessIdentitySummary($this->businessIdentityAuthorize,self::BUSINESS_IDENTITY_FENCE,self::BUSINESS_IDENTITY_CUTOFF);
                 ($this->businessIdentityAuthorize)();
             }elseif($history){
@@ -129,17 +131,16 @@ final class DialogueReviewMcpAdapter
             if(in_array($error->reason,['forbidden','permission_changed'],true))throw new DomainException();
             if($error->reason==='invalid_arguments')throw new InvalidArgumentException();
             $restart=in_array($error->reason,['stale_cursor','dialogue_unavailable','source_changed'],true);
-            $partitionable=$businessWeek&&$error->reason==='window_partition_limit';
+            $partitionable=$businessWindow!==null&&$error->reason==='window_partition_limit';
             if(!$restart&&!$partitionable&&!in_array($error->reason,['time_limit','source_limit','response_limit','transaction_active','unavailable'],true))throw new RuntimeException();
             $result=['ok'=>false,'project_key'=>'anytour','status'=>'unavailable','reason'=>$partitionable?'source_limit':$error->reason];
             if($partitionable){
                 ($this->businessIdentityAuthorize)();
                 $result['operation']='business_identity_window_summary';
                 $result['selection']=['fence'=>self::BUSINESS_IDENTITY_FENCE,'complete'=>false,'historical_snapshot'=>false];
-                $result['period']=['from_unix'=>self::BUSINESS_WEEK_FROM,'until_unix'=>self::BUSINESS_IDENTITY_CUTOFF,'bounds'=>'inclusive','clock_basis'=>'typed_stored_created_at'];
-                $suffix=self::businessWeekSuffix($args);
-                $result['partition']=['peer_suffix'=>$suffix,'basis'=>'zero_padded_decimal_chat_id_suffix'];
-                $result['continuation']=self::businessWeekContinuation($suffix);
+                $result['period']=['from_unix'=>$businessWindow['from'],'until_unix'=>self::BUSINESS_IDENTITY_CUTOFF,'bounds'=>'inclusive','clock_basis'=>'typed_stored_created_at'];
+                $result['partition']=['peer_suffix'=>$businessWindow['suffix'],'basis'=>'zero_padded_decimal_chat_id_suffix'];
+                $result['continuation']=self::businessWindowContinuation($businessWindow);
             }
             if($restart)$result['recovery']='restart_inventory';
         }

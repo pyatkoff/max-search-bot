@@ -37,8 +37,27 @@ row fence and cutoff, with a start at **19 November 2026, 14:05 Europe/Moscow**
 does not grant a rolling window or a caller-selected thirty-day read. The old
 25-record descriptor and result remain available with their original contract.
 
+## Thirty-day continuation
+
+After acceptance of the seven-day report, the adjacent returned descriptor
+`quality_history.lanes.archive.business_identity_month` selects the same
+`business_identity_window_summary` reader. The fixed cursor is
+`qh.archive.business_identity30d.20261126`; the start is **27 October 2026,
+14:05 Europe/Moscow** (`1793099100`). The cutoff remains **26 November 2026,
+14:05 Europe/Moscow** (`1795691100`), with the same fence **326088** and inclusive
+creation-time boundaries. This is exactly thirty days, not a calendar month.
+The old 25-record and seven-day entries keep their original parameters.
+
+Only these two server-defined windows are accepted. A caller cannot change the
+dates, fence or source budgets. Every returned continuation retains the selected
+window's cursor family and start time. The thirty-day cohort does not extend the
+separate 21-day visit diagnostic or authorize conversion delivery. Weekly and
+monthly aggregates overlap and must not be added together.
+
+## Shared window selection
+
 `limit=25`, when supplied to this inventory entry, is only the existing request
-contract. It does not truncate the weekly cohort to 25 messages. The reader must
+contract. It does not truncate either window's cohort to 25 messages. The reader must
 exhaust the bounded candidate selection before returning `selection.complete=true`.
 The result's dynamic `selection.limit` is an internal source sentinel, not an
 accepted cohort size. Reaching that sentinel withholds the complete aggregate.
@@ -58,7 +77,7 @@ The three disjoint `period` counters sum to `counts.selected_records`:
 | `invalid_clock_records` | Creation time is readable, but the version clock is invalid, contradictory or differs from its stored column; period membership is not accepted. |
 
 Thus `selected_records` includes the explicit unknown-clock diagnostic cohort.
-It must not be labelled a count of known messages in the week. Valid current
+It must not be labelled a count of known messages in the selected period. Valid current
 versions newer than the cutoff remain in `cutoff_advanced_records`, never
 reconstructed as their previous contents. A date window over retained versions
 does not establish a complete external or historical archive.
@@ -85,6 +104,9 @@ children only after their parent reports partitionable overflow. A successful
 parent is already a leaf; never request its children or add children to its
 aggregate. A failed two-digit leaf ends that branch with unknown completeness,
 not an assumed zero count of unread messages or peers.
+These bounds do not guarantee that every window fits. A dense terminal suffix or
+one peer's complete visit history may still exhaust the shared source budget;
+that branch remains unavailable without deeper partitioning or larger budgets.
 
 A collector may claim complete retained-window coverage only when every branch
 has a successful, nonoverlapping leaf with the same `selection.fence`, period
@@ -107,7 +129,7 @@ checkpoint binding still cannot establish outside-source history completeness.
 Only active AnyTour project registry accounts with current approval, provider
 enablement and the same enabled connection enter selection. The first query
 selects at most 25 Business row IDs in the original report, or a bounded complete
-date/unknown-clock candidate set in the weekly report. SQL then extracts typed, bounded metadata
+date/unknown-clock candidate set in either window report. SQL then extracts typed, bounded metadata
 scalars for only those IDs. The application never receives the raw JSON, message
 text, captions, links or attachments through this operation.
 
@@ -178,6 +200,9 @@ Weekly coverage adds actual date predicates, malformed-clock membership, exact
 whole/partition sums, short and large peer IDs, more than 100 peers in canonical
 visit batches, complete native/test/overlap checks above the old 26-row boundary,
 finite overflow manifests and grant withdrawal before returning a manifest.
+Thirty-day coverage checks both inclusive date boundaries, records between the
+monthly and weekly starts, the unchanged weekly selection, monthly child cursor
+families and period metadata, and the same grant, timeout and global-cap behavior.
 
 Ordinary required source CI and release admission apply. No new worker, queue,
 workflow or schedule is introduced. A source test or successful installation is
