@@ -1,4 +1,4 @@
-name: HOTEL1730 fresh ordinary release admission
+name: HOTEL1730 fresh continuing release admission
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -10,7 +10,7 @@ permissions:
   pull-requests: read
 jobs:
   registry:
-    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '2b1f02692a1449691603ed603638a8c7b80b04f3' && github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '7181f255c6e571c5bda257c3496d777ccd904128' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -18,7 +18,7 @@ jobs:
         with:
           ref: 69e41c8011b4c67692f631cf435dd20d90676c72
           persist-credentials: false
-      - name: Fresh ordinary admission for the exact isolated Telegram publisher
+      - name: Fresh continuing admission with the exact HOTEL publisher
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node tools/release_priority.js --admit 1730 c8282ba8b40e8852087b5ae803727f459d8a0b59 69e41c8011b4c67692f631cf435dd20d90676c72
+        run: node tools/release_priority.js --admit 1730 c8282ba8b40e8852087b5ae803727f459d8a0b59 69e41c8011b4c67692f631cf435dd20d90676c72 --publisher 6818332618 226193297 2026-11-26T09:09:34Z
