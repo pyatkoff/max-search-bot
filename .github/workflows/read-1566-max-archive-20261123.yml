@@ -1,4 +1,4 @@
-name: "Verify the original PRICE revisions after the overnight batch"
+name: "Read the active hotel feeds and original large MAX publication revisions"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '57656011e499b24441be86236d09ad29f0dc6620' &&
+      github.event.before == '5c015775cc2b3253eb4484ddb7ca89db716df105' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
