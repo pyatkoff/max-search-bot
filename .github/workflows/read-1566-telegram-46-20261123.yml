@@ -1,4 +1,4 @@
-name: "#1566 Verify Amilla on historical post 957 after original transfer"
+name: "HOTEL: test the new public reader on the original Amilla production post"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '50ba489b710b8c68652929127d8d4a8bb63ba1cf' && github.run_attempt == 1
+      github.event.before == 'bb16366ea5070f029b846ccbe18f687b6dbffa9c' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
     env:
@@ -24,7 +24,7 @@ jobs:
       - name: Check out the trusted public verifier
         uses: actions/checkout@v4
         with:
-          ref: 61e05da2e6bcf88082a9a6bb46858d05040a603f
+          ref: 5ede36f16dce1ac95a81b91d5495ea5bc6d4d65f
           persist-credentials: false
       - name: Authenticate the original transfer, job and immutable artifact
         env:
@@ -133,7 +133,7 @@ jobs:
         if: ${{ !cancelled() && hashFiles('ranked-public-readback.json') != '' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ranked-public-readback-late-45801952244
+          name: ranked-public-readback-late-tested-45801952244
           path: ranked-public-readback.json
           retention-days: 7
           if-no-files-found: error
