@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "operation": "hotel_publisher_media_pilot",
+  "execution": "explicit_owner_apply_only",
+  "parent_run_id": "45567178733",
+  "parent_application_sha": "878c680627d54297c364254687577a03ac5aef6b",
+  "parent_plan_sha256": "383914d661f1cce07ff7c194fa04cef6418e5a54edefba46dde73b48617f5aa1",
+  "parent_receipt_sha256": "b30bddac7fb9ddcb40e2f41c44bec8988e7fc0e98ddb3a0ca9f825e38492aeb0",
+  "publication_id": 3848,
+  "hotel_id": 2514,
+  "target_message_id": "1058",
+  "source_publication_id": 952,
+  "source_message_id": "429",
+  "target_published_unixtime": 1742976715,
+  "target_caption_sha256": "4be2e1f8c17ea5d0c44898de06c41bbfd9c799f46e1ed914b73d1b5e2f207359",
+  "target_photo_marker_sha256": "9721538fd57841ea1c435665e46f99678c732d0a7ada488b059e079a8e761c08",
+  "source_photo_marker_sha256": "0f432faffc5ca494ae0adce9d5d0eb5d38dbebca08bf296c495d036250031477",
+  "source_file_unique_id_sha256": "b0c212be4bf7bd7e9fb47b1a63386ee10fb87295dbf96fb16c88af892b8230e5",
+  "next_caption_sha256": "4de6674c0a8d3fe60319c1d6a93bf5b70dade3a443aa025efa075fcd48263736",
+  "target_keyboard": {
+    "inline_keyboard": [
+      [
+        {
+          "text": "СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱",
+          "url": "https://t.me/AnyTour_MSK"
+        }
+      ]
+    ]
+  },
+  "photo_path": "assets/anytour-publisher/source-429-20261126.jpg",
+  "photo_sha256": "3364da0d8257468c9f2933d042dfc7b5d5b7ca705d2ca1564b328966257bbe58",
+  "photo_bytes": 74918,
+  "native_read_run_id": "45781107685",
+  "public_read_run_id": "45781368978",
+  "readback_policy": "matching_genuine_anyru_observation_before_registry_acceptance",
+  "price_policy": "omit_previous_price_keep_hotel_calculation_button"
+}

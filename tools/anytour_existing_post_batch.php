@@ -1347,6 +1347,308 @@ function applyPublisherKeyboardPilot(string $root, string $digest, string $appli
     }
 }
 
+const PUBLISHER_MEDIA_PLAN = 'config/anytour_publisher_media_pilot_20261126.json';
+const PUBLISHER_MEDIA_DIGEST = '9369f02e77625e5e37308861980694f835d383f473cf7a6ea38dc23a31951feb';
+
+/** Reuse the approved caption and exact saved photo; never rearm the rejected operation. */
+function publisherMediaPlan(string $root, string $digest): array
+{
+    requirePost(hash_equals(PUBLISHER_MEDIA_DIGEST, $digest), 'publisher_media_approval_changed');
+    $raw = file_get_contents($root.'/'.PUBLISHER_MEDIA_PLAN, false, null, 0, 4097);
+    requirePost(is_string($raw) && hash_equals($digest, hash('sha256', $raw)), 'publisher_media_plan_changed');
+    $plan = json_decode($raw, true, 16, JSON_THROW_ON_ERROR);
+    $parent = file_get_contents($root.'/config/anytour_ranked_pairs_45552458333.json', false, null, 0, 64001);
+    requirePost(is_string($parent) && hash_equals($plan['parent_plan_sha256'], hash('sha256', $parent)), 'publisher_media_parent_plan_changed');
+    $rows = json_decode($parent, true, 16, JSON_THROW_ON_ERROR)['rows'];
+    $selected = array_values(array_filter($rows, static fn(array $row): bool => $row['hotel_id'] === 2514));
+    requirePost(count($selected) === 1 && $selected[0]['target_message_id'] === '1058'
+        && $selected[0]['next_caption_sha256'] === $plan['next_caption_sha256'], 'publisher_media_row_changed');
+    $plan['parent_row'] = $selected[0];
+    $photo = file_get_contents($root.'/'.$plan['photo_path'], false, null, 0, $plan['photo_bytes'] + 1);
+    requirePost(is_string($photo) && strlen($photo) === $plan['photo_bytes']
+        && hash_equals($plan['photo_sha256'], hash('sha256', $photo)), 'publisher_media_photo_changed');
+    return $plan;
+}
+
+function publisherMediaParent(string $raw, array $plan): array
+{
+    requirePost(strlen($raw) <= 3_000_000 && str_ends_with($raw, "\n")
+        && hash_equals($plan['parent_receipt_sha256'], hash('sha256', $raw)), 'publisher_media_parent_changed');
+    $events = array_map(static fn(string $line): array => json_decode($line, true, 64, JSON_THROW_ON_ERROR),
+        explode("\n", substr($raw, 0, -1)));
+    requirePost(array_column($events, 'state') === ['intent_saved','identity_reserved','request_prepared',
+        'provider_edit_started','provider_response_saved','provider_message_id_rejected']
+        && ($events[0]['execution']['native_run_id'] ?? null) === $plan['parent_run_id']
+        && ($events[0]['execution']['application_sha'] ?? null) === $plan['parent_application_sha']
+        && ($events[0]['plan_sha256'] ?? null) === $plan['parent_plan_sha256']
+        && ($events[0]['row'] ?? null) === $plan['parent_row']
+        && ($events[1]['reservation']['publication_id'] ?? null) === 3848
+        && ($events[1]['reservation']['target_message_id'] ?? null) === '1058'
+        && ($events[3]['provider_write_attempts'] ?? null) === 1
+        && transferMessageIdRejected($events[4]['response'] ?? [])
+        && ($events[5]['provider_write_attempts'] ?? null) === 1, 'publisher_media_parent_unconfirmed');
+    return $events[1]['reservation'];
+}
+
+/** Exact old generic URL button admission; other historical keyboards stay blocked. */
+function publisherMediaPublic(string $archive, string $embedded, array $plan, ?array $request = null): array
+{
+    $post = parseTransferPublic($archive, 'anytour', '1058', $plan['parent_plan_sha256']);
+    $embed = parseTransferPublic($embedded, 'anytour', '1058', $plan['parent_plan_sha256']);
+    $markup = $request['reply_markup'] ?? $plan['target_keyboard'];
+    $button = $markup['inline_keyboard'][0][0];
+    $expected = [['text'=>$button['text'], 'hotel_url'=>$request === null ? null : $button['url'],
+        'url_sha256'=>hash('sha256', $button['url'])]];
+    foreach ([$post, $embed] as $observed) {
+        requirePost($observed['single_photo'] === true
+            && $observed['published_unixtime'] === $plan['target_published_unixtime']
+            && $observed['caption_sha256'] === ($request === null ? $plan['target_caption_sha256'] : $plan['next_caption_sha256'])
+            && ($request !== null || $observed['photo_marker_sha256'] === $plan['target_photo_marker_sha256']),
+            'publisher_media_public_content_changed');
+    }
+    requirePost($post['buttons'] === $expected && ($embed['buttons'] === [] || $embed['buttons'] === $expected),
+        'publisher_media_public_keyboard_changed');
+    $post['reply_markup'] = $markup;
+    return $post;
+}
+
+function publisherMediaBody(array $plan, array $reservation, string $photo): array
+{
+    requirePost(strlen($photo) === $plan['photo_bytes'] && hash_equals($plan['photo_sha256'], hash('sha256', $photo)),
+        'publisher_media_photo_changed');
+    $body = ['chat_id'=>'-1001845835645', 'message_id'=>'1058',
+        'media'=>['type'=>'photo', 'media'=>'attach://hotel_photo', 'caption'=>$plan['parent_row']['next_caption'], 'caption_entities'=>[]],
+        'reply_markup'=>['inline_keyboard'=>[[['text'=>'✈️ Рассчитать на мои даты', 'url'=>$reservation['button_url']]]]],
+        'photo'=>['base64'=>base64_encode($photo), 'sha256'=>$plan['photo_sha256']]];
+    requirePost(ChannelPostApiTransport::publisherMediaPilotPayload($body) === $body, 'publisher_media_payload_invalid');
+    return $body;
+}
+
+function publisherMediaEvidence(array $plan, array $body, array $publisher, string $nativeRunId): array
+{
+    $identity = $body;
+    unset($identity['photo']);
+    $identity['upload_sha256'] = $plan['photo_sha256'];
+    return ['schema'=>1, 'publisher'=>$publisher, 'native_run_id'=>$nativeRunId,
+        'parent_receipt_sha256'=>$plan['parent_receipt_sha256'], 'upload_sha256'=>$plan['photo_sha256'],
+        'request_sha256'=>hash('sha256', json_encode($identity, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR))];
+}
+
+function publisherMediaResponse(array $response, array $body, array $plan): string
+{
+    if (transferMessageIdRejected($response)) return 'provider_message_id_rejected';
+    $raw = $response['data']['result'] ?? null;
+    $markup = is_array($raw) ? ($raw['reply_markup'] ?? null) : null;
+    $rows = is_array($markup) ? ($markup['inline_keyboard'] ?? null) : null;
+    $button = is_array($rows) ? ($rows[0][0] ?? null) : null;
+    $expectedButton = $body['reply_markup']['inline_keyboard'][0][0];
+    // JSON object member order is immaterial; row order, types and values are exact.
+    $keyboardMatches = is_array($markup) && count($markup) === 1 && is_array($rows) && array_keys($rows) === [0]
+        && is_array($rows[0]) && array_keys($rows[0]) === [0] && is_array($button) && count($button) === 2
+        && ($button['text'] ?? null) === $expectedButton['text'] && ($button['url'] ?? null) === $expectedButton['url'];
+    requirePost(($response['http'] ?? null) === 200 && ($response['transport_error'] ?? null) === false
+        && ($response['data']['ok'] ?? null) === true && is_array($raw)
+        && (string)($raw['chat']['id'] ?? '') === '-1001845835645' && ($raw['chat']['type'] ?? '') === 'channel'
+        && strtolower((string)($raw['chat']['username'] ?? '')) === 'anytour' && ($raw['message_id'] ?? null) === 1058
+        && ($raw['date'] ?? null) === $plan['target_published_unixtime'] && is_int($raw['edit_date'] ?? null)
+        && $raw['edit_date'] > $raw['date'] && ($raw['caption'] ?? null) === $body['media']['caption']
+        && ($raw['caption_entities'] ?? []) === [] && ($raw['entities'] ?? []) === []
+        && $keyboardMatches, 'publisher_media_response_unconfirmed');
+    $snapshot = ChannelPostIncomingAdapter::telegramSnapshot($raw);
+    requirePost(is_array($snapshot) && ($snapshot['metadata']['capability'] ?? null) === 'supported'
+        && empty($snapshot['metadata']['media_group_id']) && count($snapshot['attachments'] ?? []) === 1
+        && ($snapshot['attachments'][0]['type'] ?? null) === 'image'
+        && ($snapshot['attachments'][0]['provider'] ?? null) === 'telegram'
+        && $snapshot['post_url'] === 'https://t.me/anytour/1058', 'publisher_media_response_unconfirmed');
+    return 'native_media_edit_accepted';
+}
+
+/** Same editor journal and locks; one new intent after a proved final refusal, no retry. */
+function publisherMediaExecute(array $plan, array $before, array $body, array $effects, string $directory): array
+{
+    $base = ['schema'=>1, 'operation'=>'hotel_publisher_media_pilot', 'plan_sha256'=>PUBLISHER_MEDIA_DIGEST,
+        'hotel_id'=>2514, 'message_id'=>'1058', 'url'=>'https://t.me/anytour/1058',
+        'supplier_requests'=>0, 'bot_starts'=>0, 'full_transfer_requested'=>true] + $effects['context'];
+    $record = null; $attempts = 0; $responseSaved = false;
+    try {
+        $photo = base64_decode($body['photo']['base64'] ?? '', true);
+        requirePost(is_string($photo) && $body === publisherMediaBody($plan, $effects['reservation'], $photo), 'publisher_media_payload_changed');
+        requirePost(realpath($directory) === $directory && !is_link($directory), 'publisher_media_directory_changed');
+        $path = $directory.'/publisher-media-20261126.jsonl';
+        requirePost(!file_exists($path) && !is_link($path), 'publisher_media_previous_attempt_do_not_replay');
+        $effects['assert']();
+        $mask = umask(0077);
+        try { $record = @fopen($path, 'x+b'); } finally { umask($mask); }
+        requirePost(is_resource($record) && flock($record, LOCK_EX | LOCK_NB), 'publisher_media_journal_unavailable');
+        $evidence = publisherMediaEvidence($plan, $body, $effects['publisher'], $effects['context']['native_run_id']);
+        transferJournal($record, ['state'=>'intent_saved', 'context'=>$base, 'evidence'=>$evidence,
+            'source_pin'=>$effects['source_pin'], 'reservation'=>$effects['reservation'], 'preimage'=>$before, 'request'=>$body]);
+        $dir = @fopen($directory, 'rb');
+        requirePost(is_resource($dir), 'publisher_media_journal_unavailable');
+        try { requirePost(fsync($dir), 'publisher_media_journal_unavailable'); } finally { fclose($dir); }
+        $effects['assert']();
+        transferJournal($record, ['state'=>'provider_edit_started', 'provider_write_attempts'=>1]);
+        $attempts = 1;
+        $response = $effects['request']($body);
+        requirePost(is_array($response), 'publisher_media_response_unconfirmed');
+        transferJournal($record, ['state'=>'provider_response_saved', 'response'=>$response]);
+        $responseSaved = true;
+        $state = publisherMediaResponse($response, $body, $plan);
+        if ($state !== 'native_media_edit_accepted') {
+            $result = $base + ['ok'=>false, 'state'=>$state, 'native_state'=>$state, 'full_transfer'=>false, 'provider_write_attempts'=>1];
+            transferJournal($record, $result);
+            return $result;
+        }
+        $saved = $effects['complete']($response, $evidence);
+        requirePost(is_array($saved) && $saved['publication_id'] === 3848 && $saved['state'] === 'sent'
+            && $saved['message_id'] === '1058' && ($saved['snapshot']['metadata']['hotel_catalog_id'] ?? null) === 2514,
+            'publisher_media_registry_unconfirmed');
+        $public = $effects['readback']($body);
+        requirePost(is_array($public) && ($public['public_photo_verified'] ?? null) === true
+            && is_string($public['public_photo_sha256'] ?? null)
+            && preg_match('/\A[a-f0-9]{64}\z/D', $public['public_photo_sha256']) === 1
+            && is_bool($public['public_photo_matches_uploaded_bytes'] ?? null), 'publisher_media_public_photo_unconfirmed');
+        $effects['parent_unchanged']();
+        $result = $base + ['ok'=>true, 'state'=>'native_and_registry_verified', 'native_state'=>$state, 'full_transfer'=>true,
+            'provider_write_attempts'=>1, 'publication_id'=>$saved['publication_id'], 'version_id'=>$saved['version_id'],
+            'content_hash'=>$saved['content_hash'], 'button_url'=>$effects['reservation']['button_url'],
+            'hotel_id_verified'=>true, 'photo_caption_button_verified'=>true, 'original_message_id_and_date_preserved'=>true,
+            'parent_receipt_preserved'=>true, 'publisher'=>$effects['publisher']] + $public;
+        transferJournal($record, $result);
+        return $result;
+    } catch (Throwable $error) {
+        $result = $base + ['ok'=>false, 'state'=>$attempts ? ($responseSaved ? 'response_saved_requires_readback' : 'provider_outcome_unknown')
+            : 'held_before_provider', 'full_transfer'=>false, 'reason'=>transferReason($error), 'provider_write_attempts'=>$attempts];
+        if ($responseSaved && isset($state)) $result['native_state'] = $state;
+        if ($responseSaved && is_int($response['data']['error_code'] ?? null)) {
+            $result['telegram_error_code'] = $response['data']['error_code'];
+            $description = $response['data']['description'] ?? '';
+            if (is_string($description) && mb_check_encoding($description, 'UTF-8') && strlen($description) <= 512
+                && preg_match('/[\x00-\x1f\x7f]/u', $description) === 0) $result['telegram_description'] = $description;
+        }
+        if (is_resource($record)) { try { transferJournal($record, $result); } catch (Throwable $ignored) {} }
+        return $result;
+    } finally { if (is_resource($record)) fclose($record); }
+}
+
+function applyPublisherMediaPilot(string $root, string $digest, string $applicationSha, string $nativeRunId): array
+{
+    $plan = publisherMediaPlan($root, $digest);
+    requirePost(preg_match('/\A[1-9][0-9]{0,19}\z/D', $nativeRunId) === 1 && $nativeRunId !== $plan['parent_run_id'], 'publisher_media_run_invalid');
+    transferRuntime($root, $applicationSha);
+    ob_start();
+    try {
+        require_once $root.'/config.php';
+        require_once $root.'/services/AnyTourPublisherBotConnection.php';
+        require_once $root.'/services/ChannelPostRegistryService.php';
+        require_once $root.'/services/ChannelPostButtonTransport.php';
+        require_once $root.'/services/PromotedHotelPriceWriter.php';
+    } finally { ob_end_clean(); }
+    requirePost(ProjectConfig::projectId() === 'anytour' && realpath(POST_OPS) === POST_OPS, 'publisher_media_runtime_changed');
+    $directory = POST_OPS.'/anytour-issue1566-historical-tg-media-1058-v1';
+    requirePost(realpath($directory) === $directory && !is_link($directory), 'publisher_media_directory_changed');
+    $parentPath = $directory.'/receipt.jsonl';
+    $readParent = static function () use ($parentPath, $plan): array {
+        requirePost(realpath($parentPath) === $parentPath && is_file($parentPath) && !is_link($parentPath), 'publisher_media_parent_changed');
+        $raw = file_get_contents($parentPath, false, null, 0, 3_000_001);
+        requirePost(is_string($raw), 'publisher_media_parent_changed');
+        return publisherMediaParent($raw, $plan);
+    };
+    $reservation = $readParent();
+    requirePost(!file_exists($directory.'/publisher-media-20261126.jsonl') && !is_link($directory.'/publisher-media-20261126.jsonl'),
+        'publisher_media_previous_attempt_do_not_replay');
+    $readPublic = static function (?array $body = null) use ($plan): array {
+        return publisherMediaPublic(transferReadBytes('https://t.me/s/anytour?before=1059', $plan['parent_plan_sha256']),
+            transferReadBytes('https://t.me/anytour/1058?embed=1&mode=tme', $plan['parent_plan_sha256']), $plan, $body);
+    };
+    $before = $readPublic();
+    $body = publisherMediaBody($plan, $reservation, file_get_contents($root.'/'.$plan['photo_path']));
+    $pdo = ConversationDb::connection();
+    requirePost($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' && !$pdo->inTransaction(), 'publisher_media_native_database_required');
+    $registry = new ChannelPostRegistryService($pdo);
+    $channel = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1001845835645');
+    requirePost(is_array($channel) && (int)$channel['id'] === 6 && (int)$channel['config_version'] === 2, 'publisher_media_channel_changed');
+    $connection = new \AnyTourPublisherBotConnection();
+    $actor = publisherKeyboardActor($pdo, static fn(int $id): bool => $connection->mayConfigure($id));
+    $status = $connection->status($actor);
+    requirePost($status['configured'] === true && $status['username'] === 'ANYTOURBOT_bot', 'publisher_media_not_configured');
+    $pricePath = POST_OPS.'/monitor-price-after-collection-v1.jsonl';
+    requirePost(realpath($pricePath) === $pricePath && is_file($pricePath) && !is_link($pricePath), 'publisher_media_price_lease_unknown');
+    $price = fopen($pricePath, 'rb');
+    requirePost(is_resource($price), 'publisher_media_price_lease_unknown');
+    $locked = false;
+    try {
+        requirePost(flock($price, LOCK_EX | LOCK_NB), 'publisher_media_content_editor_busy');
+        $q = $pdo->prepare('SELECT GET_LOCK(?,0)'); $q->execute(['anytour-issue1566-historical-tg-media-1058-v1']);
+        $locked = transferTargetLockAcquired($q->fetchColumn()); $q->closeCursor();
+        requirePost($locked, 'publisher_media_target_editor_busy');
+        $source = $registry->publication(952);
+        requirePost(is_array($source) && is_array($source['snapshot']['attachments'][0] ?? null), 'publisher_media_source_changed');
+        $photo = $source['snapshot']['attachments'][0];
+        $sourcePin = ['version_id'=>$source['version_id'], 'content_hash'=>$source['content_hash'],
+            'caption_sha256'=>hash('sha256', $source['snapshot']['text']), 'file_id_sha256'=>hash('sha256', $photo['telegram_file_id'] ?? ''),
+            'file_unique_id_sha256'=>hash('sha256', $photo['file_unique_id'] ?? '')];
+        $currentRow = array_replace($plan['parent_row'], ['source_version_id'=>$sourcePin['version_id'], 'source_content_hash'=>$sourcePin['content_hash'],
+            'source_caption_sha256'=>$sourcePin['caption_sha256'], 'source_file_id_sha256'=>$sourcePin['file_id_sha256']]);
+        transferSource($pdo, $registry, $currentRow);
+        $publicSource = transferPublic('any_toour', '429', $plan['parent_plan_sha256']);
+        transferPublicPreimage($currentRow, $publicSource, $before);
+        $parentRow = transferRegistryRow($plan['parent_row']);
+        $assert = static function () use ($root, $applicationSha, $pdo, $registry, $channel, $readParent, $reservation,
+            $plan, $parentRow, $sourcePin, $currentRow): void {
+            transferRuntime($root, $applicationSha);
+            requirePost($readParent() === $reservation, 'publisher_media_parent_changed');
+            requirePost($registry->channel('anytour', 'telegram', 'anyru_bot', '-1001845835645') === $channel, 'publisher_media_channel_changed');
+            transferSource($pdo, $registry, $currentRow);
+            $registry->assertPublisherMediaPilotReservation($reservation, $parentRow, $plan['parent_plan_sha256'], $sourcePin);
+        };
+        $assert();
+        return $connection->withPublisherMediaPilot($actor, (int)$status['version'], $body,
+            static function (array $publisher, callable $request) use ($root, $applicationSha, $nativeRunId, $channel,
+                $registry, $plan, $parentRow, $reservation, $sourcePin, $before, $body, $assert, $readParent, $readPublic, $directory): array {
+                $proof = (new ChannelPostButtonTransport($request))->verifyPublisher($channel, $publisher);
+                requirePost(($proof['state'] ?? '') === 'ready' && ($proof['receipt']['write_attempts'] ?? null) === 0, 'publisher_media_rights_unconfirmed');
+                $fresh = $readPublic();
+                requirePost($fresh['reply_markup'] === $before['reply_markup'], 'publisher_media_public_keyboard_changed');
+                $effects = ['context'=>['application_sha'=>$applicationSha, 'native_run_id'=>$nativeRunId],
+                    'publisher'=>$publisher, 'reservation'=>$reservation, 'source_pin'=>$sourcePin, 'assert'=>$assert,
+                    'request'=>static fn(array $payload): array => $request('telegram', 'POST', 'editMessageMedia', [], $payload),
+                    'complete'=>static function (array $response, array $evidence) use ($registry, $reservation, $parentRow, $plan, $sourcePin): array {
+                        for ($read = 0; ; $read++) {
+                            try { return $registry->completePublisherMediaPilot($reservation, $parentRow, $plan['parent_plan_sha256'], $sourcePin, $response, $evidence); }
+                            catch (RuntimeException $error) {
+                                if ($error->getMessage() !== 'publisher_media_native_observation_required' || $read >= 5) throw $error;
+                                usleep(2000000); // Only await the ordinary webhook; never repeat a provider request.
+                            }
+                        }
+                    },
+                    'readback'=>static function (array $payload) use ($readPublic, $plan): array {
+                        $after = $readPublic($payload);
+                        requirePost(preg_match('~\Ahttps://cdn[0-9]+\.telesco\.pe/file/[A-Za-z0-9_.-]+\z~D', $after['photo_url']) === 1,
+                            'publisher_media_public_photo_unconfirmed');
+                        $bytes = PromotedHotelPriceWriter::publicBytes($after['photo_url'], 10485761);
+                        $size = @getimagesizefromstring($bytes);
+                        requirePost($size && $size[0] === 600 && $size[1] === 600 && $size[2] === IMAGETYPE_JPEG
+                            && $after['photo_marker_sha256'] !== $plan['target_photo_marker_sha256'], 'publisher_media_public_photo_unconfirmed');
+                        // Telegram may re-encode an uploaded photo. The saved HTTP
+                        // request and matching anyru update bind the photo identity;
+                        // this separate read verifies its visible target and records
+                        // the actual public bytes without inventing byte equality.
+                        return ['public_photo_verified'=>true, 'public_photo_sha256'=>hash('sha256', $bytes),
+                            'public_photo_matches_uploaded_bytes'=>hash_equals($plan['photo_sha256'], hash('sha256', $bytes))];
+                    },
+                    'parent_unchanged'=>static function () use ($readParent, $reservation, $root, $applicationSha): void {
+                        requirePost($readParent() === $reservation, 'publisher_media_parent_changed');
+                        transferRuntime($root, $applicationSha);
+                    }];
+                return publisherMediaExecute($plan, $before, $body, $effects, $directory);
+            }, true);
+    } finally {
+        if ($locked) { try { $q = $pdo->prepare('SELECT RELEASE_LOCK(?)'); $q->execute(['anytour-issue1566-historical-tg-media-1058-v1']); $q->closeCursor(); } catch (Throwable $ignored) {} }
+        fclose($price);
+    }
+}
+
 function requireOriginalNextTransferRejection(array $events, array $firstRow, string $digest): void
 {
     requirePost(array_column($events, 'state') === ['intent_saved','identity_reserved','request_prepared',
@@ -1841,6 +2143,7 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     $packetApply = $command === '--apply-ranked-transfer-data' && count($argv) === 6;
     $packetPlan = null;
     $publisherPilot = in_array($command, ['--check-publisher-keyboard-pilot','--apply-publisher-keyboard-pilot'], true);
+    $publisherMediaPilot = in_array($command, ['--check-publisher-media-pilot','--apply-publisher-media-pilot'], true);
     $prewriteResume = $command==='--apply-closed-prewrite-resume';
     $rankedUnreached = in_array($command, ['--check-ranked-unreached','--apply-ranked-unreached'], true);
     $rankedResume = in_array($command, ['--check-ranked-resume','--apply-ranked-resume'], true);
@@ -1861,7 +2164,14 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
             $next = $argv[2];
         }
         $parent = $rankedUnreached ? rankedUnreachedEvidence() : null;
-        if ($publisherPilot && count($argv) === 3 && $command === '--check-publisher-keyboard-pilot') {
+        if ($publisherMediaPilot && count($argv) === 3 && $command === '--check-publisher-media-pilot') {
+            $plan = publisherMediaPlan($root, $argv[2]);
+            $result = ['ok'=>true, 'operation'=>$plan['operation'], 'mode'=>'offline_plan_check',
+                'plan_sha256'=>$argv[2], 'production_writes'=>0, 'provider_writes'=>0,
+                'full_transfer'=>false, 'full_transfer_requested'=>true, 'message_id'=>'1058', 'hotel_id'=>2514];
+        } elseif ($publisherMediaPilot && count($argv) === 5 && $command === '--apply-publisher-media-pilot') {
+            $result = applyPublisherMediaPilot($root, $argv[2], $argv[3], $argv[4]);
+        } elseif ($publisherPilot && count($argv) === 3 && $command === '--check-publisher-keyboard-pilot') {
             $plan = publisherKeyboardPlan($root, $argv[2]);
             $result = ['ok'=>true, 'operation'=>$plan['operation'], 'mode'=>'offline_plan_check',
                 'plan_sha256'=>$argv[2], 'production_writes'=>0, 'provider_writes'=>0,
@@ -1896,6 +2206,9 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
             'reason'=>transferReason($error)];
         if ($publisherPilot) $result = ['ok'=>false, 'operation'=>'hotel_publisher_keyboard_pilot',
             'state'=>'requires_readback', 'full_transfer'=>false, 'message_id'=>'1047', 'reason'=>transferReason($error)];
+        if ($publisherMediaPilot) $result = ['ok'=>false, 'operation'=>'hotel_publisher_media_pilot',
+            'state'=>'requires_readback', 'full_transfer'=>false, 'full_transfer_requested'=>true,
+            'message_id'=>'1058', 'hotel_id'=>2514, 'reason'=>transferReason($error)];
     }
     echo json_encode($result, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR), PHP_EOL;
     exit($exitCode);
