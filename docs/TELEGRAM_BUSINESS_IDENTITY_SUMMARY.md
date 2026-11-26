@@ -27,11 +27,87 @@ Authorization and exact account/bot/connection permissions are checked again
 outside that snapshot before disclosure. The MCP boundary rechecks the same
 three grants before returning the packaged answer.
 
+## Seven-day continuation
+
+After acceptance of the first finite report, the adjacent returned descriptor
+`quality_history.lanes.archive.business_identity_week` selects
+`business_identity_window_summary`. Its immutable parameters are the same
+row fence and cutoff, with a start at **19 November 2026, 14:05 Europe/Moscow**
+(`1795086300`). Both creation-time boundaries are inclusive. The seven-day span
+does not grant a rolling window or a caller-selected thirty-day read. The old
+25-record descriptor and result remain available with their original contract.
+
+`limit=25`, when supplied to this inventory entry, is only the existing request
+contract. It does not truncate the weekly cohort to 25 messages. The reader must
+exhaust the bounded candidate selection before returning `selection.complete=true`.
+The result's dynamic `selection.limit` is an internal source sentinel, not an
+accepted cohort size. Reaching that sentinel withholds the complete aggregate.
+
+Actual typed JSON `created_at` is filtered inside SQL before selection LIMIT.
+Recent editing of an old message cannot move its occurrence into this period.
+There is no version-time shortcut that could conceal inconsistent clocks. The
+reader also selects retained Business records with unreadable creation times or
+invalid/inconsistent clocks in the same account and partition scope. Their
+period membership is unknown; they are excluded from admitted incoming events.
+The three disjoint `period` counters sum to `counts.selected_records`:
+
+| Period counter | Meaning |
+| --- | --- |
+| `dated_candidate_records` | Readable, consistent occurrence/version clocks and creation time within the fixed period; other admission exclusions still apply. |
+| `unknown_created_at_records` | Creation time is missing, malformed or outside the valid clock domain; occurrence within the period is unproven. |
+| `invalid_clock_records` | Creation time is readable, but the version clock is invalid, contradictory or differs from its stored column; period membership is not accepted. |
+
+Thus `selected_records` includes the explicit unknown-clock diagnostic cohort.
+It must not be labelled a count of known messages in the week. Valid current
+versions newer than the cutoff remain in `cutoff_advanced_records`, never
+reconstructed as their previous contents. A date window over retained versions
+does not establish a complete external or historical archive.
+
+### Finite partition continuation
+
+The first request attempts the entire window. Only a data-dependent row or byte
+overflow returns `reason=source_limit` with a `continuation` manifest. A global
+permission cap, unavailable source, permission loss or timeout does not offer
+partition fallback. No partial counts or identity metrics accompany a manifest.
+Every follow-up uses the exact returned child cursor, the same fixed dates and
+fence, and fresh actual authorization under all three grants.
+
+Partition membership is the last one or two decimal digits of the stored peer,
+computed as a string. All messages for a peer, across all admitted accounts,
+remain together. Two-digit matching pads short peers with a zero on the left:
+peer `3` belongs to `03`. Refining suffix `3` therefore yields `03,13,…,93`.
+Large identifiers are never cast to floating-point numbers or rounded to
+calculate membership.
+
+The finite tree has maximum depth two, at most 100 successful leaf partitions
+and at most 111 total calls including unsuccessful whole/parent probes. Process
+children only after their parent reports partitionable overflow. A successful
+parent is already a leaf; never request its children or add children to its
+aggregate. A failed two-digit leaf ends that branch with unknown completeness,
+not an assumed zero count of unread messages or peers.
+
+A collector may claim complete retained-window coverage only when every branch
+has a successful, nonoverlapping leaf with the same `selection.fence`, period
+bounds and `scope_fingerprint`. The fingerprint binds canonical current exact
+account/bot/connection admission without exposing those identities. Within this
+complete cover, admission counts, period counters, distinct peers/account-chat
+pairs, identity event/peer metrics and available overlap counts are additive.
+Recompute rates from summed numerators and denominators; do not average rates.
+An unknown optional overlap source keeps that metric unknown.
+
+Each leaf is one consistent read snapshot. Different calls observe mutable
+current rows at their respective `snapshot_at_unix`; the combined report must
+retain the observation-time range and must not claim one immutable snapshot.
+The global import/checkpoint observations, freshness flags, booleans and source
+budgets are not additive. Keep their state/range and report any movement; local
+checkpoint binding still cannot establish outside-source history completeness.
+
 ## Admission and privacy
 
 Only active AnyTour project registry accounts with current approval, provider
 enablement and the same enabled connection enter selection. The first query
-selects at most 25 Business row IDs. SQL then extracts typed, bounded metadata
+selects at most 25 Business row IDs in the original report, or a bounded complete
+date/unknown-clock candidate set in the weekly report. SQL then extracts typed, bounded metadata
 scalars for only those IDs. The application never receives the raw JSON, message
 text, captions, links or attachments through this operation.
 
@@ -98,6 +174,10 @@ projection, exclusions, time boundaries, candidate sentinel, same-observation
 pairing, scopes and revocation. The existing required native MySQL archive suite
 executes the same assertions. The actual MCP test covers successful disclosure
 under the triple grant and withdrawal of each grant after source reads.
+Weekly coverage adds actual date predicates, malformed-clock membership, exact
+whole/partition sums, short and large peer IDs, more than 100 peers in canonical
+visit batches, complete native/test/overlap checks above the old 26-row boundary,
+finite overflow manifests and grant withdrawal before returning a manifest.
 
 Ordinary required source CI and release admission apply. No new worker, queue,
 workflow or schedule is introduced. A source test or successful installation is

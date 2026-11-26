@@ -191,15 +191,27 @@ final class ArchiveResearchReadService
     /** Bounded anonymous overlap only. The caller owns current explicit read authorization. */
     public function businessIdentitySummary(callable $authorize,string $fence,int $cutoff):array
     {
+        return$this->businessIdentityRead($authorize,$fence,$cutoff);
+    }
+
+    /** One complete retained date window or a disjoint decimal-peer suffix of it. */
+    public function businessIdentityWindow(callable $authorize,string $fence,int $from,int $cutoff,?string $peerSuffix=null):array
+    {
+        if($from<946684800||$from>$cutoff||($peerSuffix!==null&&preg_match('/\A[0-9]{1,2}\z/D',$peerSuffix)!==1))self::fail('invalid_arguments');
+        return$this->businessIdentityRead($authorize,$fence,$cutoff,$from,$peerSuffix);
+    }
+
+    private function businessIdentityRead(callable $authorize,string $fence,int $cutoff,?int $from=null,?string $peerSuffix=null):array
+    {
         $now=$this->now();
         if(!$this->qualityHistory)self::fail('forbidden');
         if(!self::decimal($fence,false)||$cutoff<1||$cutoff>$now)self::fail('invalid_arguments');
-        $readRows=0;$readBytes=0;$strictPermissions=null;
-        $read=function(string $sql,array $args=[])use(&$readRows,&$readBytes):array{
+        $readRows=0;$readBytes=0;$strictPermissions=null;$partitionable=false;
+        $read=function(string $sql,array $args=[])use(&$readRows,&$readBytes,&$partitionable):array{
             $q=$this->q($sql,$args);$out=[];
             while($row=$q->fetch(PDO::FETCH_ASSOC)){
                 $readRows++;$readBytes+=strlen(self::json($row));$this->budget();
-                if($readRows>1001||$readBytes>1048576)self::fail('source_limit');
+                if($readRows>1001||$readBytes>1048576)self::fail($partitionable?'window_partition_limit':'source_limit');
                 $out[]=$row;
             }
             return$out;
@@ -219,7 +231,7 @@ final class ArchiveResearchReadService
             // This second, exact-scope check is outside the original snapshot.
             if($strictPermissions!==null&&$strictPermissions!==$permissions())self::fail('permission_changed');
         };
-        return$this->readSnapshot($authority,function()use($read,$permissions,&$strictPermissions,$fence,$cutoff,$now,&$readRows,&$readBytes):array{
+        return$this->readSnapshot($authority,function()use($read,$permissions,&$strictPermissions,$fence,$cutoff,$now,$from,$peerSuffix,&$readRows,&$readBytes,&$partitionable):array{
             $strictPermissions=$permissions();
             if(!$strictPermissions)self::fail('forbidden');
             if(count($strictPermissions)>100)self::fail('source_limit');
@@ -230,15 +242,59 @@ final class ArchiveResearchReadService
                 $accounts[(string)$p['account_id']]=true;
             }
             if(self::decimalGreater($fence,$this->fence()))self::fail('source_changed');
+            // Only data-dependent window work can be divided into peer suffixes.
+            // Global account admission and malformed permissions retain their own stop.
+            $partitionable=$from!==null;
             $this->stage='inventory_page';[$where,$values]=$this->scope($fence,false);
             $where.=" AND HEX(m.project_key)=HEX('anytour') AND HEX(p.project_key)=HEX('anytour')"
                 ." AND m.source_kind='business_message' AND HEX(m.source_kind)=HEX('business_message')"
                 .' AND m.account_id IN ('.implode(',',array_fill(0,count($accounts),'?')).')';
             array_push($values,...array_map('strval',array_keys($accounts)));
-            // Fix the finite IDs before touching JSON. Edits do not become a historical snapshot.
-            $selected=$read('SELECT m.id,m.account_id,m.chat_id,m.message_id,m.version_at,m.is_deleted '
+            if($peerSuffix!==null){
+                $peer='CAST(m.chat_id AS '.($this->mysql?'CHAR':'TEXT').')';
+                // Canonical one-digit peers belong to their zero-padded two-digit
+                // child, so refining parent "3" never loses peer "3" from "03".
+                if(strlen($peerSuffix)===2)$peer=$this->mysql?"CONCAT('0',".$peer.')':"('0'||".$peer.')';
+                $where.=' AND HEX(SUBSTR('.$peer.',-'.strlen($peerSuffix).'))=HEX(?)';$values[]=$peerSuffix;
+            }
+            $selectionLimit=25;$dateFields='';$dateWhere='';$dateValues=[];
+            $period=null;
+            if($from!==null){
+                // Occurrence time exists only in normalized JSON. A version-time
+                // prefilter would silently omit corrupt or inconsistent source clocks.
+                $created=$this->businessScalar('created_at','integer',12);
+                $version=$this->businessScalar('version_at','integer',12);
+                $number=$this->mysql?'UNSIGNED':'INTEGER';
+                $createdNumber='CAST(('.$created.') AS '.$number.')';
+                $versionNumber='CAST(('.$version.') AS '.$number.')';
+                $invalid='('.$created.') IS NULL OR '.$createdNumber.'<946684800 OR '.$createdNumber.'>'.$now
+                    .' OR ('.$version.') IS NULL OR '.$versionNumber.'<'.$createdNumber.' OR '.$versionNumber.'>'.$now
+                    .' OR m.version_at IS NULL OR HEX(CAST(m.version_at AS '.($this->mysql?'CHAR':'TEXT').'))<>HEX(('.$version.'))';
+                $dateWhere=' AND (('.$createdNumber.'>=? AND '.$createdNumber.'<=?) OR '.$invalid.')';
+                $dateValues=[$from,$cutoff];
+                $dateFields=','.$created.' AS selected_created_at,'.$version.' AS selected_version_at';
+                // Reserve a second bounded metadata projection for each selected row.
+                // Remaining native/visit/permission work still shares the same cap.
+                $selectionLimit=max(1,min(501,intdiv(1001-$readRows,2)));
+                $iso=static fn(int $at):string=>(new DateTimeImmutable('@'.$at))->setTimezone(new DateTimeZone('Europe/Moscow'))->format(DATE_ATOM);
+                $period=['from_unix'=>$from,'until_unix'=>$cutoff,'from'=>$iso($from),'until'=>$iso($cutoff),
+                    'timezone'=>'Europe/Moscow','bounds'=>'inclusive','clock_basis'=>'typed_stored_created_at',
+                    'dated_candidate_records'=>0,'unknown_created_at_records'=>0,'invalid_clock_records'=>0,
+                    'unknown_clock_scope'=>'retained_business_records_in_partition_not_proven_in_period','external_history_complete'=>false];
+            }
+            // In window mode the date/unknown-clock predicate applies before LIMIT.
+            // Only typed scalars cross SQL; fixed IDs precede all other JSON metadata.
+            $selected=$read('SELECT m.id,m.account_id,m.chat_id,m.message_id,m.version_at,m.is_deleted'.$dateFields.' '
                 .'FROM telegram_dialogue_messages m'.($this->mysql?' FORCE INDEX (PRIMARY)':'')
-                .' JOIN projects p ON p.project_key=m.project_key WHERE '.$where.' ORDER BY m.id DESC LIMIT 25',$values);
+                .' JOIN projects p ON p.project_key=m.project_key WHERE '.$where.$dateWhere.' ORDER BY m.id DESC LIMIT '.$selectionLimit,[...$values,...$dateValues]);
+            if($from!==null&&count($selected)>=$selectionLimit)self::fail('window_partition_limit');
+            if($period!==null)foreach($selected as$row){
+                $created=self::time($row['selected_created_at']);$version=self::time($row['selected_version_at']);
+                if($created===null||$created<946684800||$created>$now)$period['unknown_created_at_records']++;
+                elseif($version===null||$version<$created||$version>$now||(string)$version!==(string)$row['version_at'])$period['invalid_clock_records']++;
+                elseif($created>=$from&&$created<=$cutoff)$period['dated_candidate_records']++;
+                else self::fail('source_changed');
+            }
             $counts=array_fill_keys(['selected_records','verified_inbound_records','verified_outbound_records',
                 'excluded_deleted_records','excluded_metadata_records','excluded_permission_records','excluded_service_records',
                 'excluded_known_test_records','excluded_role_records','cutoff_advanced_records'],0);
@@ -255,7 +311,7 @@ final class ArchiveResearchReadService
                 $this->stage='history_metadata';
                 foreach($read('SELECT '.implode(',',$fields).' FROM telegram_dialogue_messages m '
                     .'JOIN projects p ON p.project_key=m.project_key WHERE '.$where
-                    .' AND m.id IN ('.implode(',',array_fill(0,count($ids),'?')).') LIMIT 25',[...$values,...$ids])as$row){
+                    .' AND m.id IN ('.implode(',',array_fill(0,count($ids),'?')).') LIMIT '.count($ids),[...$values,...$ids])as$row){
                     $id=(string)$row['id'];if(isset($metadata[$id]))self::fail('source_changed');$metadata[$id]=$row;
                 }
                 if(count($metadata)!==count($ids))self::fail('source_changed');
@@ -291,7 +347,7 @@ final class ArchiveResearchReadService
                     ."WHERE c.project_key='anytour' AND HEX(c.project_key)=HEX('anytour') AND c.channel='telegram' AND HEX(c.channel)=HEX('telegram') "
                     .'AND HEX(c.external_chat_id)=HEX(cc.external_chat_id) AND HEX(cc.external_user_id)=HEX(cc.external_chat_id) '
                     .'AND cc.external_user_id IN ('.$marks.') AND HEX(cc.external_user_id) IN ('
-                    .implode(',',array_fill(0,count($peerIds),'HEX(?)')).') GROUP BY cc.external_user_id LIMIT 26',[...$peerIds,...$peerIds])as$row){
+                    .implode(',',array_fill(0,count($peerIds),'HEX(?)')).') GROUP BY cc.external_user_id LIMIT '.(count($peerIds)+1),[...$peerIds,...$peerIds])as$row){
                     $peer=(string)$row['external_user_id'];if(!in_array($peer,$peerIds,true))self::fail('source_changed');
                     $native[$peer]=(int)$row['known_test'];
                 }
@@ -307,14 +363,14 @@ final class ArchiveResearchReadService
             }
             if(array_sum($counts)!==2*$counts['selected_records'])self::fail('source_changed');
             $history=[];$admittedIds=array_map('strval',array_keys($admitted));
-            if($admittedIds){
-                $limit=1001-$readRows;if($limit<1)self::fail('source_limit');
+            foreach(array_chunk($admittedIds,100)as$batch){
+                $limit=1001-$readRows;if($limit<1)self::fail($partitionable?'window_partition_limit':'source_limit');
                 $candidates=(new AdvertisingVisitRepository($this->pdo))->entryContextCandidates(
                     ['project_key'=>'anytour','source_key'=>'tgmini','platform'=>'telegram','counter_id'=>'98615635'],
-                    $admittedIds,$limit,$read,true);
-                if(!$candidates['complete'])self::fail('source_limit');
+                    $batch,$limit,$read,true);
+                if(!$candidates['complete'])self::fail($partitionable?'window_partition_limit':'source_limit');
                 foreach($candidates['rows']as$row){
-                    $peer=(string)$row['external_user_id'];if(!in_array($peer,$admittedIds,true))self::fail('source_changed');
+                    $peer=(string)$row['external_user_id'];if(!in_array($peer,$batch,true))self::fail('source_changed');
                     $history[$peer][]=$row;
                 }
             }
@@ -330,7 +386,7 @@ final class ArchiveResearchReadService
                             ." WHERE project_key='anytour' AND HEX(project_key)=HEX('anytour') AND platform='telegram' AND HEX(platform)=HEX('telegram')"
                             ." AND counter_id='98615635' AND HEX(counter_id)=HEX('98615635') AND $source='tgmini' AND HEX($source)=HEX('tgmini')"
                             .' AND '.$clock.'>=946684800 AND '.$clock.'<=? AND external_user_id IN ('.$marks.') AND HEX(external_user_id) IN ('
-                            .implode(',',array_fill(0,count($admittedIds),'HEX(?)')).') GROUP BY external_user_id LIMIT 26',[$now,...$admittedIds,...$admittedIds]);
+                            .implode(',',array_fill(0,count($admittedIds),'HEX(?)')).') GROUP BY external_user_id LIMIT '.(count($admittedIds)+1),[$now,...$admittedIds,...$admittedIds]);
                         $found=[];foreach($rows as$r){$id=(string)$r['external_user_id'];if(!in_array($id,$admittedIds,true))self::fail('source_changed');$found[$id]=true;}
                         $overlap[$key.'_peers']=count($found);
                     }catch(PDOException $error){
@@ -358,7 +414,7 @@ final class ArchiveResearchReadService
                 if(!self::businessSchemaUnavailable($error))throw$error;
                 $import['status']='unknown';$import['checkpoint_present']=$import['cursor_bound']=null;
             }
-            return ['ok'=>true,'schema_version'=>1,'operation'=>'business_identity_summary','project_key'=>'anytour',
+            $result=['ok'=>true,'schema_version'=>1,'operation'=>'business_identity_summary','project_key'=>'anytour',
                 'snapshot_at_unix'=>$now,'cutoff_at_unix'=>$cutoff,
                 'selection'=>['fence'=>$fence,'limit'=>25,'order'=>'archive_record_id_desc','historical_snapshot'=>false,
                     'meaning'=>'fixed_ids_current_retained_versions; versions_after_cutoff_excluded'],
@@ -369,6 +425,14 @@ final class ArchiveResearchReadService
                 'identities'=>TelegramBusinessIdentitySummary::aggregate($events,$history,$now),'overlap'=>$overlap,'import'=>$import,
                 'budgets'=>['max_projected_rows'=>1001,'max_projected_bytes'=>1048576,'max_read_seconds'=>self::MAX_SECONDS],
                 'text_materialized'=>false,'model_calls'=>0,'database_writes'=>0,'conversion_uploads'=>0];
+            if($period!==null){
+                $result['operation']='business_identity_window_summary';$result['period']=$period;
+                $result['selection']['limit']=$selectionLimit;$result['selection']['complete']=true;
+                $result['selection']['meaning']='complete_retained_date_candidates_and_unknown_clocks; current_versions_not_historical_snapshot';
+                $result['partition']=['peer_suffix'=>$peerSuffix,'basis'=>'zero_padded_decimal_chat_id_suffix','single_snapshot'=>true];
+                $result['scope_fingerprint']=hash('sha256',self::json($strictPermissions));
+            }
+            return$result;
         },$authority,self::MAX_RESPONSE_BYTES);
     }
 

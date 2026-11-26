@@ -114,6 +114,11 @@ function telegramBusinessIdentityAssertions(PDO $pdo,?callable $fixtureConsumer=
             return(new ArchiveResearchReadService($pdo,static fn()=>$now,null,true))
                 ->operatorBusinessIdentitySummary($authority??static function():void{},$fence,$at??$cutoff);
         };
+        $windowRead=static function(?string $suffix=null,?string $fence=null,?callable $authority=null,?int $from=null,?int $at=null)use($pdo,$cutoff,$now):array {
+            $fence??=(string)$pdo->query('SELECT COALESCE(MAX(id),0) FROM telegram_dialogue_messages')->fetchColumn();
+            return(new ArchiveResearchReadService($pdo,static fn()=>$now,null,true))
+                ->businessIdentityWindow($authority??static function():void{},$fence,$from??$cutoff-7*86400,$at??$cutoff,$suffix);
+        };
         $fingerprint=static function()use($pdo,$tables,$json):string {
             $rows=[]; foreach($tables as$table)$rows[$table]=$pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC);
             return hash('sha256',$json($rows));
@@ -130,7 +135,7 @@ function telegramBusinessIdentityAssertions(PDO $pdo,?callable $fixtureConsumer=
         if($fixtureConsumer!==null) {
             $reset();
             $fixtureConsumer(['pdo'=>$pdo,'message'=>$message,'visit'=>$visit,'native'=>$native,'run'=>$run,
-                'reset'=>$reset,'read'=>$read,'cutoff'=>$cutoff,'now'=>$now,'message_at'=>$messageAt,
+                'reset'=>$reset,'read'=>$read,'window_read'=>$windowRead,'cutoff'=>$cutoff,'now'=>$now,'message_at'=>$messageAt,
                 'account'=>$account,'second_account'=>$secondAccount,'peer'=>$peer,'other_peer'=>$otherPeer,
                 'client_id'=>$cid,'click_id'=>$click]);
             return 0;
@@ -374,6 +379,175 @@ function telegramBusinessIdentityAssertions(PDO $pdo,?callable $fixtureConsumer=
         $reject(static fn()=>$read('0'),'invalid_arguments','zero_fence_is_not_an_unbounded_request');
         $reject(static fn()=>$read('11'),'source_changed','fence_beyond_current_source_is_rejected');
         $reject(static fn()=>$read(null,null,$now+1),'invalid_arguments','future_cutoff_is_rejected');
+
+        // The bounded week uses original typed creation instants, not recent row edits.
+        $from=$cutoff-7*86400;
+        $reset();
+        $message(10,['created_at'=>$from,'version_at'=>$from]);
+        $message(20,['created_at'=>$cutoff,'version_at'=>$cutoff]);
+        $message(30,['created_at'=>$from-1,'version_at'=>$cutoff-1]);
+        $message(40,['created_at'=>$cutoff+1,'version_at'=>$cutoff+1]);
+        $visit(1,['visit_at_unix'=>$from-300,'observed_at_unix'=>$from-299,'received_at_unix'=>$from-298]);
+        TelegramBusinessIdentityTraceStatement::$queries=[];
+        $windowBefore=$fingerprint(); $windowAuthCalls=0;
+        $r=$windowRead(null,null,static function()use($pdo,&$windowAuthCalls):void {
+            if($pdo->inTransaction())throw new RuntimeException('authority_inside_old_snapshot');
+            $windowAuthCalls++;
+        });
+        $windowSql=TelegramBusinessIdentityTraceStatement::$queries;
+        $check($r['operation']==='business_identity_window_summary' && $r['period']['from_unix']===$from
+            && $r['period']['until_unix']===$cutoff && $r['period']['timezone']==='Europe/Moscow'
+            && $r['period']['bounds']==='inclusive','week_has_explicit_original_inclusive_bounds');
+        $check($r['counts']['selected_records']===2 && $r['counts']['verified_inbound_records']===2
+            && $r['period']['dated_candidate_records']===2 && $r['period']['unknown_created_at_records']===0,
+            'week_keeps_both_endpoints_excludes_old_edited_and_future_created');
+        $check($metric($r,'verified_prior_match')===2 && $metric($r,'verified_prior_match','unique_peers')===1,
+            'week_identity_preserves_event_and_peer_denominators');
+        $check($r['selection']['complete']===true && $r['selection']['historical_snapshot']===false
+            && $r['partition']['peer_suffix']===null && $r['partition']['single_snapshot']===true,
+            'complete_current_week_candidates_are_not_an_immutable_history_claim');
+        $check($r['budgets']['max_projected_rows']===1001 && $r['budgets']['max_projected_bytes']===1048576
+            && (float)$r['budgets']['max_read_seconds']===8.0 && $r['selection']['limit']<=500,
+            'week_retains_original_finite_resource_caps');
+        $check($windowAuthCalls===2 && !$pdo->inTransaction() && $windowBefore===$fingerprint(),
+            'week_rechecks_authority_and_leaves_sources_unchanged');
+        $check(!array_filter($windowSql,static fn(string $q):bool=>preg_match('/(?:SELECT|,)\s*m\.record_json\s*(?:,|AS\b|FROM\b)/i',$q)===1
+                || preg_match('/\$\.(?:text|caption|attachments|links)/i',$q)===1),'week_never_selects_message_content');
+        $private($r); $counts($r);
+
+        foreach(['missing'=>null,'string'=>(string)$messageAt,'text_date'=>'2026-11-26 11:04:00',
+            'zero'=>0,'before_epoch'=>1,'after_snapshot'=>$now+1]as$label=>$invalidCreated) {
+            $reset(); $message(10,['created_at'=>$invalidCreated]); $r=$windowRead();
+            $check($r['counts']['selected_records']===1 && $r['counts']['excluded_metadata_records']===1
+                && $r['counts']['verified_inbound_records']===0 && $r['period']['dated_candidate_records']===0
+                && $r['period']['unknown_created_at_records']===1 && $r['period']['invalid_clock_records']===0,
+                'week_unknown_creation_is_not_a_known_week_event_'.$label);
+        }
+        $reset(); $message(10); $run("UPDATE telegram_dialogue_messages SET record_json='{' WHERE id=10"); $r=$windowRead();
+        $check($r['period']['unknown_created_at_records']===1 && $r['counts']['excluded_metadata_records']===1
+            && $r['period']['unknown_clock_scope']==='retained_business_records_in_partition_not_proven_in_period',
+            'week_malformed_source_clock_has_explicit_unbounded_date_coverage');
+        $reset(); $message(10,['created_at'=>$from+1,'version_at'=>$from-1]); $r=$windowRead();
+        $check($r['counts']['selected_records']===1 && $r['period']['invalid_clock_records']===1
+            && $r['period']['dated_candidate_records']===0 && $r['counts']['excluded_metadata_records']===1,
+            'week_does_not_drop_contradictory_clock_using_version_lower_bound');
+        $reset(); $message(10,['created_at'=>$from-1,'version_at'=>null]); $r=$windowRead();
+        $check($r['period']['invalid_clock_records']===1 && $r['period']['dated_candidate_records']===0
+            && $r['counts']['excluded_metadata_records']===1,'week_old_creation_with_unknown_version_remains_unknown');
+        $reset(); $message(10,['version_at'=>$cutoff+1]); $r=$windowRead();
+        $check($r['period']['dated_candidate_records']===1 && $r['counts']['cutoff_advanced_records']===1
+            && $r['counts']['verified_inbound_records']===0,'week_rejects_current_versions_created_by_later_edits');
+        $reset(); $message(10,['direction'=>['inbound']]); $r=$windowRead();
+        $check($r['period']['dated_candidate_records']===1 && $r['counts']['excluded_metadata_records']===1
+            && $r['counts']['verified_inbound_records']===0,'week_keeps_metadata_rejection_separate_from_date_coverage');
+
+        // Decimal suffix partitions keep every message for a peer together across accounts.
+        $reset();
+        $partitionPeers=['700000020003','700000020013','700000030013','700000020023',
+            '700000020130','700000020000','9007199254741003','3'];
+        foreach($partitionPeers as$i=>$who) {
+            $message(10+$i,['chat_id'=>$who,'sender_id'=>$who]);
+            $visit($i+1,['external_user_id'=>$who,'client_id'=>'1792940000123456789'.(string)$i]);
+        }
+        $message(30,['chat_id'=>$partitionPeers[0],'sender_id'=>$partitionPeers[0]]);
+        $message(31,['chat_id'=>$partitionPeers[0],'sender_id'=>$partitionPeers[0],
+            'account_id'=>$secondAccount,'bot_key'=>'FixtureBotB','connection_id'=>'fixture-connection-b']);
+        $message(32,['chat_id'=>'700000040003','sender_id'=>'700000040003','created_at'=>null]);
+        $native(1001,$partitionPeers[0]);
+        $run('INSERT INTO advertising_signals(id,project_key,source_key,platform,counter_id,external_user_id,occurred_at_unix) VALUES(?,?,?,?,?,?,?)',
+            [1,'anytour','tgmini','telegram','98615635',$partitionPeers[0],$messageAt]);
+        $run('INSERT INTO max_channel_conversion_outbox(id,project_key,identity_source_key,platform,counter_id,external_user_id,event_unix,state) VALUES(?,?,?,?,?,?,?,?)',
+            [1,'anytour','tgmini','telegram','98615635',$partitionPeers[0],$messageAt,'pending']);
+        $whole=$windowRead(); $parts=[];
+        for($digit=0;$digit<10;$digit++)$parts[]=$windowRead((string)$digit);
+        $assertPartition=static function(array $parent,array $children,string $label)use($check):void {
+            foreach(['counts','distinct']as$section) {
+                $sums=array_fill_keys(array_keys($parent[$section]),0);
+                foreach($children as$child)foreach($sums as$key=>$unused)$sums[$key]+=$child[$section][$key];
+                $check($sums===$parent[$section],$label.'_'.$section.'_additive_without_duplicates');
+            }
+            foreach(['events','unique_peers']as$unit) {
+                $sums=array_fill_keys(array_keys($parent['identities'][$unit]),0);
+                foreach($children as$child)foreach($sums as$key=>$unused)$sums[$key]+=$child['identities'][$unit][$key];
+                $check($sums===$parent['identities'][$unit],$label.'_'.$unit.'_additive_without_duplicates');
+            }
+            foreach(['native_bot_peers','signal_peers','outbox_peers']as$key)
+                if(array_sum(array_column(array_column($children,'overlap'),$key))!==$parent['overlap'][$key])
+                    throw new RuntimeException('business_identity_check:partition_overlap_mismatch');
+            foreach(['dated_candidate_records','unknown_created_at_records','invalid_clock_records']as$key)
+                if(array_sum(array_column(array_column($children,'period'),$key))!==$parent['period'][$key])
+                    throw new RuntimeException('business_identity_check:partition_period_mismatch');
+            $check(!array_filter($children,static fn(array $child):bool=>$child['scope_fingerprint']!==$parent['scope_fingerprint'])
+                && array_sum(array_column(array_column($children,'identities'),'candidate_observation_rows'))===$parent['identities']['candidate_observation_rows'],
+                $label.'_one_scope_and_complete_candidate_history');
+        };
+        $assertPartition($whole,$parts,'one_digit_partition');
+        $check($whole['counts']['verified_inbound_records']===10 && $whole['distinct']['telegram_peers']===8
+            && $whole['distinct']['account_chat_pairs']===9,'whole_week_preserves_multiple_messages_and_cross_account_pairs');
+        $check($whole['period']['unknown_created_at_records']===1 && $whole['counts']['excluded_metadata_records']===1
+            && $whole['period']['dated_candidate_records']===10,'undated_partition_member_is_not_added_to_known_week_totals');
+        $parentThree=$windowRead('3'); $childrenThree=[];
+        for($digit=0;$digit<10;$digit++)$childrenThree[]=$windowRead((string)$digit.'3');
+        $assertPartition($parentThree,$childrenThree,'two_digit_partition');
+        $check($childrenThree[0]['partition']['peer_suffix']==='03' && $childrenThree[0]['distinct']['telegram_peers']===3
+            && $childrenThree[0]['counts']['verified_inbound_records']===5,'leading_zero_suffix_preserves_large_ids_and_short_peer_three');
+        $check($childrenThree[1]['distinct']['telegram_peers']===2 && $childrenThree[1]['counts']['verified_inbound_records']===2,
+            'distinct_peers_with_same_two_digit_suffix_are_not_collapsed');
+        $thirty=$windowRead('30');
+        $check($thirty['counts']['verified_inbound_records']===1 && $parentThree['counts']['verified_inbound_records']===8,
+            'child_digit_is_prepended_not_appended_to_parent_suffix');
+        $private($whole); $private($parentThree); $private($childrenThree[0]);
+
+        // More than one canonical visit batch is still one complete bounded aggregate.
+        $reset();
+        for($i=1;$i<=102;$i++) {
+            $who='71000002'.str_pad((string)$i,4,'0',STR_PAD_LEFT);
+            $message($i,['chat_id'=>$who,'sender_id'=>$who]); $visit($i,['external_user_id'=>$who]);
+            $native(1000+$i,$who,$i===102?1:0);
+            $run('INSERT INTO advertising_signals(id,project_key,source_key,platform,counter_id,external_user_id,occurred_at_unix) VALUES(?,?,?,?,?,?,?)',
+                [$i,'anytour','tgmini','telegram','98615635',$who,$messageAt]);
+            $run('INSERT INTO max_channel_conversion_outbox(id,project_key,identity_source_key,platform,counter_id,external_user_id,event_unix,state) VALUES(?,?,?,?,?,?,?,?)',
+                [$i,'anytour','tgmini','telegram','98615635',$who,$messageAt,'pending']);
+        }
+        $r=$windowRead();
+        $check($r['counts']['verified_inbound_records']===101 && $r['distinct']['telegram_peers']===101
+            && $metric($r,'verified_prior_match')===101 && $r['identities']['candidate_observation_rows']===101,
+            'week_joins_more_than_one_hundred_peers_in_complete_canonical_batches');
+        $check($r['counts']['excluded_known_test_records']===1 && $r['overlap']['native_bot_peers']===101
+            && $r['overlap']['signal_peers']===101 && $r['overlap']['outbox_peers']===101,
+            'week_native_test_and_overlap_are_not_truncated_at_twenty_six_peers');
+
+        $reset();
+        for($i=1;$i<=1100;$i++) {
+            $who='72000002'.str_pad((string)$i,4,'0',STR_PAD_LEFT);
+            $message($i,['chat_id'=>$who,'sender_id'=>$who]);
+        }
+        $reject(static fn()=>$windowRead(),'window_partition_limit','week_overflow_never_returns_partial_zeroes_or_truncated_counts');
+        $r=$windowRead('0');
+        $check($r['selection']['complete']===true && $r['counts']['verified_inbound_records']===110
+            && $r['distinct']['telegram_peers']===110,'bounded_suffix_can_complete_after_whole_week_limit');
+        $reset();
+        for($i=1;$i<=1100;$i++)$message($i,['chat_id'=>'73000002'.$i.'03','sender_id'=>'73000002'.$i.'03']);
+        $reject(static fn()=>$windowRead('03'),'window_partition_limit','two_digit_leaf_retains_the_original_cap');
+
+        $reset(); $message(10);
+        for($i=1;$i<=99;$i++) {
+            $a='74000002'.str_pad((string)$i,4,'0',STR_PAD_LEFT); $bot='FixturePermission'.$i; $connection='fixture-permission-'.$i;
+            $run("INSERT INTO telegram_archive_accounts VALUES('anytour',?,?,?,1,1,NULL)",[$bot,$a,$connection]);
+            $run("INSERT INTO telegram_dialogue_connections VALUES('anytour',?,?,?,1)",[$bot,$connection,$a]);
+        }
+        $reject(static fn()=>$windowRead(),'source_limit','global_permission_overflow_is_not_a_splittable_window');
+
+        $reset(); $message(10); $visit(1);
+        foreach(['','003','-1','1x',' 3']as$i=>$invalidSuffix)
+            $reject(static fn()=>$windowRead($invalidSuffix),'invalid_arguments','week_rejects_invalid_suffix_'.$i);
+        $reject(static fn()=>$windowRead(null,null,null,$cutoff+1),'invalid_arguments','week_rejects_reversed_interval');
+        $weekRevocations=0;
+        $reject(static fn()=>$windowRead('1',null,static function()use(&$weekRevocations,$pdo):void {
+            if(++$weekRevocations===2)$pdo->exec('UPDATE telegram_archive_accounts SET approved=0');
+        }),'permission_changed','week_partition_withholds_result_after_permission_revocation');
+        $check(!$pdo->inTransaction(),'week_refusal_releases_only_its_owned_transaction');
+        $reset(); $message(10);
 
         // Optional source absence retains explicit unknowns; mandatory history still fails closed.
         $pdo->exec('DROP TABLE advertising_signals'); $r=$read();
