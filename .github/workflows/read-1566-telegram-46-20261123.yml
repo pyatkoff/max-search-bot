@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '18f22aa04c9a21ba4504f35cb91eb2226978e02c' &&
+      github.event.before == '1f2c768fabec34afe3f82743faca0daed167d011' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -27,7 +27,7 @@ jobs:
       - name: Check out the exact repaired HOTELS branch
         uses: actions/checkout@v4
         with:
-          ref: 9369c9fa0466baaa95a72a122c59e52f3832a898
+          ref: c8282ba8b40e8852087b5ae803727f459d8a0b59
           path: after
           persist-credentials: false
       - uses: shivammathur/setup-php@v2
