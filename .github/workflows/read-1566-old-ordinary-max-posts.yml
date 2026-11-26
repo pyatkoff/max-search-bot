@@ -1,4 +1,4 @@
-name: "#1566 Validate native photo and edit rights for the exact Rixos pair"
+name: "#1566 Read native proof for Stella Makadi and the six-photo MAX target"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'd80a8b947405d9c632a41c82db441f786e4b5ba2' &&
+      github.event.before == '923a8b6a1ca70a1f6590683c1afcd9199a3e5529' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -27,7 +27,7 @@ jobs:
       - name: Checkout exact installed provenance source
         uses: actions/checkout@v4
         with:
-          ref: aceadeddd35a89307a9a307e891214d9c0be2af6
+          ref: 664390965a45cdcf5600ea6bbfa8ce1bf47d78e2
           persist-credentials: false
       - name: Verify current main and accepted application without mutations
         env:
@@ -35,10 +35,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = 'aceadeddd35a89307a9a307e891214d9c0be2af6'
+          test "$(git rev-parse HEAD)" = '664390965a45cdcf5600ea6bbfa8ce1bf47d78e2'
           node - <<'NODE'
           const R = require('./tools/deployment_release')
-          const expected = 'aceadeddd35a89307a9a307e891214d9c0be2af6'
+          const expected = '664390965a45cdcf5600ea6bbfa8ce1bf47d78e2'
           async function read() {
             const api = R.makeReadApi(process.env.GITHUB_TOKEN)
             const current = async () => (await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha
@@ -54,8 +54,8 @@ jobs:
                 receipts.artifacts[0].expired || receipts.artifacts[0].name!=='issue-1566-main-max-archive-inventory') throw Error('previous_archive_unverified')
                         {
               if (await current() !== expected) throw Error('changed_release')
-              const install = await api('GET',R.API_ROOT+'/actions/runs/45821449485')
-              if (install.id !== 45821449485 || install.repository.id !== 1342493152 ||
+              const install = await api('GET',R.API_ROOT+'/actions/runs/45899459761')
+              if (install.id !== 45899459761 || install.repository.id !== 1342493152 ||
                   install.head_sha !== expected || install.run_attempt !== 1 ||
                   install.event !== 'push' || install.path !== '.github/workflows/deploy.yml') throw Error('installation_identity_changed')
               if (install.status === 'completed') {
@@ -71,7 +71,7 @@ jobs:
                   if (record.blob !== latest.blob || record.record_digest !== latest.record_digest ||
                       await current() !== expected) throw Error('accepted_release_changed')
                   require('node:fs').appendFileSync(process.env.GITHUB_ENV, 'VERIFIED_MAX_APP='+actual.application_sha+'\n')
-                  console.log('MAX_RIXOS_RELEASE_ACCEPTED='+expected)
+                  console.log('MAX_STELLA_RELEASE_ACCEPTED='+expected)
                   return
                 } catch (error) {
                   if (!['release_pending','diagnostics_unconfirmed','accepted_release_mismatch','record_changed'].includes(error.code || error.message)) throw error
@@ -91,7 +91,7 @@ jobs:
       - name: Stage read-only invocation of the existing hotel observer
         shell: bash
         env:
-          NATIVE_REPO: aceadeddd35a89307a9a307e891214d9c0be2af6
+          NATIVE_REPO: 664390965a45cdcf5600ea6bbfa8ce1bf47d78e2
         run: |
           set -euo pipefail
           umask 077
@@ -127,8 +127,14 @@ jobs:
                   $out['channel_config_version']=(int)$channel['config_version'];
                   maxTransferNativeEditor($channel,['channel_id'=>MAIN_MAX,'config_version'=>$out['channel_config_version']]);
                   $out['target_editor_rights']=true;
-                  foreach (json_decode('[{"hotel_id":2575,"name":"Rixos Al Mairid Ras Al Khaimah","source_id":1342,"source_mid":"mid.ffffb6caf0606fed01a1d46c23c52cc7","source_url":"https://max.ru/channel_anytour/AaHUbCPFLMc","target_mid":"mid.ffffc1752b045fed019aca84b9721cb5","target_url":"https://max.ru/anytour/AZrKhLlyHLU","target_ms":1764334287218,"target_fingerprint":"e3795cf0d15eac4e3ac05abea6a3d79d9b706416b7926a7d6234bd8f6c5658cc"}]',true,16,JSON_THROW_ON_ERROR) as $row) {
+                  foreach (json_decode('[{"hotel_id":466,"name":"Stella Makadi Beach Resort & Spa","source_id":1057,"source_url":"https://max.ru/channel_anytour/AaG31NW7Nsc","target_mid":"mid.ffffc1752b045fed01a0aa565299012a","target_url":"https://max.ru/anytour/AaCqVlKZASo","target_ms":1789564179097,"target_fingerprint":"3104fbf1774231d929e73be1ab8a798957954757269336833ed428ab64549b2d","target_photo_count":6}]',true,16,JSON_THROW_ON_ERROR) as $row) {
                       try {
+                          $source=$registry->publication($row['source_id']);
+                          $mid=$source['message_id']??null;
+                          maxEditNeed(is_string($mid)&&maxEditUrl($mid,HOTEL_MAX)===$row['source_url'],
+                              'source_url_registry_mismatch');
+                          $row['source_mid']=$mid;
+                          $out['resolved_source_mid']=$mid;
                           $proof=maxBatchObservePair($db,$registry,$channel,$row);
 
                           $identity=[];foreach (['hotel_id','source_id','source_mid','native_source_date_ms','source_version','source_content_sha256','source_photo_sha256','source_caption_sha256','target_mid'] as $key) $identity[]=$proof[$key]??null;
@@ -217,6 +223,7 @@ jobs:
           print('MAX_ALBUM_SCOPED_READ='+json.dumps(d,ensure_ascii=False,separators=(',',':')))
           print('MAX_ALBUM_SCOPED_SHA256='+hashlib.sha256(raw).hexdigest())
           assert d['ok'] and d['provider_writes']==0 and d['db_writes']==0
+          assert [row['hotel_id'] for row in d['rows']] == [466] or set(d.get('row_errors',{})) == {'466'}
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
