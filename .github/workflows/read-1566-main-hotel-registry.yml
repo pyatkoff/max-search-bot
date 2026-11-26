@@ -1,4 +1,4 @@
-name: "HOTEL MAX 1741 — fresh ordinary release admission"
+name: "HOTEL MAX 1741 — continuing release admission"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.repository.id == 1342493152 && github.event.created == false &&
-      github.event.forced == false && github.event.before == '0adac62ca03184afc5bb2f670fc61119be2c9dfc' &&
+      github.event.forced == false && github.event.before == '091566f81ae6e11098a9d66d335a59912188b0d6' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
