@@ -150,6 +150,8 @@ jobs:
               ;;
             regional-access)
               php tests/mysql/manager-regional-routing.php --required-native
+              php -r '$pdo = new PDO("mysql:host=127.0.0.1;port=3306;charset=utf8mb4", getenv("PREPARED_REPLY_MYSQL_USER"), getenv("PREPARED_REPLY_MYSQL_PASS"), [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]); $pdo->exec("CREATE DATABASE maxbot_prepared_test_development CHARACTER SET utf8mb4");'
+              export PREPARED_REPLY_MYSQL_DSN='mysql:host=127.0.0.1;port=3306;dbname=maxbot_prepared_test_development;charset=utf8mb4'
               php tests/mysql/development-work-queue.php
               php tests/mysql/development-work-events.php
               ;;
