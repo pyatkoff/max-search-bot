@@ -1,4 +1,4 @@
-name: "HOTEL: test the new public reader on the original Amilla production post"
+name: "#1566 Prepare the exact Amilla Maldives route from the genuine late public receipt"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == 'bb16366ea5070f029b846ccbe18f687b6dbffa9c' && github.run_attempt == 1
+      github.event.before == 'e0fb2920ef2105dcffc0a56b8f45367626d1bd25' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
     env:
@@ -24,7 +24,7 @@ jobs:
       - name: Check out the trusted public verifier
         uses: actions/checkout@v4
         with:
-          ref: 5ede36f16dce1ac95a81b91d5495ea5bc6d4d65f
+          ref: 61e05da2e6bcf88082a9a6bb46858d05040a603f
           persist-credentials: false
       - name: Authenticate the original transfer, job and immutable artifact
         env:
@@ -122,18 +122,49 @@ jobs:
           php-version: '8.3'
           extensions: curl, dom, mbstring
           coverage: none
-      - name: Read and verify published Telegram cards
+      - name: Authenticate the late observer and build route files read only
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
           set -euo pipefail
-          status=0
-          php tools/verify_ranked_telegram_public.php || status=$?
-          jq -c . ranked-public-readback.json
-          test "$status" -eq 0
-      - name: Preserve independent late public evidence separately
-        if: ${{ !cancelled() && hashFiles('ranked-public-readback.json') != '' }}
+          python3 - <<'PY'
+          import hashlib,io,json,os,subprocess,zipfile,pathlib
+          def read(p):
+              return subprocess.check_output(['gh','api',f"repos/{os.environ['GITHUB_REPOSITORY']}/{p}"],timeout=25)
+          r=json.loads(read('actions/runs/45802597406'))
+          obs=json.loads(read('actions/runs/45802597406/attempts/1/jobs?per_page=100'))
+          a=json.loads(read('actions/artifacts/15108431030'))
+          digest='761505488982489ab39bbf2641823f4fdbae98034cc5f2be30738b32306cffe6'
+          assert r['actor']['id']==226193297 and r['head_sha']=='e0fb2920ef2105dcffc0a56b8f45367626d1bd25' and r['event']=='push' and r['run_attempt']==1
+          assert r['conclusion']=='success' and obs['total_count']==1 and obs['jobs'][0]['id']==139849399157
+          assert a['workflow_run']['id']==r['id'] and not a['expired'] and a['name']=='ranked-public-readback-late-tested-45801952244'
+          assert a['digest']=='sha256:'+digest
+          body=read('actions/artifacts/15108431030/zip')
+          assert len(body)==a['size_in_bytes'] and hashlib.sha256(body).hexdigest()==digest
+          with zipfile.ZipFile(io.BytesIO(body)) as z:
+              assert z.namelist()==['ranked-public-readback.json'] and z.testzip() is None
+              packet=z.read('ranked-public-readback.json')
+          pathlib.Path('ranked-public-readback.json').write_bytes(packet)
+          PY
+          curl --fail --silent --show-error --proto '=https' --max-time 30 --max-filesize 4000000 \
+            --output "$RUNNER_TEMP/hotel-source.xml" https://app.anytoour.ru/feed/hotel-posts-telegram.xml
+          GITHUB_RUN_ID=45802597406 GITHUB_SHA=e0fb2920ef2105dcffc0a56b8f45367626d1bd25 PUBLIC_ARTIFACT_ID=15108431030 \
+            PUBLIC_ARTIFACT_DIGEST=sha256:761505488982489ab39bbf2641823f4fdbae98034cc5f2be30738b32306cffe6 \
+            python3 tools/prepare_ranked_telegram_routes.py "$RUNNER_TEMP/hotel-source.xml" ranked-public-readback.json ranked-route-preview
+          jq -e '.changes|length==1 and .[0].offer_id=="tg_42647" and .[0].post_url=="https://t.me/anytour/957"' ranked-route-preview/route-candidate.json
+          jq -c '{changes,held,feed,public,native}' ranked-route-preview/route-candidate.json
+          python3 - <<'PY'
+          import json
+          from tools.verify_installed_telegram_routes import get_ad
+          pairs=[('tg_2490','912'),('tg_42647','957')]
+          rows=[get_ad({'offer_id':oid,'post_url':'https://t.me/anytour/'+mid}) for oid,mid in pairs]
+          print(json.dumps({'live_routes':rows,'read_only':True,'route_writes':0},ensure_ascii=False))
+          PY
+      - name: Preserve a prepared route for the existing ROUTE owner
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ranked-public-readback-late-tested-45801952244
-          path: ranked-public-readback.json
+          name: issue-1566-amilla-route-prepared-from-late-receipt
+          path: ranked-route-preview/
           retention-days: 7
           if-no-files-found: error
