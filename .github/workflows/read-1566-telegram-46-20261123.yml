@@ -1,4 +1,4 @@
-name: "#1566 Build and validate the Vilamendhoo data packet from the original receipt"
+name: "#1566 Verify Vilamendhoo on post 912 after the initial public read"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,83 +13,127 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '60b9a3583ee89fcbf5723dc06530b433d9905f9d' && github.run_attempt == 1
+      github.event.before == '1dab4b36b9d98a98547a7632d6294f54fa6e70db' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
+    env:
+      NATIVE_RUN_ID: "45799514607"
+      NATIVE_REPOSITORY_SHA: "a7da3955e984c3921fbf52ad3a9e1bb7e25f63a1"
+      NATIVE_BRANCH: "ops/anytour-hotel-ranked-data-1a2804c7f72bb3b049c09e42a17ea87eecb5822eee28c17c510c614121185eb7"
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out the trusted public verifier
+        uses: actions/checkout@v4
         with:
           ref: 61e05da2e6bcf88082a9a6bb46858d05040a603f
           persist-credentials: false
-      - name: Compile the exact approved pair, with zero provider and production writes
+      - name: Authenticate the original transfer, job and immutable artifact
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
         run: |
           set -euo pipefail
-          python3 - <<'PY'
-          import hashlib, io, json, os, subprocess, zipfile
-          from pathlib import Path
-          from tools.validate_ranked_telegram_input import git_blob, registry, compare, inspect_input
-          def gh(path):
-              return subprocess.check_output(['gh','api',f"repos/{os.environ['GITHUB_REPOSITORY']}/{path}"],timeout=25)
-          def sha(value):
-              return hashlib.sha256(value).hexdigest()
-          def pack(document):
-              return json.dumps(document,ensure_ascii=False,separators=(',',':')).encode()
-          run=json.loads(gh('actions/runs/45799015244'))
-          job=json.loads(gh('actions/jobs/139837020284'))
-          step='Read source 685 and commercial post 912 without provider writes'
-          assert run['conclusion']=='success' and run['head_sha']=='60b9a3583ee89fcbf5723dc06530b433d9905f9d' and run['actor']['id']==226193297 and run['run_attempt']==1
-          assert job['conclusion']=='success' and job['run_id']==run['id'] and [s['conclusion'] for s in job['steps'] if s['name']==step]==['success']
-          info=json.loads(gh('actions/artifacts/15105658225'))
-          assert not info['expired'] and info['workflow_run']['id']==run['id'] and info['size_in_bytes']==5939
-          expected='fd89fb3296ee4a6b091e5f1b3ef718b52ea419cc498c56ddac6b6899a95f5e94'
-          raw=gh('actions/artifacts/15105658225/zip')
-          assert len(raw)==5939 and info['digest']=='sha256:'+expected and sha(raw)==expected
-          Path('pub').mkdir()
-          archive=Path('pub/original.zip')
-          archive.write_bytes(raw)
-          with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
-              assert zipped.namelist()==['registry.json'] and zipped.testzip() is None
-              raw_registry=zipped.read('registry.json')
-          data=json.loads(raw_registry)
-          assert len(data['rows'])==1 and data['write_admission'] is False
-          proof={'run_id':str(run['id']),'run_attempt':1,'artifact_id':info['id'],'artifact_zip_sha256':expected,
-                 'registry_sha256':sha(raw_registry),'checkpoint_sha256':data['checkpoint_sha256'],
-                 'repository_sha':'61e05da2e6bcf88082a9a6bb46858d05040a603f','application_sha':'61e05da2e6bcf88082a9a6bb46858d05040a603f'}
-          index={'schema':1,'native_preflight':proof,
-                 'native_source':{'head_sha':run['head_sha'],'job_id':job['id'],'step':step,'artifact_name':info['name']},
-                 'native_zip_bytes':len(raw),'plans':[]}
-          by_hotel,channel=registry(archive,index)
-          prior=by_hotel[2490]
-          assert prior['source_message_id']=='685' and prior['target_message_id']=='912'
-          assert all(x is True for x in prior['prepared_assessment']['checks'].values())
-          source=prior['source_public']; target=prior['target_public']; native=prior['source_native']; photo=native['attachments'][0]
-          assert target['caption_sha256']=='3cd892fca7a6be4c3e7acff75c693632e3d8b4b6503df46ebe102c8ebf43ac62'
-          assert target['photo_marker_sha256']=='6a6cfef412570cbe77299c1590db24716f89330b07613b5411ae38cb4d35b049'
-          caption='Vilamendhoo Maldives Resort Island\n📍 Атолл Южный Ари, Мальдивы.\n\nОстровной курорт для тех, кто любит снорклинг. Домашний риф, песчаный берег и виллы у лагуны позволяют проводить большую часть дня у воды.\n\nПодберём тур на ваши даты.'
-          approved={'hotel_id':2490,'source_message_id':'685','source_publication_id':native['publication_id'],
-                    'source_version_id':native['version_id'],'source_content_hash':native['content_hash'],
-                    'source_caption_sha256':source['caption_sha256'],'source_file_id_sha256':photo['file_id_sha256'],
-                    'source_file_unique_id_sha256':photo['file_unique_id_sha256'],'source_photo_marker_sha256':source['photo_marker_sha256'],
-                    'target_message_id':'912','target_published_unixtime':target['published_unixtime'],
-                    'target_caption_sha256':target['caption_sha256'],'target_photo_marker_sha256':target['photo_marker_sha256'],
-                    'target_config_version':channel['config_version'],'next_caption':caption,'next_caption_sha256':sha(caption.encode()),
-                    'button_text':channel['button_text'],'bot_url':channel['bot_url'],'price_template':'','price_record_id':None}
-          compare(approved,prior,channel)
-          plan={'schema':1,'operation':'anytour_hotel_transfer_ranked_45799015244','execution':'explicit_owner_apply_only',
-                'native_preflight':proof,'monitor_source_url':None,'price_policy':'omit_previous_price_keep_hotel_calculation_button','rows':[approved]}
-          plan_path='config/anytour_ranked_pairs_45799015244.json'
-          index_path='config/anytour_ranked_index_45799015244.json'
-          pb=pack(plan)
-          Path(plan_path).write_bytes(pb)
-          index['plans']=[{'path':plan_path,'bytes':len(pb),'git_blob':git_blob(pb),'sha256':sha(pb)}]
-          ib=pack(index)
-          Path(index_path).write_bytes(ib)
-          out=inspect_input(sha(ib),archive,Path.cwd(),index_path)
-          assert len(out['chunks'])==1 and out['chunks'][0]['messages']==['912']
-          for path, raw in ((plan_path,pb),(index_path,ib)):
-              print(json.dumps({'file':path,'bytes':raw.decode(),'sha256':sha(raw),'git_blob':git_blob(raw)},ensure_ascii=False,separators=(',',':')))
-          print(json.dumps(out,ensure_ascii=False))
+          [[ "$NATIVE_RUN_ID" =~ ^[1-9][0-9]{0,19}$ && "$NATIVE_REPOSITORY_SHA" =~ ^[0-9a-f]{40}$ ]]
+          api="repos/$GITHUB_REPOSITORY/actions"
+          run="$api/runs/$NATIVE_RUN_ID"
+          gh api "$run" > "$RUNNER_TEMP/native-run.json"
+          jq -e --arg run "$NATIVE_RUN_ID" --arg sha "$NATIVE_REPOSITORY_SHA" --arg branch "$NATIVE_BRANCH" --arg repo "$GITHUB_REPOSITORY" \
+            '(.id|tostring)==$run and .head_repository.full_name==$repo and .repository.full_name==$repo and
+             .head_sha==$sha and .head_branch==$branch and .event=="push" and .run_attempt==1 and
+             .actor.id==226193297 and .triggering_actor.id==226193297 and .path==".github/workflows/edit-1566-ranked-46-historical-telegram.yml" and
+             .status=="completed" and (.conclusion=="success" or .conclusion=="failure")' "$RUNNER_TEMP/native-run.json" >/dev/null
+          case "$NATIVE_BRANCH" in
+            ops/anytour-hotel-ranked-46-apply-20261123) operation=hotel_ranked_46_transfer ;;
+            ops/anytour-hotel-ranked-plan-*)
+              index_sha=${NATIVE_BRANCH#ops/anytour-hotel-ranked-plan-}
+              [[ "$index_sha" =~ ^[a-f0-9]{64}$ ]]
+              operation=hotel_ranked_approved_input ;;
+            ops/anytour-hotel-ranked-data-*)
+              index_sha=${NATIVE_BRANCH#ops/anytour-hotel-ranked-data-}
+              [[ "$index_sha" =~ ^[a-f0-9]{64}$ ]]
+              operation=hotel_ranked_approved_input ;;
+            ops/anytour-hotel-ranked-37-continue-20261123) operation=hotel_ranked_37_continuation ;;
+            ops/anytour-hotel-ranked-resume-20261124) operation=hotel_ranked_resume ;;
+            ops/anytour-hotel-ranked-after-*)
+              parent=${NATIVE_BRANCH#ops/anytour-hotel-ranked-after-}
+              [[ "$parent" =~ ^[1-9][0-9]{0,15}$ && "$parent" != "$NATIVE_RUN_ID" ]]
+              printf 'NATIVE_PARENT_RUN_ID=%s\n' "$parent" >> "$GITHUB_ENV"
+              operation=hotel_ranked_unreached
+              ;;
+            *) exit 2 ;;
+          esac
+          index_sha=${index_sha:-30d58e6649877a0eb07deb7e2fddcfa99c92081aac5fbef8c3c2b1d7a4a92833}
+          data_root=""
+          if [[ "$NATIVE_BRANCH" == ops/anytour-hotel-ranked-data-* ]]; then
+            data_root="$RUNNER_TEMP/ranked-data"
+            export RANKED_DATA_ROOT="$data_root"
+            index=$(python3 - "$index_sha" "$data_root" <<'PY'
+          import os, pathlib, sys
+          sys.path.insert(0,'tools')
+          from collect_ranked_route_manifests import api
+          from prepare_ranked_telegram_routes import materialize_ranked_data
+          print(materialize_ranked_data(api, os.environ['NATIVE_REPOSITORY_SHA'], sys.argv[1], pathlib.Path(sys.argv[2]))['path'])
           PY
+            )
+            printf 'RANKED_DATA_ROOT=%s\nRANKED_INDEX_SHA=%s\n' "$data_root" "$index_sha" >> "$GITHUB_ENV"
+          else
+          index=$(jq -er --arg sha "$index_sha" '[.[] | select(.sha256==$sha)] | select(length==1) | .[0].path' config/anytour_ranked_approved_indexes.json)
+          fi
+          [[ "$index" =~ ^config/anytour_[a-z0-9_]+\.json$ ]]
+          printf '%s  %s\n' "$index_sha" "${data_root:+$data_root/}$index" | sha256sum --check --status
+          export RANKED_APPROVED_INDEX="$index"
+          printf 'RANKED_APPROVED_INDEX=%s\n' "$index" >> "$GITHUB_ENV"
+          gh api "$run/attempts/1/jobs?per_page=100" > "$RUNNER_TEMP/native-jobs.json"
+          jq -e --arg run "$NATIVE_RUN_ID" --arg sha "$NATIVE_REPOSITORY_SHA" \
+            '.total_count==1 and (.jobs|length)==1 and (.jobs[0] |
+               (.run_id|tostring)==$run and .head_sha==$sha and .run_attempt==1 and .status=="completed" and .name=="transfer" and
+               (.conclusion=="success" or .conclusion=="failure") and
+               ([.steps[]|select(.name=="Apply the installed editor once and retain its original receipts")|.conclusion] == [.conclusion]) and
+               ([.steps[]|select(.name=="Save the original sanitized transfer result")|.conclusion] == ["success"]))' \
+            "$RUNNER_TEMP/native-jobs.json" >/dev/null
+          gh api "$run/artifacts?per_page=100" > "$RUNNER_TEMP/native-artifacts.json"
+          jq -e --arg run "$NATIVE_RUN_ID" --arg sha "$NATIVE_REPOSITORY_SHA" --arg branch "$NATIVE_BRANCH" \
+            'select(.total_count==(.artifacts|length)) | [.artifacts[]|select(.name=="issue-1566-hotel-ranked-46-transfer")] |
+             select(length==1) | .[0] | select((.workflow_run.id|tostring)==$run and .workflow_run.head_sha==$sha and
+               .workflow_run.head_branch==$branch and .expired==false and (.digest|test("^sha256:[0-9a-f]{64}$")) and
+               (.id|type=="number") and .size_in_bytes>0 and .size_in_bytes<=2000000)' \
+            "$RUNNER_TEMP/native-artifacts.json" > "$RUNNER_TEMP/native-artifact.json"
+          id=$(jq -r '.id' "$RUNNER_TEMP/native-artifact.json")
+          digest=$(jq -r '.digest | ltrimstr("sha256:")' "$RUNNER_TEMP/native-artifact.json")
+          gh api "$api/artifacts/$id/zip" > "$RUNNER_TEMP/native.zip"
+          printf '%s  %s\n' "$digest" "$RUNNER_TEMP/native.zip" | sha256sum --check --status
+          python3 - <<'PY'
+          import json, os, pathlib, zipfile
+          receipt = pathlib.Path(os.environ['RUNNER_TEMP'], 'native')
+          receipt.mkdir()
+          index_root = pathlib.Path(os.environ.get('RANKED_DATA_ROOT') or '.')
+          plans = json.loads((index_root / os.environ['RANKED_APPROVED_INDEX']).read_bytes())['plans']
+          names = {'summary.json'} | {f"{kind}-{p['sha256']}.json" for p in plans for kind in ('check', 'result')}
+          with zipfile.ZipFile(receipt.parent / 'native.zip') as archive:
+              if sorted(archive.namelist()) != sorted(names):
+                  raise ValueError('native_receipt_inventory_invalid')
+              for item in archive.infolist():
+                  if not 0 < item.file_size <= 1000000:
+                      raise ValueError('native_receipt_size_invalid')
+                  (receipt / item.filename).write_bytes(archive.read(item))
+          PY
+          printf 'RECEIPT_ID=%s\nRECEIPT_SHA256=%s\nWRITE_OPERATION=%s\n' "$id" "$digest" "$operation" >> "$GITHUB_ENV"
+      - name: Set up PHP for public HTML verification
+        uses: shivammathur/setup-php@eb7c497e18156a6bbabfef1d3a82760b9eda3962
+        with:
+          php-version: '8.3'
+          extensions: curl, dom, mbstring
+          coverage: none
+      - name: Read and verify published Telegram cards
+        run: |
+          set -euo pipefail
+          status=0
+          php tools/verify_ranked_telegram_public.php || status=$?
+          jq -c . ranked-public-readback.json
+          test "$status" -eq 0
+      - name: Preserve independent late public evidence separately
+        if: ${{ !cancelled() && hashFiles('ranked-public-readback.json') != '' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ranked-public-readback-late-45799514607
+          path: ranked-public-readback.json
+          retention-days: 7
+          if-no-files-found: error
