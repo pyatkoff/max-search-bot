@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'a22a869e398a542e710339d872659b3373ceabd3' &&
+      github.event.before == '5fbcdcbfe9a87ff8cb30c3ed78f20ef780eb9b4a' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -212,7 +212,11 @@ jobs:
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
             -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
             -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          for attempt in 1; do
+          for delay in 0 15 30 45; do
+            if (( delay > 0 )); then
+              echo "MAX_STELLA_EDITOR_BUSY_RETRY_SECONDS=$delay"
+              sleep "$delay"
+            fi
             ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/source-reader.php > pub/registry.json || true
             if ! python3 -c 'import json,sys; sys.exit(0 if json.load(open("pub/registry.json")).get("failure")=="editor_busy" else 1)' 2>/dev/null; then break; fi
           done
