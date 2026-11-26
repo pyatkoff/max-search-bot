@@ -33,9 +33,9 @@
   },
   "route_readback": {
     "repository": "pyatkoff/tour-max",
-    "run_id": 45904287047,
-    "job_id": 140197193261,
-    "observed_utc": "2026-11-26T22:21:51+00:00",
+    "run_id": 45906488841,
+    "job_id": 140204349325,
+    "observed_utc": "2026-11-26T22:42:39+00:00",
     "write_calls": 0
   },
   "price_review": {
