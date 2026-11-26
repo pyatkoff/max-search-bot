@@ -1,4 +1,4 @@
-name: "#1566 Prove the real Telegram hotel reservation regression before and after the fix"
+name: "#1566 Verify independent data profiles and compatibility with the installed Telegram editor"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '7fefeea019fb07df9bfd6307f51011d133b0108f' &&
+      github.event.before == 'd8c2a5a5feb9840af5c9e0698031780690669fbb' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -27,7 +27,7 @@ jobs:
       - name: Check out the exact repaired HOTELS branch
         uses: actions/checkout@v4
         with:
-          ref: ec912e8874e8a0f16ddd1df26c82ffd497d99074
+          ref: ade36918ec129e83633e04fe8cc713756ba00171
           path: after
           persist-credentials: false
       - uses: shivammathur/setup-php@v2
@@ -57,3 +57,24 @@ jobs:
       - name: Run the existing ranked Telegram packet and CLI suite
         working-directory: after
         run: node tests/run_ranked_telegram_cli_regression.js
+      - name: Compare all installed approval profiles across both versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > "$RUNNER_TEMP/profiles.php" <<'PHP'
+          <?php
+          declare(strict_types=1);
+          require 'config/anytour_ranked_transfer_scope_20261123.php';
+          $approvals = json_decode(file_get_contents('config/anytour_ranked_approved_indexes.json'), true, 8, JSON_THROW_ON_ERROR);
+          $out = [];
+          foreach ($approvals as $entry) {
+              $index = json_decode(file_get_contents($entry['path']), true, 32, JSON_THROW_ON_ERROR);
+              foreach ($index['plans'] as $plan) $out[$plan['sha256']] = AnyTourRankedHotelTransfer46::profile($plan['sha256']);
+          }
+          if (count($out) !== 13) throw new RuntimeException('Expected 13 original approved profiles');
+          echo json_encode($out, JSON_THROW_ON_ERROR), PHP_EOL;
+          PHP
+          (cd before && php "$RUNNER_TEMP/profiles.php") > "$RUNNER_TEMP/profiles-before.json"
+          (cd after && php "$RUNNER_TEMP/profiles.php") > "$RUNNER_TEMP/profiles-after.json"
+          cmp "$RUNNER_TEMP/profiles-before.json" "$RUNNER_TEMP/profiles-after.json"
+          echo 'All 13 installed approval profiles match the observed application byte-for-byte.'
