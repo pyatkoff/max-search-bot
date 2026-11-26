@@ -1,4 +1,4 @@
-name: "#1566 Complete only seven remaining source photo and keyboard comparisons"
+name: "#1566 Read the fourteen additional source publications from the accepted demand snapshot"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -6,214 +6,228 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: read
+  pull-requests: read
+# Bounded reads of 14 published sources; no provider writes; strict actual application fences.
 jobs:
   registry:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 &&
-      github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
-      github.event.created == false && github.event.forced == false &&
-      github.event.before == '8b6cfedb52b19a6ab421436ad812f3cb291a9733' &&
-      github.run_attempt == 1
+      github.actor == 'pyatkoff' &&
+      github.event.sender.id == 226193297 &&
+      github.event.created == false &&
+      github.event.forced == false &&
+      github.event.before == '8fa06dd1ad1e997ccdf86dfe0754ddc849c57643' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 8
     steps:
-      - uses: shivammathur/setup-php@v2
+      - name: Check out the exact candidate packet
+        uses: actions/checkout@v4
         with:
-          php-version: '8.2'
-          extensions: curl, dom, mbstring
-          coverage: none
-      - name: Read exact newly paired sources without repeating archive windows
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check out main for the existing release verifier
+        uses: actions/checkout@v4
+        with:
+          ref: 1e9a88c7418f8e1af171571ef1df66f2856968e4
+          path: accepted
+          persist-credentials: false
+      - name: Authenticate original1724 terminal before bounded host observation
+        working-directory: accepted
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
+          node - <<'NODE'
+          const fs=require('node:fs'),R=require('./tools/deployment_release');
+          async function check(){
+            const api=R.makeReadApi(process.env.GITHUB_TOKEN), before=await R.readRecord(api);
+            const r=R.validateRelease(before.record).release, expected='1e9a88c7418f8e1af171571ef1df66f2856968e4';
+            if(r.repository_sha!==expected||r.application_sha!==expected||r.kind!=='installed'||
+              r.release.run_id!=='45883181416'||r.release.run_attempt!==1||r.closure?.run_id!=='45885250607'||
+              r.closure?.binding?.pr!==1724||r.closure?.binding?.comment_id!==6818332618||
+              r.closure?.binding?.owner_id!==226193297)throw Error('original1724_changed');
+            const resolved=await R.resolveCurrent(api,{sha:expected},before);
+            if(!resolved.ready||resolved.repository_sha!==expected||resolved.application_sha!==expected)throw Error('installation_not_accepted');
+            const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
+            if(main!==expected)throw Error('main_changed');
+            const after=await R.readRecord(api);
+            if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
+            fs.mkdirSync('../pub',{recursive:true});
+            fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,current_main_sha:main,
+              application_sha:expected,write_admission:false,canonical:resolved,record_commit:before.commit,record_blob:before.blob,
+              original_installation_deploy:r.release.run_id,original_closer:r.closure.run_id,checked_at_utc:new Date().toISOString()})+'\n');
+            fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+expected+'\n');
+          }
+          check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
+          NODE
+      - name: Bind immutable packet to the admitted release and native run
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '9931623d23b085d2f344dde163b8d75e6982a753'
           mkdir -p pub
-          test -d pub && test -w pub
-          cat > /tmp/pilot-public.php <<'PHP'
-          <?php
-          declare(strict_types=1);
-          function requireRead(bool $ok, string $reason): void
-          {
-              if (!$ok) throw new RuntimeException($reason);
-          }
-          function jsonRead(array $value): string
-          {
-              return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-          }
-          function reasonRead(Throwable $e): string
-          {
-              return get_class($e) === RuntimeException::class
-                  && preg_match('/\A[a-z_]{1,100}\z/D', $e->getMessage()) === 1 ? $e->getMessage() : 'read_evidence_unavailable';
-          }
-          function publicRetryLimit(?string $raw, int $now): array
-          {
-              if ($raw !== null && (strlen($raw)>160 || preg_match('/\A[\x20-\x7E]*\z/D',$raw)!==1)) $raw=null;
-              $seconds = null;
-              if ($raw !== null && preg_match('/\A[0-9]{1,8}\z/D',$raw) === 1) $seconds=(int)$raw;
-              elseif ($raw !== null) {
-                  $when=DateTimeImmutable::createFromFormat(DateTimeInterface::RFC7231,$raw,new DateTimeZone('UTC'));
-                  if ($when!==false && $when->format(DateTimeInterface::RFC7231)===$raw) $seconds=max(0,$when->getTimestamp()-$now);
-              }
-              return ['observed_at_utc'=>gmdate(DATE_ATOM,$now), 'retry_after_raw'=>$raw,
-                  'retry_after_seconds'=>$seconds, 'resume_not_before_unix'=>$seconds===null?null:$now+$seconds];
-          }
-          function albumStructureRead(DOMDocument $dom, DOMXPath $xp, DOMNode $node, string $url, string $message, string $body): array
-          {
-              $cls=static fn(string $c):string=>'contains(concat(" ",normalize-space(@class)," ")," '.$c.' ")';
-              $texts=$xp->query('.//*['.$cls('tgme_widget_message_text').']',$node);
-              $photos=$xp->query('.//*['.$cls('tgme_widget_message_photo_wrap').']',$node);
-              $other=$xp->query('.//video|.//audio|.//*['.$cls('tgme_widget_message_video_thumb').' or '.$cls('tgme_widget_message_roundvideo').']',$node);
-              $videos=$xp->query('.//video|.//*['.$cls('tgme_widget_message_video_thumb').']',$node);
-              $roundVideos=$xp->query('.//*['.$cls('tgme_widget_message_roundvideo').']',$node);
-              $times=$xp->query('.//time[@datetime]',$node);
-              $links=$xp->query('.//a[@href]',$node);
-              requireRead($texts&&$photos&&$other&&$times&&$links&&$texts->length<=6&&$photos->length<=6&&$other->length<=6&&$times->length<=6&&$links->length<=100,'album_structure_unbounded');
-              $captions=[];foreach($texts as $text){$html='';foreach($text->childNodes as $child)$html.=$dom->saveHTML($child);
-                  $plain=html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i',"\n",$html)),ENT_QUOTES|ENT_HTML5,'UTF-8');
-                  requireRead(mb_check_encoding($plain,'UTF-8')&&mb_strlen($plain,'UTF-8')<=12000,'album_text_unbounded');
-                  $captions[]=['text'=>$plain,'sha256'=>hash('sha256',$plain),'owner_data_post'=>$node->getAttribute('data-post')];}
-              $dates=[];foreach($times as $time)$dates[]=$time->getAttribute('datetime');
-              $members=[];$buttons=[];foreach($links as $link){$href=$link->getAttribute('href');
-                  if(preg_match('~\Ahttps://t\.me/anytour/(931|932|933|934|935|936)(?:\?[^\s<>]*)?\z~D',$href,$m))$members[]=$m[1];
-                  if(str_contains(' '.$link->getAttribute('class').' ',' tgme_widget_message_inline_button '))$buttons[]=['text'=>mb_substr(trim($link->textContent),0,180),'url_sha256'=>hash('sha256',$href)];}
-              $caption=count($captions)===1?$captions[0]['text']:null;
-              return ['url'=>$url,'caption'=>$caption,'caption_sha256'=>$caption===null?null:hash('sha256',$caption),'html_sha256'=>hash('sha256',$body),
-                  'published_at'=>count($dates)===1?$dates[0]:null,'published_unixtime'=>count($dates)===1?(new DateTimeImmutable($dates[0]))->getTimestamp():null,
-                  'single_photo'=>false,'photo_url'=>'','photo_marker_sha256'=>null,'photo_count'=>$photos->length,'other_media_count'=>$other->length,
-                  'video_count'=>$videos->length,'roundvideo_count'=>$roundVideos->length,'buttons'=>$buttons,
-                  'format_observation'=>['requested_mid'=>$message,'root_data_post'=>$node->getAttribute('data-post'),'caption_nodes'=>$captions,'dates'=>$dates,
-                      'linked_album_mids'=>array_values(array_unique($members)),'caption_mid_confirmed'=>false,'native_album_membership_confirmed'=>false,'keyboard_admission_confirmed'=>false]];
-          }
-          
-          function parsePublicRead(string $body, string $channel, string $message): array
-          {
-              $url = 'https://t.me/' . $channel . '/' . $message;
-              $doc = new DOMDocument('1.0', 'UTF-8');
-              $prior = libxml_use_internal_errors(true);
-              try { $loaded = $doc->loadHTML($body, LIBXML_NONET); }
-              finally { libxml_clear_errors(); libxml_use_internal_errors($prior); }
-              requireRead($loaded, 'public_post_invalid');
-              $xp = new DOMXPath($doc);
-              $nodes = $xp->query('//*[@data-post="' . $channel . '/' . $message . '"]');
-              requireRead($nodes && $nodes->length === 1, 'public_identity_changed');
-              $node = $nodes->item(0);
-              if($channel==='anytour' && in_array($message,['931','932','933','934','935','936'],true)) return albumStructureRead($doc,$xp,$node,$url,$message,$body);
-              $cls = static fn(string $c): string => 'contains(concat(" ",normalize-space(@class)," ")," ' . $c . ' ")';
-              $text = $xp->query('.//*[' . $cls('tgme_widget_message_text') . ']', $node);
-              $photos = $xp->query('.//*[' . $cls('tgme_widget_message_photo_wrap') . ']', $node);
-              $dates = $xp->query('.//time[@datetime]', $node);
-              $other = $xp->query('.//video|.//audio|.//*[' . $cls('tgme_widget_message_video_thumb')
-                  . ' or ' . $cls('tgme_widget_message_roundvideo') . ' or ' . $cls('tgme_widget_message_grouped') . ']', $node);
-              $videos = $xp->query('.//video|.//*['.$cls('tgme_widget_message_video_thumb').']', $node);
-              $roundVideos = $xp->query('.//*['.$cls('tgme_widget_message_roundvideo').']', $node);
-              requireRead($text && $photos && $dates && $other && $text->length === 1 && $dates->length === 1,
-                  'public_caption_or_date_unavailable');
-              $html = '';
-              foreach ($text->item(0)->childNodes as $child) $html .= $doc->saveHTML($child);
-              $caption = html_entity_decode(strip_tags(preg_replace('~<br\s*/?>~i', "\n", $html)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
-              requireRead($caption !== '' && mb_check_encoding($caption, 'UTF-8') && mb_strlen($caption, 'UTF-8') <= 12000,
-                  'public_caption_invalid');
-              $single = $photos->length === 1 && $other->length === 0;
-              $photo = $single ? $photos->item(0) : null;
-              $marker = $photo ? trim($photo->getAttribute('class')) : '';
-              $photoUrl = '';
-              if ($photo && $photo->getAttribute('href') === $url
-                  && preg_match('/(?:^|\s)[0-9]{5,}(?:_[0-9]+)?(?:\s|$)/D', $marker) === 1
-                  && preg_match('~background-image:\s*url\([\'"]?(https://[^\'")]+)[\'"]?\)~', $photo->getAttribute('style'), $match) === 1) {
-                  $parsed = parse_url($match[1]);
-                  if (is_array($parsed) && ($parsed['scheme'] ?? '') === 'https'
-                      && preg_match('/\A(?:[a-z0-9-]+\.)*(?:cdn-telegram\.org|telegram-cdn\.org|telesco\.pe)\z/D', $parsed['host'] ?? '') === 1
-                      && !isset($parsed['user']) && !isset($parsed['pass']) && !isset($parsed['port'])) $photoUrl = $match[1];
-              }
-              $buttons = [];
-              $links = $xp->query('.//a[' . $cls('tgme_widget_message_inline_button') . ']', $node);
-              requireRead($links && $links->length <= 20, 'public_keyboard_unbounded');
-              foreach ($links as $link) {
-                  $href = $link->getAttribute('href');
-                  $buttons[] = ['text' => trim($link->textContent),
-                      'hotel_url' => preg_match('~\Ahttps://t\.me/anyru_bot\?start=p_[A-Za-z0-9_-]{8,60}\z~D', $href) === 1 ? $href : null,
-                      'url_sha256' => hash('sha256', $href)];
-              }
-              $captionLinks = [];
-              $anchors = $xp->query('.//a[@href]', $text->item(0));
-              if ($anchors) foreach ($anchors as $anchor) {
-                  if (count($captionLinks) >= 40) break;
-                  $href = $anchor->getAttribute('href');
-                  $captionLinks[] = ['text'=>mb_substr(trim($anchor->textContent),0,180),
-                      'url_sha256'=>hash('sha256',$href),
-                      'public_bot_url'=>preg_match('~\\Ahttps://t\\.me/anyru_bot\\?start=(?:tg_anytour_msk|p_[A-Za-z0-9_-]{8,60})\\z~D',$href) === 1 ? $href : null];
-              }
-              $documentAnchors = [];
-              $documentLinks = $xp->query('//a[@href]');
-              if ($documentLinks) foreach ($documentLinks as $anchor) {
-                  if (count($documentAnchors) >= 80) break;
-                  $href = $anchor->getAttribute('href');
-                  $documentAnchors[] = ['text'=>mb_substr(trim($anchor->textContent),0,180),
-                      'class'=>substr($anchor->getAttribute('class'),0,256), 'url_sha256'=>hash('sha256',$href),
-                      'public_start_url'=>preg_match('~\Ahttps://t\.me/[A-Za-z0-9_]{5,32}\?start=[A-Za-z0-9_-]{1,128}\z~D',$href)===1 ? $href : null];
-              }
-              return ['url' => $url, 'caption' => $caption, 'caption_sha256' => hash('sha256', $caption),
-                  'html_sha256' => hash('sha256', $body), 'published_at' => $dates->item(0)->getAttribute('datetime'),
-                  'published_unixtime' => (new DateTimeImmutable($dates->item(0)->getAttribute('datetime')))->getTimestamp(),
-                  'single_photo' => $single && $photoUrl !== '', 'photo_url' => $photoUrl,
-                  'photo_count' => $photos->length, 'other_media_count' => $other->length,
-                  'video_count'=>$videos->length, 'roundvideo_count'=>$roundVideos->length, 'caption_links'=>$captionLinks,
-                  'document_anchors'=>$documentAnchors, 'document_anchors_truncated'=>$documentLinks && $documentLinks->length>80,
-                  'photo_marker_sha256' => $marker !== '' ? hash('sha256', $marker) : null, 'buttons' => $buttons];
-          }
-          
-          function corroborateTargetKeyboard(array $embedded, array $archive): array
-          {
-              requireRead($embedded['url'] === $archive['url']
-                  && $embedded['published_unixtime'] === $archive['published_unixtime']
-                  && $embedded['caption_sha256'] === $archive['caption_sha256'],
-                  'target_keyboard_archive_identity_changed');
-              requireRead($embedded['buttons'] === [] || $embedded['buttons'] === $archive['buttons'],
-                  'target_keyboard_archive_changed');
-              $embedded['buttons'] = $archive['buttons'];
-              $embedded['target_keyboard_archive_verified'] = true;
-              return $embedded;
-          }
-          
-          
-          function captionPublicBytes(string $url,array &$rates,int $limit=1000000):array{
-           $host=(string)parse_url($url,PHP_URL_HOST);if(isset($rates[$host]))return ['ok'=>false,'reason'=>'public_retry_after_held','retry_after'=>$rates[$host],'http_attempts'=>0];
-           $body='';$retry=null;$c=curl_init($url);curl_setopt_array($c,[CURLOPT_FOLLOWLOCATION=>false,CURLOPT_SSL_VERIFYPEER=>true,CURLOPT_SSL_VERIFYHOST=>2,CURLOPT_CONNECTTIMEOUT=>5,CURLOPT_TIMEOUT=>15,CURLOPT_USERAGENT=>'Mozilla/5.0',CURLOPT_HEADERFUNCTION=>static function($c,string $line)use(&$retry):int{if(stripos($line,'retry-after:')===0)$retry=trim(substr($line,12));return strlen($line);},CURLOPT_WRITEFUNCTION=>static function($c,string $chunk)use(&$body,$limit):int{if(strlen($body)+strlen($chunk)>$limit)return 0;$body.=$chunk;return strlen($chunk);}]);$ok=curl_exec($c)!==false&&curl_errno($c)===0;$status=(int)curl_getinfo($c,CURLINFO_HTTP_CODE);curl_close($c);
-           if($status===429)$rates[$host]=publicRetryLimit($retry,time());return ['ok'=>$ok&&$status===200,'http'=>$status,'body'=>$body,'body_sha256'=>hash('sha256',$body),'http_attempts'=>1,'retry_after'=>$status===429?$rates[$host]:null];
-          }
-          
-          $scope=json_decode(<<<'SOURCE_SCOPE'
-          [{"role":"source","channel":"any_toour","mid":"438","hotel_id":949,"target":"1748","caption":"e7db8d2b4fbbf28b9c3d41ab38a8305d5f85c5b21f26b4f019d6300b514c47f9","native_version":16412},{"role":"source","channel":"any_toour","mid":"239","hotel_id":32342,"target":"1747","caption":"9a270826881272e7f452eb6e07ff0a42e1162ff6d4c9435e24f43dd1980450d5","native_version":16146},{"role":"source","channel":"any_toour","mid":"562","hotel_id":73343,"target":"1746","caption":"9183dea8b31059e6baeea63ea09d312bd25e6f650980d4c902dab4c1f87458f4","native_version":17406},{"role":"source","channel":"any_toour","mid":"308","hotel_id":76588,"target":"1743","caption":"ac36af2263c50231121f0ca65ead1fbcb2aea195d3e915450fb679ce4ad42fe2","native_version":15304},{"role":"source","channel":"any_toour","mid":"134","hotel_id":111,"target":"1742","caption":"4ea6b7916d8a4a5f7c056f15ca1f43d19438b3af286a85d06fecc0f6ecb8ac4e","native_version":17394},{"role":"source","channel":"any_toour","mid":"79","hotel_id":178,"target":"1741","caption":"accaed067099ec794d5ff9b3ed42e5acb2f060b9375e57f7323607b1e6cdda69","native_version":16286},{"role":"source","channel":"any_toour","mid":"81","hotel_id":389,"target":"1739","caption":"42d0c8d545b481415d70aef2da8977353245b341fc820d84d367feaba494bcd0","native_version":16752}]
-          SOURCE_SCOPE,true,32,JSON_THROW_ON_ERROR);
-          $rates=[];$out=['operation'=>'hotel_ranked_eight_source_public_photos','native_run_id'=>getenv('GITHUB_RUN_ID'),'reader_source_sha'=>getenv('GITHUB_SHA'),'preparation_originals'=>['45827839620','45828103694'],'write_admission'=>false,'provider_writes'=>0,'server_calls'=>0,'rows'=>[]];
-          foreach($scope as $p){$row=$p;
-           try{
-            $b=captionPublicBytes('https://t.me/any_toour/'.$p['mid'].'?embed=1&mode=tme',$rates);
-            requireRead($b['ok'],'public_source_unavailable');
-            $v=parsePublicRead($b['body'],'any_toour',$p['mid']);
-            $row['embedded_public']=$v;
-            $row['observed_checks']=['caption'=>$v['caption_sha256']===$p['caption'],'single_photo'=>$v['single_photo'],'button_count'=>count($v['buttons'])];
-            if($v['buttons']===[]){$archive=captionPublicBytes('https://t.me/s/any_toour?before='.((int)$p['mid']+1),$rates);requireRead($archive['ok'],'source_archive_unavailable');$archiveView=parsePublicRead($archive['body'],'any_toour',$p['mid']);$v=corroborateTargetKeyboard($v,$archiveView);}
-            $row['public']=$v;
-            requireRead($v['caption_sha256']===$p['caption']&&$v['single_photo']&&count($v['buttons'])===1&&$v['buttons'][0]['hotel_url']!==null,'source_public_changed_or_unconfirmed');
-            $row['public']=$v;
-            $b=captionPublicBytes($v['photo_url'],$rates);requireRead($b['ok'],'photo_unavailable');$raw=$b['body'];
-            $ext=str_starts_with($raw,"\xFF\xD8\xFF")?'jpg':(str_starts_with($raw,"\x89PNG\r\n\x1a\n")?'png':null);requireRead($ext!==null,'photo_format_unconfirmed');
-            $name='source-'.$p['mid'].'.'.$ext;requireRead(file_put_contents('pub/'.$name,$raw)!==false,'photo_save_failed');
-            $row['photo']=['path'=>$name,'sha256'=>hash('sha256',$raw),'bytes'=>strlen($raw)];
-           }catch(Throwable $e){$row['hold_reason']=reasonRead($e);}
-           $out['rows'][]=$row;
-          }
-          $out['retry_after_holds']=$rates;$out['read_at_utc']=gmdate(DATE_ATOM);requireRead(file_put_contents('pub/candidate-photos.json',jsonRead($out)."\n")!==false,'save_failed');echo jsonRead(['observed'=>count($out['rows']),'photos'=>count(array_filter($out['rows'],static fn($r)=>isset($r['photo']))),'write_admission'=>false]),PHP_EOL;
-          PHP
-          php -l /tmp/pilot-public.php
-          php /tmp/pilot-public.php
-      - name: Preserve the independent public result and actual photos
+          python3 - <<'PY'
+          import os,pathlib,re
+          p=pathlib.Path('tools/direct_demand/operations/read-1566-telegram-46-20261123.php')
+          program=p.read_text()
+          for name,pattern in [('APPLICATION_SHA',r'[a-f0-9]{40}'),('REPOSITORY_SHA',r'[a-f0-9]{40}'),('NATIVE_RUN_ID',r'[1-9][0-9]{0,19}')]:
+              value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
+              assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
+              program=program.replace('__'+name+'__',value)
+          # Execute the reviewed reader helpers for source-only preparation.
+          # Preserve candidate holds and read-only SQL.
+          assert program.count("$out=['schema'=>1") == 1
+          program=program[:program.index("$out=['schema'=>1")]
+          entry=r'''
+          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_rank14_source_preparation','ok'=>false,
+            'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,
+            'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,'rows'=>[]];
+          $pdo=null;$start=hrtime(true);
+          try {
+            runtimeRead();
+            requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
+            $out['resources_before']=resourcesRead();
+            $out['resource_budget']=serverReadBudgetRead($out['resources_before']);
+            requireRead($out['resource_budget']['allowed'],'server_resource_hold');
+            ob_start();try{
+              require APP.'/config.php';
+              require_once APP.'/services/ProjectConfig.php';
+              require_once APP.'/services/ChannelPostRegistryService.php';
+              require_once APP.'/services/ChannelPostButtonTransport.php';
+              require_once APP.'/services/ChannelPostRuntime.php';
+              require_once APP.'/hotel-posts-telegram-main19.php';
+            }finally{ob_end_clean();}
+            requireRead(ProjectConfig::projectId()==='anytour','project_changed');
+            $feed=anytourTelegramFeedOfferUrls(anytourTelegramFeedRead());
+            $routes=anytourTelegramFeedDestinationPosts($feed);
+            $pdo=ConversationDb::connection();
+            $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+            $registry=new ChannelPostRegistryService($pdo);
+            $channel=$registry->channel('anytour','telegram','anyru_bot','-1001845835645');
+            requireRead(is_array($channel)&&(int)$channel['id']===6,'channel_identity_changed');
+            $out['mysql_before']=mysqlResourcesRead($pdo);
+            $transactionStart=hrtime(true);
+            $pdo->beginTransaction();
+            $ranked=json_decode(<<<'HOTEL_RANK_SCOPE'
+          [{"hotel_id":7458,"source_mid":"684","name":"Four Seasons Resort The Nam Hai, Hoi An","dialogues":3},{"hotel_id":1569,"source_mid":"571","name":"Utopia World","dialogues":2},{"hotel_id":1033,"source_mid":"212","name":"Barut Hemera","dialogues":1},{"hotel_id":1096,"source_mid":"302","name":"Club Hotel Phaselis Rose","dialogues":1},{"hotel_id":1124,"source_mid":"421","name":"Club Hotel Sidelya","dialogues":1},{"hotel_id":1143,"source_mid":"235","name":"Crystal Paraiso Aqua Collection","dialogues":1},{"hotel_id":1149,"source_mid":"741","name":"Qvor Kirman Premium","dialogues":1},{"hotel_id":1196,"source_mid":"440","name":"Viking Garden Hotel & Spa","dialogues":1},{"hotel_id":1246,"source_mid":"351","name":"Holiday Park Resort","dialogues":1},{"hotel_id":1257,"source_mid":"251","name":"Bellis Deluxe Hotel","dialogues":1},{"hotel_id":1258,"source_mid":"280","name":"IC Hotels Green Palace","dialogues":1},{"hotel_id":1354,"source_mid":"197","name":"Mirage Park Resort","dialogues":1},{"hotel_id":1420,"source_mid":"540","name":"Papillon Ayscha","dialogues":1},{"hotel_id":1456,"source_mid":"362","name":"Sealife Kemer Resort","dialogues":1}]
+          HOTEL_RANK_SCOPE,true,32,JSON_THROW_ON_ERROR);
+            $sourceReady=0;
+            $largeDuplicate=$pdo->prepare("SELECT p.id FROM post_publications p JOIN post_versions v ON v.id=p.current_version_id WHERE p.post_channel_id=6 AND (JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id'))=? OR JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.logical_id')) IN (?,?)) LIMIT 2");
+            foreach($ranked as $rank) {
+              if((hrtime(true)-$transactionStart)>750000000){$out['remaining_reason']='bounded_transaction_budget';break;}
+              $hotel=(int)$rank['hotel_id'];
+              $item=$rank+['write_admission'=>false,'public_preimage_checked'=>false];
+              try{
+                requireRead($hotel>0&&!preg_match('~доминикан|dominican|punta cana~iu',$rank['name']),'excluded_country');
+                $feedUrl=$feed['tg_'.$hotel]??null;$routeUrl=$routes['tg_'.$hotel]??null;
+                $item+=['feed_source_url'=>$feedUrl,'current_destination'=>$routeUrl];
+                requireRead(is_string($feedUrl)&&preg_match('~\\Ahttps://t\\.me/any_toour/([1-9][0-9]{0,9})\\z~D',$feedUrl,$match)===1,'source_not_current_small_feed');
+                $sourceMid=$match[1];
+                requireRead($sourceMid===$rank['source_mid'],'source_mid_changed_since_public_read');
+                $largeDuplicate->execute([(string)$hotel,'commercial-hotel-'.$hotel.'-v1','commercial-main-hotel-'.$hotel.'-v1']);
+                $item['hotel_existing_large_matches']=count($largeDuplicate->fetchAll(PDO::FETCH_COLUMN));
+                requireRead($item['hotel_existing_large_matches']===0,'hotel_already_reserved_or_published');
+                requireRead($routeUrl===$feedUrl,'route_already_changed_or_unconfirmed');
+                $source=publicationRead($pdo,$registry,10,$sourceMid);
+                requireRead(is_array($source),'source_native_publication_unavailable');
+                $media=$source['attachments']??[];
+                $item+=['source_mid'=>$sourceMid,'source_publication_id'=>$source['publication_id'],
+                  'source_version_id'=>$source['version_id'],'source_content_hash'=>$source['content_hash'],
+                  'source_caption_sha256'=>$source['caption_sha256'],
+                  'source_exact_hotel'=>(int)($source['hotel_id']??0)===$hotel,
+                  'source_sent'=>$source['state']==='sent','source_one_live_button'=>$source['current_token_resolves']&&$source['one_expected_button'],
+                  'source_held'=>$source['native_claim_held_or_unknown'],
+                  'source_reusable_photo'=>count($media)===1&&($media[0]['reusable_telegram_photo']??false)];
+                requireRead($item['source_exact_hotel']&&$item['source_sent']&&$item['source_one_live_button']&&!$item['source_held']&&$item['source_reusable_photo'],'source_current_identity_hold');
+                $item+=['preparation_state'=>'native_source_candidate','next_gate'=>'compare_published_preimage_and_find_reviewed_target'];
+                ++$sourceReady;
+              }catch(Throwable $e){$item['hold_reason']=reasonRead($e);}
+              $out['rows'][]=$item;
+            }
+            $out['rank_scope_count']=count($ranked);$out['rank_observed_count']=count($out['rows']);
+            $out['native_source_candidates']=$sourceReady;$out['candidate_pairs_prepared']=0;$out['ready_to_write']=0;
+            $out['demand_source']='original44654456925/artifact14592532135; issue1566/comment7201739471';
+            $out['demand_period_moscow']='2026-11-13/2026-11-19';$out['offer_clicks_verified']=false;
+                      $pdo->rollBack();
+            $out['transaction_ms']=round((hrtime(true)-$transactionStart)/1000000,2);
+            $out['mysql_after']=mysqlResourcesRead($pdo);
+            runtimeRead();
+            $out['ok']=true;
+          }catch(Throwable $e){$out['failure_reason']=reasonRead($e);}
+          finally {if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();}
+          $out['resources_after']=resourcesRead();
+          $out['elapsed_ms']=round((hrtime(true)-$start)/1000000,2);
+          echo jsonRead($out),PHP_EOL;
+          exit($out['ok']?0:2);
+          '''
+          pathlib.Path('pub/read-only.php').write_text(program+entry)
+          PY
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Observe the fourteen exact sources, current registry and route without writing
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          status=0
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json || status=$?
+          python3 - <<'PY'
+          import json
+          d=json.load(open('pub/registry.json'))
+          assert d['operation']=='hotel_rank14_source_preparation' and d['issue']==1566
+          assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
+          print(json.dumps(d,ensure_ascii=False))
+          PY
+          test "$status" -eq 0
+      - name: Preserve the original bounded source observation
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-seven-source-photos
-          path: pub/*
+          name: issue-1566-telegram-ranked-source-target-preparation
+          path: |
+            pub/registry.json
+            pub/accepted-read-admission.json
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
 
