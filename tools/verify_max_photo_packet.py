@@ -3,6 +3,8 @@ import argparse
 import json
 import re
 import stat
+import subprocess
+import tempfile
 import zipfile
 from pathlib import Path
 
@@ -101,6 +103,23 @@ def inspect_packet(repo, application_sha, data_sha, scope_sha, archive_bytes, so
     }
 
 
+def editor_preview(scope_bytes, scope_sha, archive_bytes, source_bytes, repository_sha, application_sha):
+    compiler = Path(__file__).with_name("max_photo_batch_preview.php")
+    with tempfile.TemporaryDirectory(prefix="max-photo-preview-") as directory:
+        files = [Path(directory) / name for name in ("scope.json", "archive.json", "source.json")]
+        for path, raw in zip(files, (scope_bytes, archive_bytes, source_bytes)):
+            path.write_bytes(raw)
+        process = subprocess.run(
+            ["php", str(compiler), str(files[0]), scope_sha, str(files[1]), str(files[2]),
+             repository_sha, application_sha],
+            capture_output=True, check=False, timeout=15,
+        )
+        require(process.returncode == 0, "existing MAX plan compiler refused the packet")
+        result = json.loads(process.stdout)
+        require(result["provider_writes"] == 0, "unexpected MAX compiler result")
+        return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--git-root", type=Path, required=True)
@@ -111,14 +130,21 @@ def main():
     parser.add_argument("--archive", type=Path, required=True)
     parser.add_argument("--native-source", type=Path, required=True)
     parser.add_argument("--registry-zips", action="store_true")
+    parser.add_argument("--editor-preview", action="store_true")
     args = parser.parse_args()
     try:
         def receipt(path):
             return read_registry_zip(path) if args.registry_zips else read_receipt(path, 8_000_000)
+        archive_bytes, source_bytes = receipt(args.archive), receipt(args.native_source)
         result = inspect_packet(args.git_root, args.application_sha, args.data_source_sha,
-                                args.scope_sha256, receipt(args.archive), receipt(args.native_source),
+                                args.scope_sha256, archive_bytes, source_bytes,
                                 repository_sha=args.repository_sha)
-    except (KeyError, OSError, TypeError, ValueError, zipfile.BadZipFile) as error:
+        if args.editor_preview:
+            scope_path = f"config/anytour_max_photo_scope_{args.scope_sha256}.json"
+            scope_bytes = git_output(args.git_root, "show", f"{args.data_source_sha}:{scope_path}")
+            result["editor_preview"] = editor_preview(scope_bytes, args.scope_sha256, archive_bytes, source_bytes,
+                                                       result["repository_sha"], args.application_sha)
+    except (KeyError, OSError, TypeError, ValueError, zipfile.BadZipFile, subprocess.TimeoutExpired) as error:
         parser.exit(1, f"MAX packet refused: {error}\n")
     print(json.dumps(result))
 

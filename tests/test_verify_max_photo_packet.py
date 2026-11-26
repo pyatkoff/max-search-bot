@@ -8,7 +8,7 @@ import zipfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools"))
-from verify_max_photo_packet import inspect_packet, read_registry_zip, sha
+from verify_max_photo_packet import editor_preview, inspect_packet, read_registry_zip, sha
 
 
 class MaxPhotoPacketTests(unittest.TestCase):
@@ -127,6 +127,42 @@ class MaxPhotoPacketTests(unittest.TestCase):
             archive.writestr("another.json", b"{}")
         with self.assertRaisesRegex(ValueError, "unexpected MAX artifact members"):
             read_registry_zip(receipt)
+
+
+    def test_editor_preview_compiles_ready_row_and_holds_only_occupied_target(self):
+        start = self.scope["rows"][0]
+        second = start | {"hotel_id": 249, "source_id": 11, "source_mid": "mid.small2",
+                          "source_url": "https://max.ru/channel_anytour/source2", "target_mid": "mid.large2",
+                          "target_url": "https://max.ru/anytour/target2"}
+        self.scope["rows"].append(second)
+        self.archive["rows"] = []
+        self.source["rows"] = []
+        self.source["channel_config_version"] = 5
+        for row in self.scope["rows"]:
+            row.update(name="Hotel Example", target_ms=123, target_fingerprint="f" * 64,
+                       caption_without_price="Hotel Example — рассчитать поездку на ваши даты.")
+            self.archive["rows"].append(dict(
+                mid=row["target_mid"], url=row["target_url"], published_ms=123, fingerprint="f" * 64,
+                registered=row is second, media=["image"], keyboard_present=False, linked_message=False,
+            ))
+            self.source["rows"].append(row | dict(
+                blockers=[], source_catalog_id=row["hotel_id"], native_source_photo_count=1, source_version=2,
+                source_content_sha256="a" * 64, source_photo_sha256="b" * 64, source_caption_sha256="c" * 64,
+                source_caption_nonempty=True, native_source_photo_reusable=True,
+                source_caption_matches_registry=True, source_photo_matches_registry=True,
+                source_single_registry_button=True, target_matches_native_archive=True,
+                source_hotel_id_matches=True, source_button_resolves_to_hotel=True,
+                target_occupied=0, source_held=0, target_or_hotel_registry_conflicts=0,
+            ))
+        archive, source = self.encode(self.archive), self.encode(self.source)
+        self.scope["archive_registry_sha256"] = sha(archive)
+        self.scope["native_source"]["json_sha256"] = sha(source)
+        raw = self.encode(self.scope)
+        proof = editor_preview(raw, sha(raw), archive, source, self.application, self.application)
+        self.assertEqual(set(proof["ready_for_editor_check"]), {"132"})
+        self.assertRegex(proof["ready_for_editor_check"]["132"], r"^[a-f0-9]{64}$")
+        self.assertEqual(proof["held"], {"249": "target_changed_or_occupied"})
+        self.assertEqual(proof["provider_writes"], 0)
 
 
 if __name__ == "__main__":

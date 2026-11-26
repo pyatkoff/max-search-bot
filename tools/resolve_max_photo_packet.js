@@ -96,7 +96,8 @@ async function inspect(args, api) {
     const proof = JSON.parse(execFileSync('python3', ['-B', path.join(__dirname, 'verify_max_photo_packet.py'),
       '--git-root', repo, '--application-sha', installed.application_sha, '--repository-sha', main,
       '--data-source-sha', dataSha,
-      '--scope-sha256', scopeDigest, '--archive', archiveFile, '--native-source', sourceFile, '--registry-zips'],
+      '--scope-sha256', scopeDigest, '--archive', archiveFile, '--native-source', sourceFile, '--registry-zips',
+      '--editor-preview'],
     {encoding: 'utf8', maxBuffer: 64_000, timeout: 30_000, stdio: ['ignore', 'pipe', 'pipe']}));
     const [finalMain, finalRelease] = await Promise.all([api('GET', mainPath), R.readRecord(api)]);
     R.requireValue(proof.evidence_only === true && proof.write_admission === false
