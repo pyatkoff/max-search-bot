@@ -58,10 +58,11 @@ def verify(document):
           'each matrix job requires its own hosted runner and service')
     check(job['needs'] == 'change-scope' and job['if'] == (
         "(needs.change-scope.outputs.mode == 'full' && "
-        "needs.change-scope.outputs.backend == 'full') || "
+        "(needs.change-scope.outputs.backend == 'full' || "
+        "needs.change-scope.outputs.backend == 'telegram-public-observer')) || "
         "(needs.change-scope.outputs.mode == 'tour-selection' && "
         "needs.change-scope.outputs.backend != 'selection-style')"),
-        'existing full/component selection must remain unchanged')
+        'the observer and existing full profiles require all shared MySQL groups')
     check(not job.get('continue-on-error', False), 'a failing MySQL group must remain fatal')
     check(job['services'] == {'mysql': {
         'image': 'mysql:8.0',
