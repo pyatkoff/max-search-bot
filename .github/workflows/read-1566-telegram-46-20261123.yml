@@ -1,4 +1,4 @@
-name: "#1566 Review every empty-keyboard photograph outside known hotel scope"
+name: "#1566 Check the exact four commercially worded posts for protected text"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == 'f319ac4e7938fc9fd6ee37611854b34cd9aa10f9' &&
+      github.event.before == 'c8828b7f88433902192078cf111bfd9a00bdbed8' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -24,7 +24,7 @@ jobs:
           ref: 43c684f3d220f4808efe898d1ba14608f960fda7
           path: accepted
           persist-credentials: false
-      - name: Recheck all shorter captions that the original commercial filter omitted
+      - name: Inspect full captions from unchanged archive receipts
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -91,12 +91,12 @@ jobs:
                   public = row.get("public", {})
                   original = 'saved_plan_or_hold' if mid in blocked else 'not_supported_or_parse_unavailable' if not public.get('single_photo') else 'legacy_keyboard' if public.get('buttons') else 'single_photo_empty_keyboard'
                   scope[mid] = original
-                  if original != 'single_photo_empty_keyboard':
+                  if original != 'single_photo_empty_keyboard' or mid not in {951,966,1049,1115}:
                       continue
                   caption=public.get('caption','')
                   if not isinstance(caption,str):
                       continue
-                  entry={'target_mid':mid,'public_run':run_id,'caption':caption[:300],'date':public.get('published_at'),
+                  entry={'target_mid':mid,'public_run':run_id,'caption':caption[:3000],'date':public.get('published_at'),
                          'caption_sha256':public.get('caption_sha256'),'photo_marker_sha256':public.get('photo_marker_sha256'),
                          'caption_entry_links':len(public.get('caption_links',[])),
                          'has_editorial_hint':bool(guard.search(caption) or re.search(r'угада|загад|розыгрыш|играем|поздрав|поздравляем|счастья|игра\b|конкурс|юбилей|поделитесь|в комментар',caption,re.I)),
@@ -115,7 +115,7 @@ jobs:
       - name: Preserve the unfiltered public inventory
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-telegram-no-keyboard-review
+          name: issue-1566-telegram-exact-content-protection
           path: pub/no-keyboard-review.json
           retention-days: 7
           if-no-files-found: error
