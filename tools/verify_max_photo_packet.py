@@ -46,16 +46,18 @@ def inspect_packet(repo, application_sha, data_sha, scope_sha, archive_bytes, so
     archive = json.loads(archive_bytes)
     source = json.loads(source_bytes)
     archive_sha = sha(archive_bytes)
+    archive_run_id = str(scope["archive_run_id"])
+    require(re.fullmatch(r"[1-9][0-9]{0,19}", archive_run_id) is not None, "invalid MAX archive run")
     require(archive_sha == scope["archive_registry_sha256"]
             or (archive_sha == scope.get("archive_selected_sha256")
                 and archive.get("registry_json_sha256") == scope["archive_registry_sha256"]),
             "MAX archive receipt changed")
     require(archive["ok"] is True and archive["history_complete"] is True
-            and archive["price_content_shared_lease"] is True and archive["native_run_id"] == scope["archive_run_id"]
+            and archive["price_content_shared_lease"] is True and str(archive["native_run_id"]) == archive_run_id
             and archive["production_writes"] == archive["provider_writes"] == 0, "invalid MAX archive receipt")
     require(source["ok"] is True and source["operation"] == "max_seven_source_rights"
             and source["application_sha"] == native["application_sha"]
-            and source["repository_sha"] == native["repository_sha"] and source["archive_run"] == scope["archive_run_id"]
+            and source["repository_sha"] == native["repository_sha"] and str(source["archive_run"]) == archive_run_id
             and source["provider_writes"] == source["db_writes"] == source["bot_starts"] == 0
             and source["target_editor_rights"] is True, "invalid MAX native source receipt")
 
@@ -76,7 +78,7 @@ def inspect_packet(repo, application_sha, data_sha, scope_sha, archive_bytes, so
         "application_sha": application_sha,
         "data_source_sha": data_sha,
         "scope_sha256": scope_sha,
-        "archive_run_id": scope["archive_run_id"],
+        "archive_run_id": archive_run_id,
         "native_source_run_id": native["run_id"],
         "hotel_count": len(rows),
     }

@@ -20,12 +20,12 @@ class MaxPhotoPacketTests(unittest.TestCase):
         self.write("config/anytour_ranked_approved_indexes.json", "[]")
         self.application = self.commit("Installed application")
         self.archive = dict(ok=True, history_complete=True, price_content_shared_lease=True,
-                            native_run_id=30, production_writes=0, provider_writes=0)
+                            native_run_id="30", production_writes=0, provider_writes=0)
         self.source = dict(ok=True, operation="max_seven_source_rights",
                            application_sha=self.application, repository_sha=self.application,
                            archive_run=30, provider_writes=0, db_writes=0, bot_starts=0,
                            target_editor_rights=True)
-        self.scope = dict(version=1, archive_run_id=30,
+        self.scope = dict(version=1, archive_run_id="30",
                           native_source=dict(run_id=31, attempt=1, application_sha=self.application,
                                              repository_sha=self.application),
                           rows=[dict(hotel_id=132, source_id=10, source_mid="mid.small",
@@ -76,6 +76,7 @@ class MaxPhotoPacketTests(unittest.TestCase):
         digest, commit = self.packet()
         result = self.inspect(digest, commit)
         self.assertEqual(result["hotel_count"], 2)
+        self.assertEqual(result["archive_run_id"], "30")
         self.assertTrue(result["evidence_only"])
         self.assertFalse(result["write_admission"])
 
