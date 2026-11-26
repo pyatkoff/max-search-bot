@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "archive_run_id": "45630394590",
+  "archive_sha256": "354407dec77c2ffc3b8ed739e5a3f3aac422a0120578c0501183bbe36ea8d795",
+  "archive_registry_sha256": "87e89936cd126c53013d213f9fa952f5e6d498350de4b0c5768b01088067c285",
+  "rows": [
+    {
+      "hotel_id": 466,
+      "name": "Stella Makadi Beach Resort & Spa",
+      "source_id": 1057,
+      "source_mid": "mid.ffffb6caf0606fed01a1b7d4d5bb36c7",
+      "source_url": "https://max.ru/channel_anytour/AaG31NW7Nsc",
+      "target_mid": "mid.ffffc1752b045fed01a0aa565299012a",
+      "target_url": "https://max.ru/anytour/AaCqVlKZASo",
+      "target_ms": 1789564179097,
+      "target_fingerprint": "3104fbf1774231d929e73be1ab8a798957954757269336833ed428ab64549b2d",
+      "target_photo_count": 6,
+      "caption_without_price": "✈️ Туры в Stella Makadi Beach Resort & Spa\n📍 Макади-Бей, Египет\nПляжный отель на побережье Красного моря в бухте Макади-Бей.",
+      "original_legacy_identity_sha256": "270eb415bd5c96eda49d968e54bf5f69c9ea965b41049d78407aedb8b41d04eb"
+    }
+  ],
+  "native_source": {
+    "operation": "max_commercial_album_sources_read_only",
+    "run_id": 45901091293,
+    "attempt": 1,
+    "job_id": 140186758880,
+    "workflow_head": "34b3e4b16b77daa7b35504a8a3f3d6b937268f86",
+    "artifact_id": 15156475686,
+    "zip_sha256": "d6d9dd8f30f444700053545ecb1d8053255ea101b9c11540e7fae1d61742957d",
+    "json_sha256": "9ee6cd4e6629b9778019c091eb4b3baec75ae401b9cf7e0f4a410afec4eff442",
+    "repository_sha": "664390965a45cdcf5600ea6bbfa8ce1bf47d78e2",
+    "application_sha": "664390965a45cdcf5600ea6bbfa8ce1bf47d78e2"
+  },
+  "route_readback": {
+    "repository": "pyatkoff/tour-max",
+    "run_id": 45900928185,
+    "job_id": 140186212751,
+    "observed_utc": "2026-11-26T21:51:19+00:00",
+    "write_calls": 0
+  },
+  "price_review": {
+    "mode": "caption_without_fixed_price"
+  }
+}
