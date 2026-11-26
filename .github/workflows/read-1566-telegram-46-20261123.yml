@@ -1,42 +1,219 @@
-name: "#1566 Read both existing campaign destinations after the Telegram observer release"
+name: "#1566 Prepare ten additional stored commercial targets while LOCAL46 verifies"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
     paths: ['.github/workflows/read-1566-telegram-46-20261123.yml']
 permissions:
   contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+# Bounded reads of the same two prepared pairs; no provider writes; strict actual application fences.
 jobs:
   registry:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 &&
-      github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
-      github.event.created == false && github.event.forced == false &&
-      github.event.before == '782d81aefed1523a8618c33828276ff1fd865e39' && github.run_attempt == 1
+      github.actor == 'pyatkoff' &&
+      github.event.sender.id == 226193297 &&
+      github.event.created == false &&
+      github.event.forced == false &&
+      github.event.before == '8e00c0df4044e72f2f1471590b6ff7b46ced37ce' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
+      - name: Check out the exact candidate packet
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check out main for the existing release verifier
+        uses: actions/checkout@v4
         with:
           ref: a491c8abd5c1af826afbb9b817b3d9ab09a2a502
+          path: accepted
           persist-credentials: false
-      - name: Read only the current established campaign destinations
+      - name: Authenticate original1739 terminal before bounded host observation
+        working-directory: accepted
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
+          node - <<'NODE'
+          const fs=require('node:fs'),R=require('./tools/deployment_release');
+          async function check(){
+            const api=R.makeReadApi(process.env.GITHUB_TOKEN);
+            const before=await R.readRecord(api);
+            const r=R.validateRelease(before.record).release;
+            const expected='a491c8abd5c1af826afbb9b817b3d9ab09a2a502';
+            if(r.repository_sha!==expected||r.application_sha!==expected||r.kind!=='installed'
+              ||r.release.run_id!=='45804092269'||r.release.run_attempt!==1
+              ||r.closure?.binding?.pr!==1739
+              ||r.closure?.binding?.comment_id!==6818332618
+              ||r.closure?.binding?.owner_id!==226193297
+              ||r.closure?.binding?.head_sha!=='5ede36f16dce1ac95a81b91d5495ea5bc6d4d65f'
+              ||r.closure?.binding?.updated_at!=='2026-11-26T10:42:51Z')throw Error('original1739_changed');
+            const resolved=await R.resolveCurrent(api,{sha:expected},before);
+            if(!resolved.ready||resolved.repository_sha!==expected||resolved.application_sha!==expected)
+              throw Error('original1739_not_canonically_accepted');
+            const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
+            const candidate='2959179c360d359481dcf0ae47d0c2ef496237dd';
+            const pending=await api('GET',R.API_ROOT+'/actions/runs/45807351133');
+            const jobs=await api('GET',R.API_ROOT+'/actions/runs/45807351133/attempts/1/jobs?per_page=100');
+            const claim=await api('GET',R.API_ROOT+'/issues/comments/6818332618');
+            if(main!==candidate||pending.head_sha!==candidate||pending.status!=='in_progress'||pending.run_attempt!==1
+              ||claim.body!=='PR1740: выпуск занят'||!Array.isArray(jobs.jobs)||jobs.total_count!==jobs.jobs.length
+              ||jobs.jobs.some(j=>j.name==='deploy'&&j.status!=='queued'))throw Error('production_sync_window_not_safe');
+            const after=await R.readRecord(api);
+            if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
+            fs.mkdirSync('../pub',{recursive:true});
+            fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,
+              current_main_sha:main,observed_repository_sha:expected,application_sha:expected,
+              technical_acceptance_complete:true,write_admission:false,canonical:resolved,
+              record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,
+              original_installation_deploy:'45804092269',original_closer:r.closure.run_id,
+              original_guard_pr:1739,checked_at_utc:new Date().toISOString()})+'\n');
+            fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+expected+'\n');
+          }
+          check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
+          NODE
+      - name: Bind immutable packet to the admitted release and native run
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '9931623d23b085d2f344dde163b8d75e6982a753'
+          mkdir -p pub
+          python3 - <<'PY'
+          import os,pathlib,re
+          p=pathlib.Path('tools/direct_demand/operations/read-1566-telegram-46-20261123.php')
+          program=p.read_text()
+          for name,pattern in [('APPLICATION_SHA',r'[a-f0-9]{40}'),('REPOSITORY_SHA',r'[a-f0-9]{40}'),('NATIVE_RUN_ID',r'[1-9][0-9]{0,19}')]:
+              value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
+              assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
+              program=program.replace('__'+name+'__',value)
+          # Execute the reviewed reader helpers for the same two prepared pairs.
+          # Preserve candidate holds, read-only SQL and the shared PRICE lease.
+          assert program.count("$out=['schema'=>1") == 1
+          program=program[:program.index("$out=['schema'=>1")]
+          entry=r'''
+          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_existing_target_inventory','ok'=>false,
+            'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,
+            'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,'rows'=>[]];
+          $pdo=null;$start=hrtime(true);
+          try {
+            runtimeRead();
+            requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
+            $out['resources_before']=resourcesRead();
+            $out['resource_budget']=serverReadBudgetRead($out['resources_before']);
+            requireRead($out['resource_budget']['allowed'],'server_resource_hold');
+            ob_start();try{
+              require APP.'/config.php';
+              require_once APP.'/services/ProjectConfig.php';
+              require_once APP.'/services/ChannelPostRegistryService.php';
+              require_once APP.'/hotel-posts-telegram-main19.php';
+            }finally{ob_end_clean();}
+            requireRead(ProjectConfig::projectId()==='anytour','project_changed');
+            $feed=anytourTelegramFeedOfferUrls(anytourTelegramFeedRead());
+            $routes=anytourTelegramFeedDestinationPosts($feed);
+            $pdo=ConversationDb::connection();
+            $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+            $registry=new ChannelPostRegistryService($pdo);
+            $channel=$registry->channel('anytour','telegram','anyru_bot','-1001845835645');
+            requireRead(is_array($channel)&&(int)$channel['id']===6,'channel_identity_changed');
+            $out['mysql_before']=mysqlResourcesRead($pdo);
+            $transactionStart=hrtime(true);
+            $pdo->beginTransaction();
+            $query=$pdo->prepare('SELECT id FROM post_publications WHERE post_channel_id=? AND external_message_id=? LIMIT 2');
+            foreach (['1749','1748','1747','1746','1743','1742','1741','1739','1735','1734'] as $mid) {
+              $query->execute([6,$mid]);
+              $ids=$query->fetchAll(PDO::FETCH_COLUMN);
+              $query->closeCursor();
+              $operation=telegramMediaOperationRead($mid);
+              $url='https://t.me/anytour/'.$mid;
+              $out['rows'][]=['target_mid'=>$mid,'registry_publication_present'=>$ids!==[],
+                  'native_registry_identity_ambiguous'=>count($ids)>1,
+                  'prior_media_operation_hold'=>telegramMediaOperationHeldRead($operation),
+                  'canonical_route_count'=>count(array_filter($routes,static fn($target)=>$target===$url)),
+                  'write_admission'=>false,'requires_keyboard_attribution_and_editor_review'=>true];
+            }
+            $pdo->rollBack();
+            $out['transaction_ms']=round((hrtime(true)-$transactionStart)/1000000,2);
+            $out['mysql_after']=mysqlResourcesRead($pdo);
+            runtimeRead();
+            $out['ok']=true;
+          }catch(Throwable $e){$out['failure_reason']=reasonRead($e);}
+          finally {if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();}
+          $out['resources_after']=resourcesRead();
+          $out['elapsed_ms']=round((hrtime(true)-$start)/1000000,2);
+          echo jsonRead($out),PHP_EOL;
+          exit($out['ok']?0:2);
+          '''
+          pathlib.Path('pub/read-only.php').write_text(program+entry)
+          PY
+          php -l pub/read-only.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read only target registry and route records during the application release
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          status=0
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json || status=$?
           python3 - <<'PY'
           import json
-          from pathlib import Path
-          from tools.verify_installed_telegram_routes import get_ad
-          targets=[('tg_2490','912'),('tg_42647','957')]
-          report={'routes':[get_ad({'offer_id':x,'post_url':'https://t.me/anytour/'+y}) for x,y in targets],
-                  'writes':0,'read_only':True}
-          print(json.dumps(report,ensure_ascii=False))
-          Path('route-status.json').write_text(json.dumps(report,ensure_ascii=False))
+          d=json.load(open('pub/registry.json'))
+          assert d['operation']=='hotel_existing_target_inventory' and d['issue']==1566
+          assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
+          print(json.dumps(d,ensure_ascii=False))
           PY
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+          test "$status" -eq 0
+      - name: Preserve the original bounded pair observation
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-public-route-status-after-1739
-          path: route-status.json
+          name: issue-1566-telegram-existing-target-inventory
+          path: |
+            pub/registry.json
+            pub/accepted-read-admission.json
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
+
