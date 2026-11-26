@@ -6,6 +6,8 @@ import pathlib
 import subprocess
 import tarfile
 import tempfile
+import textwrap
+from datetime import datetime, timezone
 
 root=pathlib.Path(__file__).resolve().parents[1]
 spec=importlib.util.spec_from_file_location("producer",root/"tools/direct_demand/operations/max-existing-photo/run_batch.py")
@@ -132,3 +134,62 @@ with tempfile.TemporaryDirectory() as directory:
         assert result.stdout == (f"{phase} {seal}\n".encode() if valid else b"")
 
 print("SSH wrapper preserves the requested phase and rejects an unsealed apply")
+
+with tempfile.TemporaryDirectory() as directory:
+    stage = pathlib.Path(directory)
+    pub = stage / "pub"
+    pub.mkdir()
+    tool = stage / "tools"
+    tool.mkdir()
+    workflow = (root / ".github/workflows/edit-1566-historical-max-photo-posts.yml").read_text()
+    code = workflow.split("cat > pub/admit.cjs <<'NODE'\n", 1)[1].split("          NODE\n", 1)[0]
+    admission = pub / "admit.cjs"
+    admission.write_text(textwrap.dedent(code))
+    now = datetime.now(timezone.utc).isoformat()
+    archive_head = "3a9195debcfbeb703a220895871f5a40a61d3010"
+    (pub / "manifest.json").write_text(json.dumps({
+        "archive_run_id": "45630394590", "archive_sha256": "a" * 64,
+        "native_source": {"attempt": 1, "artifact_id": 22, "run_id": 23, "job_id": 24,
+                          "workflow_head": "b" * 40, "zip_sha256": "c" * 64, "repository_sha": "d" * 40},
+        "route_readback": {"write_calls": 0, "observed_utc": now},
+    }))
+    (tool / "deployment_release.js").write_text("""
+const {native_source: native, archive_sha256: archiveDigest} = require('../pub/manifest.json')
+exports.API_ROOT = '/repo'
+exports.makeReadApi = () => async (_, endpoint) => {
+  const archive = endpoint.includes('/actions/runs/45630394590')
+  if (!endpoint.includes('/actions/runs/')) {
+    if (process.env.TEST_MODE === 'verify-originals') throw Error('preparation_accessed_live_slot')
+    const slot = process.env.TEST_FREE === '1' ? 'PR1748: установлено, выпуск свободен' : 'PR1748: выпуск занят'
+    return {object:{sha:native.repository_sha},user:{id:226193297},body:slot}
+  }
+  const id = archive ? 45630394590 : native.run_id
+  const head = archive ? process.env.TEST_ARCHIVE_HEAD : native.workflow_head
+  const path = archive ? '.github/workflows/read-1566-max-archive-20261123.yml'
+    : '.github/workflows/read-1566-old-ordinary-max-posts.yml'
+  if (endpoint.includes('/jobs')) return {total_count:1,jobs:[{id:archive?139261677044:native.job_id,conclusion:'success'}]}
+  if (endpoint.includes('/artifacts')) return {total_count:1,artifacts:[{
+    id:archive?15032515599:native.artifact_id,name:archive?'issue-1566-main-max-archive-inventory':'max-commercial-album-sources',
+    expired:false,digest:'sha256:'+(archive?archiveDigest:native.zip_sha256),workflow_run:{id,head_sha:head}
+  }]}
+  return {id,head_sha:head,path,repository:{id:1342493152},actor:{id:226193297},
+    event:'push',run_attempt:1,status:'completed',conclusion:'success'}
+}
+exports.readRecord = async () => {throw Error('writer_rechecked_current_release')}
+""")
+    (tool / "release_priority.js").write_text("")
+    for mode, free, expected_error in [
+        ("verify-originals", "0", ""),
+        ("authorize-write", "0", "shared_release_changed"),
+        ("authorize-write", "1", "writer_rechecked_current_release"),
+        ("", "1", "invalid_admission_mode"),
+    ]:
+        environment = dict(os.environ, MAX_ARCHIVE_ID="15032515599", MAX_NATIVE_ID="22",
+                           MAX_REPOSITORY_SHA="d" * 40, TEST_MODE=mode, TEST_FREE=free,
+                           TEST_ARCHIVE_HEAD=archive_head)
+        result = subprocess.run(["node", admission, mode], cwd=stage, env=environment,
+                                capture_output=True, text=True, check=False)
+        assert (result.returncode == 0) == (not expected_error), result.stderr
+        assert result.stderr.strip() == expected_error, result.stderr
+
+print("MAX preparation reads evidence while the release slot is occupied; write still requires admission")

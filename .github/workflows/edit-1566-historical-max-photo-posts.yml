@@ -118,7 +118,7 @@ jobs:
           const native=scope.native_source
           const app=native.repository_sha
           function check(ok,reason){if(!ok)throw Error(reason)}
-          async function run(){
+          async function requireWriteAdmission(){
             const fresh=Date.parse(scope.route_readback.observed_utc)
             check(Date.now()>=fresh&&Date.now()-fresh<=720000,'route_receipt_stale')
             const [main,hotelSlot,releaseSlot]=await Promise.all([api('GET',root+'/git/ref/heads/main'),
@@ -143,11 +143,16 @@ jobs:
           async function all(){
             check(native.artifact_id===Number(process.env.MAX_NATIVE_ID)
               &&native.attempt===1&&scope.route_readback.write_calls===0,'scope_evidence_identity_changed')
-            if(process.argv[2]==='verify-originals') await Promise.all([
-              receipt(Number(scope.archive_run_id),'3a9195debcfbeb703a220895871f5a40a61d3010','.github/workflows/read-1566-max-archive-20261123.yml',139261677044,Number(process.env.MAX_ARCHIVE_ID),scope.archive_sha256,'issue-1566-main-max-archive-inventory'),
-              receipt(native.run_id,native.workflow_head,'.github/workflows/read-1566-old-ordinary-max-posts.yml',native.job_id,Number(process.env.MAX_NATIVE_ID),native.zip_sha256,'max-commercial-album-sources')
-            ])
-            await run()
+            const mode=process.argv[2]
+            if(mode==='verify-originals'){
+              await Promise.all([
+                receipt(Number(scope.archive_run_id),'3a9195debcfbeb703a220895871f5a40a61d3010','.github/workflows/read-1566-max-archive-20261123.yml',139261677044,Number(process.env.MAX_ARCHIVE_ID),scope.archive_sha256,'issue-1566-main-max-archive-inventory'),
+                receipt(native.run_id,native.workflow_head,'.github/workflows/read-1566-old-ordinary-max-posts.yml',native.job_id,Number(process.env.MAX_NATIVE_ID),native.zip_sha256,'max-commercial-album-sources')
+              ])
+              return
+            }
+            check(mode==='authorize-write','invalid_admission_mode')
+            await requireWriteAdmission()
           }
           all().catch(error=>{console.error(error.code||error.message);process.exitCode=1})
           NODE
@@ -286,7 +291,7 @@ jobs:
       - name: Recheck accepted release and slot immediately before the existing writer
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node pub/admit.cjs
+        run: node pub/admit.cjs authorize-write
       - name: Edit only each verified existing ID and capture its independent receipt
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
