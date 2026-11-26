@@ -21,15 +21,15 @@
   ],
   "native_source": {
     "operation": "max_commercial_album_sources_read_only",
-    "run_id": 45904135472,
+    "run_id": 45910931138,
     "attempt": 1,
-    "job_id": 140196708074,
-    "workflow_head": "6f952b59cb76e0e564b68273c9afcca590a5431f",
-    "artifact_id": 15157790578,
-    "zip_sha256": "6b8c1530856f01feb9926a4712ff7ee1b4976f488d3c6f9646a292e574947b96",
-    "json_sha256": "791ad4c86b25632bc7b03f9b0ceecb917848eed9ed5ba637f3f42b9ae856b3c7",
-    "repository_sha": "e1511db16f24822d1271ab5e444ca859997be31e",
-    "application_sha": "e1511db16f24822d1271ab5e444ca859997be31e"
+    "job_id": 140218829178,
+    "workflow_head": "d346d95c7c902c736a8d43c4d2bcd63890ad7622",
+    "artifact_id": 15160340788,
+    "zip_sha256": "7105766e205cdc862e18a7c6474a29f5dc5e347e2ae24c3a6e1ba4254ba2799c",
+    "json_sha256": "47afa23c897aa1ffe941251df9de8f570232e00b54fc8aba729c0ead54cae6b0",
+    "repository_sha": "ec5332b4ddb0c76ac109d9603f2cdc9c9b42d80b",
+    "application_sha": "ec5332b4ddb0c76ac109d9603f2cdc9c9b42d80b"
   },
   "route_readback": {
     "repository": "pyatkoff/tour-max",
