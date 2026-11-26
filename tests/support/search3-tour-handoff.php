@@ -77,6 +77,12 @@ function search3Scenarios(PDO $pdo): array
     deliveryCheck('actual native entry records exactly one event and one labelled message',$first['ok']&&$first['changed']&&$first['conversation_id']===1&&!$repeat['changed']&&$business()===$saved&&$events()===1&&(int)$pdo->query("SELECT COUNT(*) FROM messages WHERE metadata_json LIKE '%tour_search_inquiry%'")->fetchColumn()===1);
     $pdo->exec("INSERT INTO customers VALUES(3,'Synthetic relative','','');INSERT INTO customer_channels VALUES(3,3,'anytour','telegram','303','303');INSERT INTO conversations(id,customer_id,customer_channel_id,project_key,source_id,channel,status,manager_id,started_at,external_chat_id) VALUES(3,3,3,'anytour',1,'telegram','manager',8,'2026-10-23 00:00:00','303')");
     $a=TourSelectionBotEntryService::accept($mxIn);$b=TourSelectionBotEntryService::accept(search3FixtureNative('telegram',$tg,303));deliveryCheck('MAX visitor and forwarded relative retain their own conversations',$a['conversation_id']===2&&$b['conversation_id']===3&&$events()===3);
+    $entryRows=$pdo->query("SELECT metadata_json,created_at,external_message_id FROM messages WHERE metadata_json LIKE '%tour_search_inquiry%'")->fetchAll();
+    foreach ($entryRows as $row) {
+        $recordedAt=ConversationRecordClock::read($row['metadata_json']);
+        deliveryCheck('Search3 arrival keeps its server recording clock and has no native text ID',
+            $recordedAt!==null && gmdate('Y-m-d H:i:s',$recordedAt)===$row['created_at'] && $row['external_message_id']===null);
+    }
     $view=TourChoiceService::forConversation($pdo,3);$o=$view['search_inquiries'][0]['observation'];deliveryCheck('Manager2 retains exact selected conditions and repeated infants',$o===$intent['observation']&&$o['trip']['childAges']===[0,0,12]);
     deliveryCheck('projection omits retained record capabilities and signer',!preg_match('/record_id|revision|handoff_id|entry_key|producer_key|s3_/u',json_encode($view['search_inquiries'])));
     deliveryCheck('search entry cannot fabricate native likes deliveries or manager publications',(int)$pdo->query("SELECT COUNT(*) FROM conversation_events WHERE event_type IN ('tour_offer_prepared','tour_offer_delivered','tour_offer_liked')")->fetchColumn()===0);
