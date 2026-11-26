@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == 'ed27245d4c33a1c36a00c9dfa4ac43bf839f371b' &&
+      github.event.before == 'f7204f819d57ab7238190ccc295c02affaf6fa73' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -31,6 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 - <<'PY'
+          from collections import Counter
           import hashlib
           import io
           import json
@@ -63,8 +64,8 @@ jobs:
           
           guard = re.compile(r"отзыв|впечатлен|впечатлён|делимс[яь] впечатлен|наш[аи]? турист|туристы поделил|туристы вернул|"
                              r"менеджер.{0,12}рассказ|мы (?:отдыхали|побывали)|с дн[её]м|поздравляем|розыгрыш|конкурс|доминикан", re.I)
-          commercial = re.compile(r"\bRUB\b|₽|\d\s*руб|вылет|тур(?:ы|а|ов)? на \w+ ноч", re.I)
-          seen, qualifying, source_rows = set(), {}, []
+          commercial = re.compile(r"\bRUB\b|₽|\d\s*руб|вылет|тур[а-яё]*|путешеств|отел|курорт|отдых", re.I)
+          seen, qualifying, source_rows, scope = set(), {}, [], {}
           for run_id, artifact_id, head, size, digest in expected:
               run = json.loads(gh(f"actions/runs/{run_id}"))
               assert run["id"] == run_id and run["head_sha"] == head and run["run_attempt"] == 1
@@ -87,9 +88,11 @@ jobs:
               for row in document["rows"]:
                   mid = int(row["target_message_id"])
                   seen.add(mid)
-                  if mid in blocked or row.get("single_photo_no_keyboard_structure") is not True:
-                      continue
                   public = row.get("public", {})
+                  original = 'saved_plan_or_hold' if mid in blocked else 'not_supported_or_parse_unavailable' if not public.get('single_photo') else 'legacy_keyboard' if public.get('buttons') else 'single_photo_empty_keyboard'
+                  scope[mid] = original
+                  if original != 'single_photo_empty_keyboard':
+                      continue
                   caption = public.get("caption", "")
                   if not isinstance(caption, str) or len(caption) < 100 or guard.search(caption) or not commercial.search(caption):
                       continue
@@ -99,7 +102,7 @@ jobs:
                                      "published_at":public.get("published_at"), "public_only":True}
           
           result = {"source_receipts":source_rows, "observed_unique":len(seen), "plan_files_read":checked_plans,
-                    "blocked_mids":len(blocked), "candidates":list(qualifying.values()),
+                    "blocked_mids":len(blocked), "format_counts":dict(Counter(scope.values())), "candidates":list(qualifying.values()),
                     "native_ready":0, "telegram_gets":0, "server_calls":0, "provider_writes":0, "write_admission":False}
           Path("pub").mkdir()
           Path("pub/target-shortlist.json").write_text(json.dumps(result, ensure_ascii=False))
