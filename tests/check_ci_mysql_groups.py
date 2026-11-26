@@ -15,11 +15,7 @@ import tempfile
 import yaml
 
 GROUPS = {
-    'replies': [
-        'tests/run_manager_prepared_reply_regression.php',
-        'tests/mysql/development-work-queue.php',
-        'tests/mysql/development-work-events.php',
-    ],
+    'replies': ['tests/run_manager_prepared_reply_regression.php'],
     'migrations': [
         'tests/mysql/manager-preparation-migrations.php',
         'tests/mysql/manager-reply-queue.php',
@@ -32,7 +28,11 @@ GROUPS = {
         'tests/mysql/hotel-work-queue.php',
         'tests/mysql/hotel-work-events.php',
     ],
-    'regional-access': ['tests/mysql/manager-regional-routing.php --required-native'],
+    'regional-access': [
+        'tests/mysql/manager-regional-routing.php --required-native',
+        'tests/mysql/development-work-queue.php',
+        'tests/mysql/development-work-events.php',
+    ],
 }
 CONNECTION = {
     'PREPARED_REPLY_MYSQL_DSN': 'mysql:host=127.0.0.1;port=3306;dbname=maxbot_prepared_test;charset=utf8mb4',
@@ -53,7 +53,7 @@ def verify(document):
     jobs = document['jobs']
     job = jobs['prepared-mysql']
     check(job['strategy'] == {
-        'fail-fast': False, 'max-parallel': 3,
+        'fail-fast': False, 'max-parallel': 4,
         'matrix': {'group': list(GROUPS)},
     }, 'all four independent groups must execute; no exclusion or ignored matrix failure')
     check(job['runs-on'] == 'ubuntu-latest' and 'container' not in job,
