@@ -25,7 +25,7 @@ jobs:
       github.event_name == 'push' && github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'd346d95c7c902c736a8d43c4d2bcd63890ad7622' &&
+      github.event.before == '94e26f7d8ac1154dc5b6e38c3b64816bc1a79bdf' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -97,13 +97,15 @@ jobs:
           node - <<'NODE'
           const R=require('./tools/deployment_release')
           const api=R.makeReadApi(process.env.GITHUB_TOKEN)
-          const main=process.env.MAX_REPOSITORY_SHA
+          const {native_source:source}=require('./pub/manifest.json')
+          const repository=process.env.MAX_REPOSITORY_SHA
           ;(async ()=>{
-            const currentFloor=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha
-            if(currentFloor!==main) throw Error('changed_release')
+            if(source.repository_sha!==repository||!/^[a-f0-9]{40}$/.test(source.application_sha))
+              throw Error('invalid_preparation_version')
             const receipt=await R.readRecord(api)
-            const accepted=await R.resolveCurrent(api,{sha:main},receipt)
-            if(!accepted.ready||accepted.repository_sha!==main||accepted.application_sha!==main) throw Error('release_pending')
+            const accepted=await R.resolveCurrent(api,{sha:repository},receipt)
+            if(accepted.ready!==true||accepted.repository_sha!==repository||accepted.application_sha!==source.application_sha)
+              throw Error('preparation_application_unconfirmed')
             console.log('MAX_PREPARE_ACCEPTED_APPLICATION='+accepted.application_sha)
           })().catch(e=>{console.error(e.code||e.message);process.exitCode=1})
           NODE
@@ -140,6 +142,7 @@ jobs:
           test "$2" = prepare
           test "$3" = -
           python3 "$stage/run_batch.py" "$stage" --prepare
+          test "$(git rev-parse HEAD)" = "$app"
           SH
           tar -C pub/stage -cf pub/approved.tar editor.php batch_input.php batch_entry.php observe_pair.php scope.json native-targets.json native-source.json run_batch.py execute.sh
       - name: Pin established SSH host continuity and authentication identity
