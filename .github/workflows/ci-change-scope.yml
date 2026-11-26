@@ -52,6 +52,6 @@ jobs:
           CI_SCOPE_RESULT="$result" node -e '
             const result = JSON.parse(process.env.CI_SCOPE_RESULT);
             const backend = result.mode === "tour-selection" && result.backend === "selection-style" ? "selection-style" :
-              result.mode === "full" && ["workspace-style", "hotel-catalogue-data"].includes(result.backend) ? result.backend : "full";
+              result.mode === "full" && ["workspace-style", "hotel-catalogue-data", "telegram-public-observer"].includes(result.backend) ? result.backend : "full";
             require("node:fs").appendFileSync(process.env.GITHUB_OUTPUT, `backend=${backend}\n`);
           '

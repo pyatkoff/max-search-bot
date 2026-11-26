@@ -144,6 +144,9 @@ scope_events = scope_document.get('on',scope_document.get(True))
 check(scope_events['workflow_call']['outputs']['backend']['value'] == '${{ jobs.scope.outputs.backend }}'
       and scope_document['jobs']['scope']['outputs']['backend'] == '${{ steps.scope.outputs.backend }}',
       'backend profile is bound through the canonical scope job')
+scope_step = next(step for step in scope_document['jobs']['scope']['steps'] if step.get('id') == 'scope')
+check('["workspace-style", "hotel-catalogue-data", "telegram-public-observer"].includes(result.backend)' in scope_step['run'],
+      'the canonical workflow passes through the exact observer backend')
 check('node tests/check_ci_selection_style_scope.js' in policy['run'], 'style selector selftests are mandatory')
 check("needs.change-scope.outputs.mode == 'full'" in visual['browser-tests']['if'], 'full browser assembler must not run after OAuth-only skips')
 check(set(visual['full-screenshots']['needs']) == {'browser-tests','firefox-history','firefox-notifications'}, 'full screenshot proof preserves all engines and Firefox')
