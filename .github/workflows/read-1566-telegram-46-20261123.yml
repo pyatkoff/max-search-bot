@@ -1,4 +1,4 @@
-name: "#1566 Prepare existing reserve TV265 against commercial target1535"
+name: "#1566 Recheck lease and current conditions of prepared TV265 target1535 after original PRICE terminal"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '520aea84f4ba3e0669d9fa942f53f4d006533df2' &&
+      github.event.before == '325df7c5ac7ae0f0d188d02a032e1070f3689e19' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
