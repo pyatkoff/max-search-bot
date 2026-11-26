@@ -1,7 +1,10 @@
 import hashlib
 import importlib.util
 import json
+import os
 import pathlib
+import subprocess
+import tarfile
 import tempfile
 
 root=pathlib.Path(__file__).resolve().parents[1]
@@ -108,3 +111,24 @@ with tempfile.TemporaryDirectory() as directory:
             raise AssertionError("Changed native inputs were accepted")
 
 print("Read-only preparation, separated apply and receipt integrity passed")
+
+with tempfile.TemporaryDirectory() as directory:
+    stage = pathlib.Path(directory)
+    ssh = stage / "ssh"
+    ssh.write_text('#!/usr/bin/env bash\nexec bash -c "${@: -1}"\n')
+    ssh.chmod(0o700)
+    entry = stage / "execute.sh"
+    entry.write_text('#!/usr/bin/env bash\ntest -d "$1" && printf "%s %s\\n" "$2" "$3"\n')
+    archive = stage / "approved.tar"
+    with tarfile.open(archive, "w") as package:
+        package.add(entry, arcname=entry.name)
+    environment = dict(os.environ, PATH=f"{stage}:{os.environ['PATH']}", RUNNER_TEMP=directory,
+                       HOST_VALUE="fixture", USER_VALUE="fixture")
+    helper = root / "tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh"
+    for phase, seal, valid in (("prepare", "-", True), ("apply", "e" * 64, True), ("apply", "-", False)):
+        result = subprocess.run(["bash", helper, phase, seal], input=archive.read_bytes(),
+                                env=environment, capture_output=True, check=False)
+        assert (result.returncode == 0) is valid, result.stderr
+        assert result.stdout == (f"{phase} {seal}\n".encode() if valid else b"")
+
+print("SSH wrapper preserves the requested phase and rejects an unsealed apply")

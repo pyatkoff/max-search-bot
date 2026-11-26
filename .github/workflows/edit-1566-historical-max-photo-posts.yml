@@ -1,5 +1,7 @@
 name: "#1566 Apply only Rixos to the independently confirmed commercial MAX post"
 on:
+  pull_request:
+    branches: [audit/1566-main-hotel-registry-20261119]
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
     paths: ['.github/workflows/edit-1566-historical-max-photo-posts.yml']
@@ -8,19 +10,36 @@ permissions:
   actions: read
   issues: read
   pull-requests: read
-concurrency:
-  group: anytour-authorized-channel-publication
-  cancel-in-progress: false
 jobs:
-  edit_existing:
+  validate_source:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Check the real batch input and the three-phase runner
+        run: |
+          php tests/run_1566_max_existing_photo_batch.php
+          python3 -B tests/run_1566_max_existing_photo_partial.py
+          bash -n tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh
+
+  prepare:
     if: >-
-      github.repository == 'pyatkoff/max-search-bot' &&
+      github.event_name == 'push' && github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
       github.event.before == '8e2b2fe1eaea7e4299e40a57a072e90c0c6a66da' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 6
+    outputs:
+      prepared: ${{ steps.seal.outputs.prepared }}
+      archive_sha: ${{ steps.seal.outputs.archive_sha }}
+      receipt_sha: ${{ steps.seal.outputs.receipt_sha }}
+      manifest_sha: ${{ steps.seal.outputs.manifest_sha }}
+      admission_sha: ${{ steps.seal.outputs.admission_sha }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -30,6 +49,11 @@ jobs:
         with:
           ref: f0ac8ff44afc64386be1802068102ccc9c0a55d4
           path: approved-editor
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: workflow-source
           persist-credentials: false
       - name: Authenticate the original reads and compile the single approved input
         env:
@@ -83,7 +107,8 @@ jobs:
           src=approved-editor/tools/direct_demand/operations/max-existing-photo
           php approved-editor/tests/run_1566_max_existing_photo_batch.php
           python3 approved-editor/tests/run_1566_max_existing_photo_partial.py
-          install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,run_batch.py} pub/stage/
+          install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
+          install -m600 workflow-source/tools/direct_demand/operations/max-existing-photo/run_batch.py pub/stage/
           python3 - <<'PY'
           import hashlib,json,pathlib,re,zipfile
           stage=pathlib.Path('pub/stage')
@@ -144,7 +169,11 @@ jobs:
           stage="$(cd -- "$1" && pwd -P)"
           cd /var/www/anytoour/data/www/app.anytoour.ru
           test "$(git rev-parse HEAD)" = 'aceadeddd35a89307a9a307e891214d9c0be2af6'
-          python3 "$stage/run_batch.py" "$stage"
+          case "$2" in
+            prepare) python3 "$stage/run_batch.py" "$stage" --prepare ;;
+            apply) python3 "$stage/run_batch.py" "$stage" --apply-prepared "$stage/preparation.json" "$3" ;;
+            *) exit 2 ;;
+          esac
           SH
           tar -C pub/stage -cf pub/approved.tar editor.php batch_input.php batch_entry.php observe_pair.php scope.json native-targets.json native-source.json run_batch.py execute.sh
       - name: Pin established SSH host continuity and authentication identity
@@ -152,33 +181,96 @@ jobs:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
           KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh pin-host
+      - name: Prepare native checkpoints without editing posts
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
+          bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh prepare - \
+            < pub/approved.tar > pub/preparation.json
+      - name: Bind the preparation to its exact package
+        id: seal
+        run: |
+          set -euo pipefail
           python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          import hashlib,json,os,pathlib
+          pub=pathlib.Path('pub')
+          manifest=json.loads((pub/'manifest.json').read_bytes())
+          receipt=json.loads((pub/'preparation.json').read_bytes())
+          assert receipt['contract']=='anytour-max-transfer-preparation-v1' and receipt['provider_writes']==0
+          rows=receipt['rows']
+          assert [r['hotel_id'] for r in rows]==[r['hotel_id'] for r in manifest['rows']]
+          ready=sum(r['state']=='ready_read_only' for r in rows)
+          print(f'Native checkpoints ready: {ready}/{len(rows)}')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              print('prepared='+str(ready>0).lower(),file=out)
+              for key,name in (('archive_sha','approved.tar'),('receipt_sha','preparation.json'),
+                               ('manifest_sha','manifest.json'),('admission_sha','admit.cjs')):
+                  print(key+'='+hashlib.sha256((pub/name).read_bytes()).hexdigest(),file=out)
           PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
+      - name: Store the exact inputs and native preparation receipt
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-max-prepared-${{ github.run_attempt }}
+          path: |
+            pub/approved.tar
+            pub/admit.cjs
+            pub/manifest.json
+            pub/preparation.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Remove runner-only connection material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+  edit_existing:
+    needs: prepare
+    if: needs.prepare.outputs.prepared == 'true'
+    concurrency:
+      group: anytour-authorized-channel-publication
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: aceadeddd35a89307a9a307e891214d9c0be2af6
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: workflow-source
+          persist-credentials: false
+      - name: Retrieve this run's prepared batch
+        uses: actions/download-artifact@v4
+        with:
+          name: issue-1566-max-prepared-${{ github.run_attempt }}
+          path: pub
+      - name: Verify the prepared bytes before loading the publisher credentials
+        env:
+          ARCHIVE_SHA: ${{ needs.prepare.outputs.archive_sha }}
+          RECEIPT_SHA: ${{ needs.prepare.outputs.receipt_sha }}
+          MANIFEST_SHA: ${{ needs.prepare.outputs.manifest_sha }}
+          ADMISSION_SHA: ${{ needs.prepare.outputs.admission_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for digest in "$ARCHIVE_SHA" "$RECEIPT_SHA" "$MANIFEST_SHA" "$ADMISSION_SHA"; do
+            [[ "$digest" =~ ^[a-f0-9]{64}$ ]]
+          done
+          cd pub
+          printf '%s  %s\n' "$ARCHIVE_SHA" approved.tar "$RECEIPT_SHA" preparation.json \
+            "$MANIFEST_SHA" manifest.json "$ADMISSION_SHA" admit.cjs | sha256sum --check --strict
+          tar -rf approved.tar preparation.json
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh pin-host
       - name: Recheck accepted release and slot immediately before the existing writer
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -187,14 +279,13 @@ jobs:
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          RECEIPT_SHA: ${{ needs.prepare.outputs.receipt_sha }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -c '"'"'set -euo pipefail; umask 077; stage=$(mktemp -d /tmp/anytour-1566-old-max.XXXXXXXX); trap "rm -f -- \"$stage\"/*; rmdir -- \"$stage\"" EXIT; tar --no-same-owner --no-same-permissions -C "$stage" -xf -; bash "$stage/execute.sh" "$stage"'"'"'' < pub/approved.tar | tee pub/native-results.txt
+          bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh apply "$RECEIPT_SHA" \
+            < pub/approved.tar | tee pub/native-results.txt
           python3 - <<'PY'
           import json,pathlib
           expected = [r['hotel_id'] for r in json.loads(pathlib.Path('pub/manifest.json').read_bytes())['rows']]
@@ -213,12 +304,40 @@ jobs:
           pathlib.Path('pub/summary.json').write_text(json.dumps(summary,indent=2))
           print('Native confirmations', len(accepted), 'of', len(expected), accepted)
           PY
-      - name: Read each same public MAX address independently
+      - name: Preserve exact native writer receipts
         if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-max-native-${{ github.run_attempt }}
+          path: |
+            pub/manifest.json
+            pub/native-results.txt
+            pub/summary.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+  observe_public:
+    needs: [prepare, edit_existing]
+    if: always() && needs.prepare.result == 'success' && (needs.edit_existing.result == 'success' || needs.edit_existing.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Retrieve only the native writer receipts
+        uses: actions/download-artifact@v4
+        with:
+          name: issue-1566-max-native-${{ github.run_attempt }}
+          path: pub
+      - name: Read each same public MAX address independently
+        env:
+          MANIFEST_SHA: ${{ needs.prepare.outputs.manifest_sha }}
         run: |
           set -euo pipefail
           umask 077
           test -f pub/native-results.txt || exit 0
+          [[ "$MANIFEST_SHA" =~ ^[a-f0-9]{64}$ ]]
+          printf '%s  %s\n' "$MANIFEST_SHA" pub/manifest.json | sha256sum --check --strict
           python3 - <<'PY'
           import json,urllib.request,urllib.error,hashlib,re,time
           from html.parser import HTMLParser
@@ -286,6 +405,3 @@ jobs:
             pub/observation.json
           retention-days: 7
           if-no-files-found: warn
-      - name: Remove runner-only connection material
-        if: always()
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
