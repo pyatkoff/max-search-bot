@@ -1,4 +1,4 @@
-name: "#1566 Apply only Rixos to the independently confirmed commercial MAX post"
+name: "#1566 Prepare and edit verified existing MAX posts"
 on:
   pull_request:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -10,6 +10,13 @@ permissions:
   actions: read
   issues: read
   pull-requests: read
+env:
+  MAX_PACKET_REF: 83ee93a8a07ad1518cd05f5664d3f8069dcd9e44
+  MAX_PACKET_PATH: tools/direct_demand/operations/max-existing-photo/scope-stella-466-20261126.json
+  MAX_PACKET_SHA: 97a11a48855d1ec3ca12bccb6078ccb8b7ece4eae0a00fb8510974c0e9ba456d
+  MAX_REPOSITORY_SHA: 664390965a45cdcf5600ea6bbfa8ce1bf47d78e2
+  MAX_ARCHIVE_ID: '15032515599'
+  MAX_NATIVE_ID: '15156475686'
 jobs:
   validate_source:
     if: github.event_name == 'pull_request'
@@ -24,6 +31,37 @@ jobs:
           php tests/run_1566_max_existing_photo_batch.php
           python3 -B tests/run_1566_max_existing_photo_partial.py
           bash -n tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ env.MAX_PACKET_REF }}
+          path: packet
+          persist-credentials: false
+      - name: Compile the sealed Stella Makadi packet without a production connection
+        if: github.event.pull_request.number == 1747
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          src=tools/direct_demand/operations/max-existing-photo
+          mkdir -p pub/stage
+          install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_ARCHIVE_ID/zip" > pub/old.zip
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_NATIVE_ID/zip" > pub/native.zip
+          python3 "$src/stage_approved_scope.py" "packet/$MAX_PACKET_PATH" "$MAX_PACKET_SHA" pub/old.zip pub/native.zip pub/stage
+          php -l pub/stage/batch_entry.php
+          native_sha="$(sha256sum pub/stage/native-source.json | cut -d' ' -f1)"
+          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json \
+            "$native_sha" "$MAX_REPOSITORY_SHA" "$MAX_REPOSITORY_SHA" > pub/batch-plan.json
+          python3 - <<'PYTHON'
+          import json
+          with open('pub/batch-plan.json') as source:
+              result=json.load(source)
+          assert result['provider_writes']==0 and result['ready']==[466] and not result['held']
+          print('MAX_OFFLINE_PACKET_READY=466; provider_writes=0')
+          PYTHON
 
   prepare:
     if: >-
@@ -43,7 +81,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: aceadeddd35a89307a9a307e891214d9c0be2af6
+          ref: ${{ env.MAX_REPOSITORY_SHA }}
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -55,6 +93,11 @@ jobs:
           ref: ${{ github.sha }}
           path: workflow-source
           persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ env.MAX_PACKET_REF }}
+          path: packet
+          persist-credentials: false
       - name: Authenticate the original reads and compile the single approved input
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -64,22 +107,27 @@ jobs:
           set -euo pipefail
           umask 077
           mkdir -p pub/stage
+          install -m600 "packet/$MAX_PACKET_PATH" pub/manifest.json
+          printf '%s  %s\n' "$MAX_PACKET_SHA" pub/manifest.json | sha256sum --check --strict
           cat > pub/admit.cjs <<'NODE'
           const R=require('../tools/deployment_release')
           const P=require('../tools/release_priority')
           const api=R.makeReadApi(process.env.GITHUB_TOKEN)
-          const root=R.API_ROOT, app='aceadeddd35a89307a9a307e891214d9c0be2af6'
+          const root=R.API_ROOT
+          const scope=JSON.parse(require('node:fs').readFileSync('pub/manifest.json','utf8'))
+          const native=scope.native_source
+          const app=native.repository_sha
           function check(ok,reason){if(!ok)throw Error(reason)}
           async function run(){
-            const fresh=Date.parse('2026-11-26T13:44:17+00:00')
+            const fresh=Date.parse(scope.route_readback.observed_utc)
             check(Date.now()>=fresh&&Date.now()-fresh<=720000,'route_receipt_stale')
             const [main,hotelSlot,releaseSlot]=await Promise.all([api('GET',root+'/git/ref/heads/main'),
               api('GET',root+'/issues/comments/6818332618'),api('GET',root+'/issues/comments/6682640708')])
-            check(main.object.sha===app&&hotelSlot.user.id===226193297&&hotelSlot.body==='PR1741: установлено, выпуск свободен'
-              &&releaseSlot.user.id===226193297&&releaseSlot.body==='PR1742: установлено, выпуск свободен','shared_release_changed')
+            const free=slot=>slot.user.id===226193297&&/^PR[1-9][0-9]*: установлено, выпуск свободен$/.test(slot.body)
+            check(main.object.sha===app&&app===process.env.MAX_REPOSITORY_SHA&&free(hotelSlot)&&free(releaseSlot),'shared_release_changed')
             const record=await R.readRecord(api)
             const current=await R.resolveCurrent(api,{sha:app},record)
-            check(current.ready&&current.repository_sha===app&&current.application_sha===app,'current_release_changed')
+            check(current.ready&&current.repository_sha===app&&current.application_sha===native.application_sha,'current_release_changed')
             await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:app},process.env.GITHUB_TOKEN,fetch)
           }
           async function receipt(id,head,path,jobId,artifactId,digest,name){
@@ -93,74 +141,36 @@ jobs:
               &&file.digest==='sha256:'+digest&&file.workflow_run.id===id&&file.workflow_run.head_sha===head,'original_artifact_changed')
           }
           async function all(){
+            check(native.artifact_id===Number(process.env.MAX_NATIVE_ID)
+              &&native.attempt===1&&scope.route_readback.write_calls===0,'scope_evidence_identity_changed')
             if(process.argv[2]==='verify-originals') await Promise.all([
-              receipt(45630394590,'3a9195debcfbeb703a220895871f5a40a61d3010','.github/workflows/read-1566-max-archive-20261123.yml',139261677044,15032515599,'354407dec77c2ffc3b8ed739e5a3f3aac422a0120578c0501183bbe36ea8d795','issue-1566-main-max-archive-inventory'),
-              receipt(45831791225,'8e2b2fe1eaea7e4299e40a57a072e90c0c6a66da','.github/workflows/read-1566-old-ordinary-max-posts.yml',139950158848,15122044230,'cf071668969c0fad12759f53aa241f8f76e5e512fd1cfd003c97c31cfa4a3f5f','max-commercial-album-sources')
+              receipt(Number(scope.archive_run_id),'3a9195debcfbeb703a220895871f5a40a61d3010','.github/workflows/read-1566-max-archive-20261123.yml',139261677044,Number(process.env.MAX_ARCHIVE_ID),scope.archive_sha256,'issue-1566-main-max-archive-inventory'),
+              receipt(native.run_id,native.workflow_head,'.github/workflows/read-1566-old-ordinary-max-posts.yml',native.job_id,Number(process.env.MAX_NATIVE_ID),native.zip_sha256,'max-commercial-album-sources')
             ])
             await run()
           }
           all().catch(error=>{console.error(error.code||error.message);process.exitCode=1})
           NODE
           node pub/admit.cjs verify-originals
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/15032515599/zip > pub/old.zip
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/15122044230/zip > pub/native.zip
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_ARCHIVE_ID/zip" > pub/old.zip
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_NATIVE_ID/zip" > pub/native.zip
           src=approved-editor/tools/direct_demand/operations/max-existing-photo
-          php approved-editor/tests/run_1566_max_existing_photo_batch.php
-          python3 approved-editor/tests/run_1566_max_existing_photo_partial.py
+          tool=workflow-source/tools/direct_demand/operations/max-existing-photo
           install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
-          install -m600 workflow-source/tools/direct_demand/operations/max-existing-photo/run_batch.py pub/stage/
-          python3 - <<'PY'
-          import hashlib,json,pathlib,re,zipfile
-          stage=pathlib.Path('pub/stage')
-          def digest(raw):
-              return hashlib.sha256(raw).hexdigest()
-          def receipt(name,expected):
-              filename=pathlib.Path('pub',name+'.zip')
-              assert filename.stat().st_size<300000 and digest(filename.read_bytes())==expected
-              with zipfile.ZipFile(filename) as archive:
-                  assert archive.namelist()==['registry.json'] and archive.getinfo('registry.json').file_size<=2000000
-                  return archive.read('registry.json')
-          old_sha='354407dec77c2ffc3b8ed739e5a3f3aac422a0120578c0501183bbe36ea8d795'
-          native_sha='cf071668969c0fad12759f53aa241f8f76e5e512fd1cfd003c97c31cfa4a3f5f'
-          old=receipt('old',old_sha)
-          native=receipt('native',native_sha)
-          assert digest(native)=='347b85aab1607c2c03cf0b8d8b7fe303e5c4081ca762513d9ca30102ab16bb62'
-          read=json.loads(native)
-          row=json.loads(r'''{"hotel_id":2575,"name":"Rixos Al Mairid Ras Al Khaimah","source_id":1342,"source_mid":"mid.ffffb6caf0606fed01a1d46c23c52cc7","source_url":"https://max.ru/channel_anytour/AaHUbCPFLMc","target_mid":"mid.ffffc1752b045fed019aca84b9721cb5","target_url":"https://max.ru/anytour/AZrKhLlyHLU","target_ms":1764334287218,"target_fingerprint":"e3795cf0d15eac4e3ac05abea6a3d79d9b706416b7926a7d6234bd8f6c5658cc","caption_without_price":"✈️ Туры в Rixos Al Mairid Ras Al Khaimah\n📍 Рас-эль-Хайма, ОАЭ\nПесчаный пляж и номера в виллах для семейного отдыха у моря.","original_legacy_identity_sha256":"06c4ed395de06cf877c2b9e7332f7bbfa4f6f4fcc83cb9338c2400a607562b2b"}''')
-          app='aceadeddd35a89307a9a307e891214d9c0be2af6'
-          assert read['ok'] and read['target_editor_rights'] and read['archive_run']==45630394590
-          assert read['application_sha']==read['repository_sha']==app
-          assert read['provider_writes']==read['db_writes']==read['bot_starts']==0
-          assert read['button_text']=='✈️ Рассчитать на мои даты' and len(read['rows'])==1
-          proof=read['rows'][0]
-          assert all(proof[k]==row[k] for k in ('hotel_id','source_id','source_mid','target_mid','target_url','original_legacy_identity_sha256'))
-          assert proof['target_occupied']==proof['source_held']==proof['target_or_hotel_registry_conflicts']==0
-          assert proof['source_hotel_id_matches'] is False and proof['source_catalog_id']==0
-          assert proof['readable_source_hotel_identity'] and proof['source_button_resolves_publication']
-          assert proof['source_photo_matches_registry'] and proof['target_matches_native_archive']
-          route={'repository':'pyatkoff/tour-max','run_id':45832028822,'job_id':139950987300,'observed_utc':'2026-11-26T13:44:17+00:00','write_calls':0}
-          scope={'version':1,'archive_run_id':'45630394590','archive_sha256':old_sha,'archive_registry_sha256':digest(old),
-              'rows':[row],'native_source':{'operation':read['operation'],'run_id':45831791225,'attempt':1,'job_id':139950158848,
-              'workflow_head':'8e2b2fe1eaea7e4299e40a57a072e90c0c6a66da','artifact_id':15122044230,'zip_sha256':native_sha,'json_sha256':digest(native),
-              'repository_sha':app,'application_sha':app},'route_readback':route,
-              'price_review':{'mode':'caption_without_fixed_price'}}
-          encoded=(json.dumps(scope,ensure_ascii=False,indent=2)+'\n').encode()
-          (stage/'scope.json').write_bytes(encoded)
-          (stage/'native-targets.json').write_bytes(old)
-          (stage/'native-source.json').write_bytes(native)
-          pathlib.Path('pub/manifest.json').write_bytes(encoded)
-          entry=stage/'batch_entry.php'
-          code,count=re.subn(r"(const MAX_BATCH_SCOPE_SHA256 = ')[a-f0-9]{64}(')",lambda m:m[1]+digest(encoded)+m[2],entry.read_text())
-          assert count==1
-          entry.write_text(code)
-          PY
+          install -m600 "$tool/run_batch.py" pub/stage/
+          python3 "$tool/stage_approved_scope.py" pub/manifest.json "$MAX_PACKET_SHA" pub/old.zip pub/native.zip pub/stage
           php -l pub/stage/batch_entry.php
-          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json 347b85aab1607c2c03cf0b8d8b7fe303e5c4081ca762513d9ca30102ab16bb62 aceadeddd35a89307a9a307e891214d9c0be2af6 aceadeddd35a89307a9a307e891214d9c0be2af6 > pub/batch-plan.json
-          python3 - <<'PY'
+          native_sha="$(sha256sum pub/stage/native-source.json | cut -d' ' -f1)"
+          app="$(python3 -c 'import json; print(json.load(open("pub/manifest.json"))["native_source"]["application_sha"])')"
+          [[ "$app" =~ ^[a-f0-9]{40}$ ]]
+          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json \
+            "$native_sha" "$MAX_REPOSITORY_SHA" "$app" > pub/batch-plan.json
+          python3 - <<'PYTHON'
           import json
-          d=json.load(open('pub/batch-plan.json'))
-          assert d['provider_writes']==0 and {int(k) for k in d['ready']}=={2575} and not d['held']
-          PY
+          plan=json.load(open('pub/batch-plan.json'))
+          scope=json.load(open('pub/manifest.json'))
+          assert plan['provider_writes']==0 and plan['ready']==[r['hotel_id'] for r in scope['rows']] and not plan['held']
+          PYTHON
           cat > pub/stage/execute.sh <<'SH'
           #!/usr/bin/env bash
           set -euo pipefail
@@ -168,7 +178,9 @@ jobs:
           unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
           stage="$(cd -- "$1" && pwd -P)"
           cd /var/www/anytoour/data/www/app.anytoour.ru
-          test "$(git rev-parse HEAD)" = 'aceadeddd35a89307a9a307e891214d9c0be2af6'
+          app="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["native_source"]["application_sha"])' "$stage/scope.json")"
+          [[ "$app" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$app"
           case "$2" in
             prepare) python3 "$stage/run_batch.py" "$stage" --prepare ;;
             apply) python3 "$stage/run_batch.py" "$stage" --apply-prepared "$stage/preparation.json" "$3" ;;
@@ -237,7 +249,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: aceadeddd35a89307a9a307e891214d9c0be2af6
+          ref: ${{ env.MAX_REPOSITORY_SHA }}
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
