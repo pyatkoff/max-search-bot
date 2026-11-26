@@ -1,4 +1,4 @@
-name: "#1566 Filter saved Telegram targets accepted by the current editor"
+name: "#1566 Inspect actual photos of ten saved commercial targets"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -11,115 +11,73 @@ jobs:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 &&
-      github.actor == 'pyatkoff' &&
-      github.event.sender.id == 226193297 &&
-      github.event.created == false &&
-      github.event.forced == false &&
-      github.event.before == '0f60899e5b38f24bd635a63d0bee29b68851c376' &&
-      github.run_attempt == 1
+      github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
+      github.event.created == false && github.event.forced == false &&
+      github.event.before == 'fd22921e5c1b5b09a61e9bb11707d7972f05b1b8' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 6
     steps:
-      - name: Classify the saved evidence without Telegram or production requests
+      - name: Authenticate existing receipts and download only actual saved images
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          import hashlib
-          import io
-          import json
-          import os
-          import re
-          import subprocess
-          import zipfile
-          from collections import Counter, defaultdict
+          import hashlib, io, json, os, re, subprocess, zipfile, urllib.request, urllib.error, urllib.parse
           from pathlib import Path
+          ROOT=Path('pub'); ROOT.mkdir()
+          def api(p): return subprocess.check_output(['gh','api','repos/'+os.environ['GITHUB_REPOSITORY']+'/'+p],timeout=30)
+          def receipt(run, artifact, head, size, sha):
+              r=json.loads(api('actions/runs/'+str(run)))
+              assert r['run_attempt']==1 and r['head_sha']==head and r['conclusion']=='success' and r['actor']['id']==226193297
+              assert r['repository']['full_name']==r['head_repository']['full_name']==os.environ['GITHUB_REPOSITORY']
+              a=json.loads(api('actions/artifacts/'+str(artifact)))
+              assert not a['expired'] and a['workflow_run']['id']==run and a['workflow_run']['head_sha']==head and a['size_in_bytes']==size and a['digest']=='sha256:'+sha
+              b=api('actions/artifacts/'+str(artifact)+'/zip'); assert len(b)==size and hashlib.sha256(b).hexdigest()==sha
+              z=zipfile.ZipFile(io.BytesIO(b)); assert z.testzip() is None and sum(i.file_size for i in z.infolist())<20000000
+              return z
+          archive=receipt(45712298154,15069010253,'c4fb63bf63544006c3de711d3d48c9b8d807ee8f',172556,'2afa5644b95e3f2f4226c995491336e94eb1f9e8227c8bc65db66c642af7ea7f')
+          d=json.loads(archive.read('archive-windows.json')); assert d['native_run_id']=='45712298154'
+          native=receipt(45808887211,15110777634,'0f60899e5b38f24bd635a63d0bee29b68851c376',1529,'2fbd4640a824d9d6b01b7918500b3b12f3b718084206454938722899ea3bf49a')
+          n=json.loads(native.read('registry.json')); assert n['ok'] and n['provider_writes']==n['production_writes']==0 and not n['write_admission']
+          mids=[1749,1748,1747,1746,1743,1742,1741,1739,1735,1734]
+          by={int(r['target_mid']):r for r in n['rows']}; saved={int(r['target_message_id']):r for r in d['rows']}
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self,*a,**kw): return None
+          opener=urllib.request.build_opener(NoRedirect()); holds={}; out=[]; gets=0
+          for mid in mids:
+              t=by[mid]; assert not t['registry_publication_present'] and not t['native_registry_identity_ambiguous'] and not t['prior_media_operation_hold'] and t['canonical_route_count']==0
+              p=saved[mid]['public']; assert p['single_photo'] and p['other_media_count']==0 and len(p['buttons'])==1 and p['buttons'][0]['url_sha256']=='5a7e4f1dc3c08a29a685cbcaf0e01d6a190d0c1c7c192b00d766f245ee557e2a'
+              row={'target_mid':mid,'caption':p['caption'],'caption_sha256':p['caption_sha256'],'photo_marker_sha256':p['photo_marker_sha256'],'published_unixtime':p['published_unixtime'],'button_sha256':p['buttons'][0]['url_sha256'],'native_inventory_run':45808887211,'current_public_revalidated':False,'write_admission':False}
+              url=p['photo_url']; u=urllib.parse.urlparse(url)
+              assert u.scheme=='https' and not u.username and not u.password and u.port is None and re.fullmatch(r'(?:[a-z0-9-]+\.)*(?:telesco\.pe|cdn-telegram\.org|telegram-cdn\.org)',u.hostname or '')
+              if u.hostname in holds:
+                  row['hold']='retry_after_host_hold'; out.append(row); continue
+              try:
+                  gets+=1
+                  with opener.open(urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0'}),timeout=15) as response:
+                      assert response.status==200; b=response.read(1000001); assert 0<len(b)<=1000000
+                  ext='jpg' if b.startswith(b'\xff\xd8\xff') else 'png' if b.startswith(b'\x89PNG\r\n\x1a\n') else None
+                  assert ext is not None
+                  filename=f'target-{mid}.{ext}'; (ROOT/filename).write_bytes(b)
+                  row['photo']={'path':filename,'bytes':len(b),'sha256':hashlib.sha256(b).hexdigest()}
+              except urllib.error.HTTPError as e:
+                  row['hold']='photo_http_'+str(e.code)
+                  if e.code==429:
+                      holds[u.hostname]={'retry_after_raw':e.headers.get('Retry-After'),'no_retry':True}
+              except Exception:
+                  row['hold']='photo_read_unavailable'
+              out.append(row)
+          report={'operation':'hotel_saved_target_actual_photo_preparation','native_run_id':os.environ['GITHUB_RUN_ID'],'reader_source_sha':os.environ['GITHUB_SHA'],'source_archive_run':45712298154,'target_inventory_run':45808887211,'write_admission':False,'provider_writes':0,'production_writes':0,'server_calls':0,'telegram_post_reads':0,'photo_gets':gets,'retry_after_holds':holds,'rows':out}
+          (ROOT/'photos.json').write_text(json.dumps(report,ensure_ascii=False,separators=(',',':'))+'\n')
+          print(json.dumps({'rows':len(out),'downloaded':sum('photo' in r for r in out),'held':sum('hold' in r for r in out),'write_admission':False}))
           
-          def api(path):
-              return subprocess.check_output(['gh','api',f"repos/{os.environ['GITHUB_REPOSITORY']}/{path}"],timeout=25)
-          
-          def original(run_id, artifact_id, head, expected, size):
-              run = json.loads(api(f'actions/runs/{run_id}'))
-              assert run['head_sha'] == head and run['conclusion'] == 'success'
-              assert run['run_attempt'] == 1 and run['actor']['id'] == 226193297
-              meta = json.loads(api(f'actions/artifacts/{artifact_id}'))
-              assert meta['workflow_run']['id'] == run_id and meta['workflow_run']['head_sha'] == head
-              assert not meta['expired'] and meta['size_in_bytes'] == size and meta['digest'] == 'sha256:' + expected
-              raw = api(f'actions/artifacts/{artifact_id}/zip')
-              assert len(raw) == size and hashlib.sha256(raw).hexdigest() == expected
-              with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-                  member = 'archive-windows.json'
-                  assert len(archive.infolist()) <= 80 and sum(n.file_size for n in archive.infolist()) <= 20000000
-                  assert archive.testzip() is None and archive.namelist().count(member) == 1
-                  assert 0 < archive.getinfo(member).file_size <= 6000000
-                  result = json.loads(archive.read(member))
-              assert result['native_run_id'] == str(run_id) and result['reader_source_sha'] == head
-              assert result['write_admission'] is False and result.get('provider_writes') == 0
-              return result
-          
-          sources = [
-              (45712028502,15068705593,'7bcb1a2bc75307c9fbfb0883c9e63e5a06b34ecf','fae24abadd6f99b39097879138ccfb9066503f2a80b578275d8bf8088d26f190',189033),
-              (45712298154,15069010253,'c4fb63bf63544006c3de711d3d48c9b8d807ee8f','2afa5644b95e3f2f4226c995491336e94eb1f9e8227c8bc65db66c642af7ea7f',172556),
-              (45747718941,15083853001,'4a80c9b86444d30462e8371f8be9c854a3aebbe5','a5f9edd963c476f4e3f003f4f83007644e2b4d607fa9c49a608dad52fcf14d77',711069),
-              (45747898971,15083559015,'e728c0aff8d2656c8529b299ceb5adfba99e214d','2c4919e754273a8bee9c63704eff165800e67d118f07c66eeee7f2b09ff6c875',379064),
-              (45793051934,15103676430,'76b976406945de03bf273bf1884c56a9c65d004f','3d06b3fc214abd2ed02dc435ce50379d66ccf017900f9846eaee8d9bc351758b',438249),
-          ]
-          observations = defaultdict(list)
-          for source in sources:
-              result = original(*source)
-              for row in result['rows']:
-                  mid = str(row['target_message_id'])
-                  assert re.fullmatch(r'[1-9][0-9]{0,9}', mid)
-                  observations[int(mid)].append((source[0], row))
-          
-          reserved = {288, 292, 328, 476, 567, 588, 774, 831, 842, 862, 912, 957,
-                      1047, 1058, 1083, 1535, 1666, 1701, 1702, 1705, 1706, 1712, 1713, 1725}
-          protected = re.compile(r'отзыв|впечатлен|впечатлён|наши турист|наша турист|туристы вернул|туристы поделил|видео|видеотур|наш менеджер|лично проверил|по мнению|делится|рекомендуют|booking\s*[0-9]', re.I)
-          commercial = re.compile(r'горящ|подборк|пут[её]вк|предложени|туры?\b|стоимост|\bцен[ауы]|\b₽|брониров|вылет|бюджет|приобрест|поездк', re.I)
-          hexhash = re.compile(r'[a-f0-9]{64}')
-          counts = Counter()
-          candidates = []
-          for mid, copies in sorted(observations.items()):
-              bodies = [row['public'] for _, row in copies if isinstance(row.get('public'), dict)]
-              if mid in reserved:
-                  counts['known_held_or_completed'] += 1
-              elif not bodies or any(body.get('url') != f'https://t.me/anytour/{mid}' for body in bodies):
-                  counts['no_exact_identity'] += 1
-              elif any(row.get('protected_text_hint') is True for _, row in copies) or any(protected.search(body.get('caption') or '') for body in bodies):
-                  counts['protected_text'] += 1
-              elif any(body.get('single_photo') is not True or body.get('video_count') != 0 or body.get('roundvideo_count') != 0 for body in bodies):
-                  counts['other_media'] += 1
-              elif any(body.get('buttons') != [] or body.get('caption_links') != [] for body in bodies):
-                  counts['keyboard_or_caption_link'] += 1
-              elif not all(commercial.search(body.get('caption') or '') for body in bodies):
-                  counts['unclassified_text'] += 1
-              else:
-                  identity = {(b.get('caption_sha256'), b.get('photo_marker_sha256'), b.get('published_unixtime')) for b in bodies}
-                  if len(identity) != 1:
-                      counts['conflicting_snapshots'] += 1
-                      continue
-                  caption_sha, photo_sha, published = next(iter(identity))
-                  if not (isinstance(published, int) and published > 0 and all(hexhash.fullmatch(x or '') for x in (caption_sha,photo_sha))):
-                      counts['no_exact_identity'] += 1
-                      continue
-                  counts['public_candidates'] += 1
-                  candidates.append({'target_mid':mid,'caption_sha256':caption_sha,'photo_marker_sha256':photo_sha,
-                                     'published_unixtime':published,'archive_runs':sorted({n for n,row in copies if isinstance(row.get('public'),dict)}),
-                                     'native_occupancy_verified':False,'actual_photo_review_complete':False,'write_admission':False})
-          assert sum(counts.values()) == len(observations)
-          result = {'issue':1566,'operation':'saved_empty_keyboard_candidates','write_admission':False,
-                    'production_writes':0,'provider_writes':0,'server_calls':0,'telegram_reads':0,'unique_mids':len(observations),
-                    'source_runs':[s[0] for s in sources],'counts':dict(counts),'candidates':candidates}
-          Path('target-candidates.json').write_text(json.dumps(result, separators=(',',':')) + '\n')
-          print(json.dumps({k:v for k,v in result.items() if k != 'candidates'}, sort_keys=True))
-          print('candidate_mids=' + ','.join(str(r['target_mid']) for r in candidates))
           PY
-      - name: Preserve the candidate facts for the existing writer preflight
+      - name: Preserve existing preparation evidence and photographs
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-telegram-existing-editor-candidates
-          path: target-candidates.json
+          name: issue-1566-saved-target-photo-preparation
+          path: pub/*
           if-no-files-found: error
           retention-days: 7
