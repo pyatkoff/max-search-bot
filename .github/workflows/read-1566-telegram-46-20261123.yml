@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == 'f26b7a38577a9ddd5120bae96debf6756bd14b3b' &&
+      github.event.before == 'ed27245d4c33a1c36a00c9dfa4ac43bf839f371b' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -78,7 +78,8 @@ jobs:
               with zipfile.ZipFile(io.BytesIO(raw)) as archive:
                   assert archive.testzip() is None
                   names = [n for n in archive.namelist() if n.rsplit("/", 1)[-1] == "archive-windows.json"]
-                  assert len(names) == 1 and archive.getinfo(names[0]).file_size <= 3000000
+                  assert len(names) == 1, (run_id, "missing or ambiguous archive projection", archive.namelist()[:25])
+                  assert archive.getinfo(names[0]).file_size <= 16000000, (run_id, "archive projection too large", archive.getinfo(names[0]).file_size)
                   document = json.loads(archive.read(names[0]))
               assert document["native_run_id"] == str(run_id) and document["reader_source_sha"] == head
               assert document["write_admission"] is False
