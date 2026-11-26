@@ -22,11 +22,13 @@ function hotelCatalogueReleaseChecks(array $manifest, int $now): void
         $node = $repo.'/tools/hotel_catalogue_package.js';
         $run = static function (array $args, int $expectedExit = 0, string $expectedError = ''): array {
             $p = proc_open($args, [0=>['file','/dev/null','r'],1=>['pipe','w'],2=>['pipe','w']], $io);
-            if (!is_resource($p)) throw new RuntimeException('hotel_release_fixture_process_failed');
+            if (!is_resource($p)) throw new RuntimeException('FAIL hotel release fixture process creation');
             $value = stream_get_contents($io[1]); fclose($io[1]);
             $error = stream_get_contents($io[2]); fclose($io[2]);
-            if (proc_close($p) !== $expectedExit || trim($error) !== $expectedError) {
-                throw new RuntimeException('hotel_release_fixture_command_failed: '.$error);
+            $exit = proc_close($p);
+            if ($exit !== $expectedExit || trim($error) !== $expectedError) {
+                throw new RuntimeException('FAIL hotel release fixture command: '.basename($args[0])
+                    .' exit '.$exit.' (expected '.$expectedExit.'): '.trim($error));
             }
             return $value === '' ? [] : json_decode($value, true, 32, JSON_THROW_ON_ERROR);
         };
@@ -122,9 +124,9 @@ READER;
         $invalid = $root.'/invalid';
         $snapshot($invalid, $entries);
         $badMember = $invalid.'/'.$entries[1]['bundle_file'];
-        $bad = json_decode(file_get_contents($badMember), true, 32, JSON_THROW_ON_ERROR);
-        $bad['price_authority'] = 'supplier';
-        $badBytes = json_encode($bad, JSON_THROW_ON_ERROR);
+        $badBytes = str_replace('"price_authority":"none"', '"price_authority":"fake"',
+            file_get_contents($badMember), $replacements);
+        if ($replacements !== 1) throw new RuntimeException('FAIL hotel release fixture price authority');
         file_put_contents($badMember, $badBytes);
         $badRows = $entries;
         $badRows[1]['bundle_sha256'] = hash('sha256', $badBytes);
