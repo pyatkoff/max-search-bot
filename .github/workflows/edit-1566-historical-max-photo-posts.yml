@@ -11,9 +11,9 @@ permissions:
   issues: read
   pull-requests: read
 env:
-  MAX_PACKET_REF: d0ec0e082323711bde6c98bdc7560f492332a55b
+  MAX_PACKET_REF: 719943fc5d339b45128eeeccf4421c31ffa1ebe3
   MAX_PACKET_PATH: tools/direct_demand/operations/max-existing-photo/scope-stella-466-20261126.json
-  MAX_PACKET_SHA: 8dc642bc7e3472f9eabf8918e5edfd8295bf29b7058ef30f3ca8942f16506b6d
+  MAX_PACKET_SHA: 73a5511572d9b42222134f76988df4372ed16ddade00c461328ab7711318f762
   MAX_REPOSITORY_SHA: e1511db16f24822d1271ab5e444ca859997be31e
   MAX_ARCHIVE_ID: '15032515599'
   MAX_NATIVE_ID: '15157790578'
@@ -50,6 +50,13 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
+          before="$(gh api "/repos/$GITHUB_REPOSITORY/git/ref/heads/audit/1566-main-hotel-registry-20261119" --jq .object.sha)"
+          pinned="$(sed -nE "s/^[[:space:]]*github\\.event\\.before == '([a-f0-9]{40})' &&$/\\1/p" .github/workflows/edit-1566-historical-max-photo-posts.yml)"
+          if [[ ! "$before" =~ ^[a-f0-9]{40}$ || "$before" != "$pinned" ]]; then
+            printf 'MAX publisher predecessor mismatch: branch=%s workflow=%s\n' "$before" "$pinned" >&2
+            exit 1
+          fi
+          printf 'MAX_PUBLISHER_PREDECESSOR=%s\n' "$before"
           src=tools/direct_demand/operations/max-existing-photo
           mkdir -p pub/stage
           install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
@@ -75,7 +82,7 @@ jobs:
       github.event_name == 'push' && github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '6f952b59cb76e0e564b68273c9afcca590a5431f' &&
+      github.event.before == 'a22a869e398a542e710339d872659b3373ceabd3' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
