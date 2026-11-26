@@ -1,0 +1,48 @@
+name: CI profile PR1723 ordinary release admission
+on:
+  push:
+    branches: [ops/admit-ci-profile-1723-20261126]
+    paths: ['.github/workflows/ci-profile-1723-release-admission.yml']
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+jobs:
+  admission:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'd38679bb0fbd11b26ad74a20163b400055b63cc8' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 31
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: d38679bb0fbd11b26ad74a20163b400055b63cc8
+          persist-credentials: false
+      - name: Wait for the existing exact source verification
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'JS'
+          const api = 'https://api.github.com/repos/pyatkoff/max-search-bot/';
+          const headers = { Authorization: 'Bearer ' + process.env.GITHUB_TOKEN, Accept: 'application/vnd.github+json' };
+          async function read(path) {
+            const response = await fetch(api + path, { headers, signal: AbortSignal.timeout(10000) });
+            if (!response.ok) throw Error('GitHub read: HTTP ' + response.status);
+            return response.json();
+          }
+          const deadline = Date.parse('2026-11-26T18:56:49Z');
+          while (Date.now() < deadline) {
+            const result = await read('actions/runs/45875869712');
+            if (result.head_sha !== '57968251e8c158c6660981f22a012d3208e946cf' || result.event !== 'pull_request') throw Error('Source run changed');
+            if (result.status === 'completed') {
+              if (result.conclusion !== 'success') throw Error('Required CI: ' + result.conclusion);
+              process.exit(0);
+            }
+            await new Promise(resolve => setTimeout(resolve, 60000));
+          }
+          throw Error('Required CI did not finish before the reservation deadline');
+          JS
+      - name: Fresh ordinary release admission for PR1723
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1723 57968251e8c158c6660981f22a012d3208e946cf d38679bb0fbd11b26ad74a20163b400055b63cc8
