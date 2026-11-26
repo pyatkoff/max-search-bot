@@ -1,4 +1,4 @@
-name: Read the original Telegram 1047 public keyboard
+name: Read Telegram 1047 after the accepted publisher edit
 on:
   push:
     branches: [audit/anytour-publisher-keyboard-1047-20261126]
@@ -12,8 +12,8 @@ jobs:
       github.event_name == 'push' && github.ref == 'refs/heads/audit/anytour-publisher-keyboard-1047-20261126' &&
       github.actor == 'pyatkoff' && github.actor_id == '226193297' && github.triggering_actor == 'pyatkoff' &&
       github.event.sender.login == 'pyatkoff' && github.event.sender.id == 226193297 &&
-      github.event.created == true && github.event.deleted == false && github.event.forced == false &&
-      github.event.before == '0000000000000000000000000000000000000000' &&
+      github.event.created == false && github.event.deleted == false && github.event.forced == false &&
+      github.event.before == 'a003473b53e1512832ef54b59ebc79518e49fa20' &&
       github.event.after == github.sha && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -36,6 +36,7 @@ jobs:
           declare(strict_types=1);
           $report = ['schema'=>1, 'operation'=>'telegram_1047_public_keyboard_read',
               'source_sha'=>getenv('GITHUB_SHA'), 'native_run_id'=>getenv('GITHUB_RUN_ID'),
+              'provider_origin_run_id'=>'45733783728', 'started_at_utc'=>gmdate(DATE_ATOM),
               'native_run_attempt'=>(int)getenv('GITHUB_RUN_ATTEMPT'), 'message_id'=>'1047',
               'url'=>'https://t.me/s/anytour?before=1048', 'ok'=>false,
               'public_get_attempts'=>0, 'production_writes'=>0, 'provider_writes'=>0,
