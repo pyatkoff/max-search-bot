@@ -175,7 +175,10 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     $load = static fn(string $file): array => json_decode(file_get_contents($file), true, 64, JSON_THROW_ON_ERROR);
     $indexPath = getenv('RANKED_APPROVED_INDEX') ?: 'config/anytour_ranked_46_20261123.json';
     requirePost(preg_match('~\Aconfig/anytour_[a-z0-9_]+\.json\z~D', $indexPath) === 1, 'native_plan_path_invalid');
-    $index = $load(__DIR__.'/../'.$indexPath);
+    $dataRoot = getenv('RANKED_DATA_ROOT');
+    $root = $dataRoot ?: dirname(__DIR__);
+    $indexBytes = file_get_contents($root.'/'.$indexPath);
+    $index = json_decode($indexBytes, true, 32, JSON_THROW_ON_ERROR);
     $summary = $load($folder.'summary.json');
     $context = ['run_id'=>getenv('NATIVE_RUN_ID'), 'repository_sha'=>getenv('NATIVE_REPOSITORY_SHA'),
         'artifact_id'=>getenv('RECEIPT_ID'), 'artifact_sha256'=>getenv('RECEIPT_SHA256'), 'write_operation'=>getenv('WRITE_OPERATION')];
@@ -189,7 +192,17 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     $groups = []; $unverified = 0;
     foreach ($index['plans'] as $item) {
         $digest = $item['sha256'];
-        $plan = transferPlanFromBytes(file_get_contents(__DIR__.'/../'.$item['path']), $digest, $digest);
+        requirePost(preg_match('~\Aconfig/anytour_[a-z0-9_]+\.json\z~D', $item['path']) === 1, 'native_plan_path_invalid');
+        $planBytes = file_get_contents($root.'/'.$item['path']);
+        if ($dataRoot) {
+            $indexDigest = getenv('RANKED_INDEX_SHA') ?: '';
+            if (\AnyTourRankedHotelTransfer46::profile($digest) === null) {
+                \AnyTourRankedHotelTransfer46::acceptPacket($indexBytes, $indexDigest, $planBytes, $digest);
+            } else {
+                \AnyTourRankedHotelTransfer46::profileFromBytes($indexBytes, $indexDigest, $planBytes, $digest);
+            }
+        }
+        $plan = transferPlanFromBytes($planBytes, $digest, $digest);
         $result = $load($folder.'result-'.$digest.'.json');
         // The native job writes its terminal summary only after comparing the result
         // to resolve-consumer's accepted application SHA (which may differ from repository SHA).

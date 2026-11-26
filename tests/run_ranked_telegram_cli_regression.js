@@ -21,6 +21,30 @@ const refusedHead = 'dca4085f9a63ac1e7a5179c2a9b1b20febce4f82';
 const currentId = refusedId + 1;
 const head = 'b'.repeat(40);
 const indexes = readJson('config/anytour_ranked_approved_indexes.json');
+const dataHead = 'd'.repeat(40);
+const digestOf = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
+
+function detachedCase(name) {
+  const fixtures = {a:'45754450166', b:'45734791283'};
+  const selected = name === 'b' ? 'b' : 'a';
+  const id = fixtures[selected];
+  const index = readJson('config/anytour_ranked_index_' + id + '.json');
+  const plan = readJson(index.plans[0].path);
+  index.native_preflight.repository_sha = head;
+  index.native_preflight.application_sha = name === 'stale' ? 'f'.repeat(40) : head;
+  plan.native_preflight = index.native_preflight;
+  plan.operation += '_detached_fixture';
+  const planBytes = Buffer.from(JSON.stringify(plan));
+  const planPath = 'config/anytour_detached_test_plan_' + selected + '.json';
+  const indexPath = 'config/anytour_detached_test_index_' + selected + '.json';
+  index.plans = [{path:planPath, bytes:planBytes.length, git_blob:R.gitBlob(planBytes),
+    sha256:digestOf(planBytes)}];
+  const indexBytes = Buffer.from(JSON.stringify(index));
+  const digest = digestOf(indexBytes);
+  const approvals = Buffer.from(JSON.stringify([...indexes, {path:indexPath,sha256:digest}]));
+  return {branch:'ops/anytour-hotel-ranked-data-' + digest,index,plan,digest,indexPath,
+    planPath,planDigest:index.plans[0].sha256,indexBytes,planBytes,approvals};
+}
 
 function approvedCase(digest) {
   const entry = indexes.find(row => row.sha256 === digest);
@@ -34,14 +58,17 @@ function approvedCase(digest) {
 // uses the checked-in HOTEL data and parses the original sanitized parent ZIP.
 function offlineFetch(digest) {
   if (digest === 'publisher-keyboard') return publisherOfflineFetch();
-  const {index, branch} = approvedCase(digest);
+  const scenario = digest.startsWith('detached:') ? digest.slice('detached:'.length) : null;
+  const detached = scenario ? detachedCase(scenario) : null;
+  const {index, branch} = detached || approvedCase(digest);
+  const sourceHead = detached ? dataHead : head;
   const history = fixture(head, receipt(head));
   const run = (id, workflow, ref, sha, status, conclusion) => ({
     id, path:workflow, head_branch:ref, head_sha:sha, status, conclusion, run_attempt:1,
     created_at:'2026-11-24T13:26:00Z', event:'push', repository, head_repository:repository,
     actor:owner, triggering_actor:owner
   });
-  const current = run(currentId, editor, branch, head, 'in_progress', null);
+  const current = run(currentId, editor, branch, sourceHead, 'in_progress', null);
   const read = index.native_preflight, source = index.native_source;
   const native = run(Number(read.run_id), R.PREFIX + 'read-1566-telegram-46-20261123.yml',
     'ops/1566-telegram-46-native-read-20261123', source?.head_sha || 'db1157a5091ff0f708d7825acf6ca4e1dc9a5339', 'completed', 'success');
@@ -84,12 +111,26 @@ function offlineFetch(digest) {
     }
     let data;
     if (route.startsWith('/contents/config/')) {
-      assert.equal(url.searchParams.get('ref'), head);
+      assert.equal(url.searchParams.get('ref'), sourceHead);
       const file = route.slice('/contents/'.length);
-      const bytes = fs.readFileSync(path.join(root,file));
+      const bytes = detached ? new Map([
+        ['config/anytour_ranked_approved_indexes.json',detached.approvals],
+        [detached.indexPath,detached.indexBytes]
+      ]).get(file) : fs.readFileSync(path.join(root,file));
+      assert.ok(bytes, 'Unexpected config in the exact data commit');
       data = {type:'file',path:file,size:bytes.length,encoding:'base64',content:bytes.toString('base64'),sha:R.gitBlob(bytes)};
     } else if (route === '/git/ref/heads/' + branch) {
-      data = {object:{sha:head}};
+      data = {object:{sha:sourceHead}};
+    } else if (detached && route === '/git/commits/' + dataHead) {
+      data = {sha:dataHead, parents:[{sha:scenario === 'parent' ? parentHead : head}]};
+    } else if (detached && route === '/compare/' + head + '...' + dataHead) {
+      const files = [
+        {filename:'config/anytour_ranked_approved_indexes.json',status:'modified'},
+        {filename:detached.indexPath,status:'added'},
+        {filename:scenario === 'scope' ? 'tools/anytour_existing_post_batch.php' : detached.planPath,
+          status:'added'}
+      ];
+      data = {status:'ahead',total_commits:1,merge_base_commit:{sha:head},files};
     } else if (route === '/compare/' + parentHead + '...' + head) {
       data = {status:'ahead',merge_base_commit:{sha:parentHead}};
     } else if (route === '/compare/' + refusedHead + '...' + head) {
@@ -325,7 +366,8 @@ try {
 
   const workflow = fs.readFileSync(path.join(root, editor), 'utf8');
   const command = 'node tools/deployment_release.js resolve-consumer >> "$GITHUB_OUTPUT"';
-  assert.ok(workflow.includes('run: ' + command));
+  assert.ok(workflow.includes(command));
+  assert.ok(workflow.includes(command.replace('node tools/', 'node .trusted-editor/tools/')));
   const field = name => {
     const ref = workflow.match(new RegExp('^ +'+name+': \\$\\{\\{ steps\\.release\\.outputs\\.([a-z_0-9]+) \\}\\}$','m'));
     assert.ok(ref, 'Missing workflow input ' + name);
@@ -371,6 +413,47 @@ try {
       } else {
         assert.equal(values[field('PARENT_EVIDENCE')], undefined);
       }
+    }
+    for (const scenario of ['a','b','parent','scope','stale']) {
+      const data = detachedCase(scenario);
+      const ref = 'refs/heads/' + data.branch;
+      const output = path.join(temp,'detached-' + scenario), eventPath = output + '.json';
+      fs.writeFileSync(eventPath, JSON.stringify({repository,sender:owner,ref,after:dataHead,
+        before:'0'.repeat(40),created:true,deleted:false,forced:false}));
+      const child = spawnSync('bash',['-eu','-c',command],{cwd:root,encoding:'utf8',env:{
+        PATH:process.env.PATH, NODE_OPTIONS:'--require ' + JSON.stringify(preload),
+        RANKED_CLI_FIXTURE:'detached:' + scenario,
+        GITHUB_TOKEN:'offline-fixture', GITHUB_OUTPUT:output, GITHUB_EVENT_PATH:eventPath,
+        GITHUB_SHA:dataHead, GITHUB_REPOSITORY:R.REPOSITORY, GITHUB_ACTOR:owner.login,
+        GITHUB_TRIGGERING_ACTOR:owner.login, GITHUB_REF:ref, GITHUB_EVENT_NAME:'push',
+        GITHUB_JOB:'transfer', GITHUB_RUN_ATTEMPT:'1', GITHUB_WORKFLOW_REF:R.REPOSITORY + '/' + editor + '@' + ref,
+        GITHUB_RUN_ID:String(currentId)
+      }});
+      const refusal = {parent:'ranked_data_parent_changed',scope:'ranked_data_scope_changed',
+        stale:'ranked_data_native_base_changed'}[scenario];
+      if (refusal) {
+        assert.notEqual(child.status,0);
+        assert.match(child.stderr,new RegExp(refusal));
+        continue;
+      }
+      assert.equal(child.status,0,child.stderr);
+      const values = new Map(fs.readFileSync(output,'utf8').trimEnd().split('\n').map(line => line.split('=')));
+      assert.equal(values.get(field('REPOSITORY_SHA')),head);
+      assert.equal(values.get(field('APPLICATION_SHA')),head);
+      assert.equal(values.get(field('DATA_SHA')),dataHead);
+      assert.equal(values.get(field('DATA_INDEX_PATH')),data.indexPath);
+      assert.equal(values.get(field('INDEX_SHA')),data.digest);
+
+      const packet = {index:data.indexBytes.toString('base64'),plan:data.planBytes.toString('base64')};
+      const check = ['tools/anytour_existing_post_batch.php','--check-ranked-transfer-data',data.planDigest,data.digest];
+      const result = spawnSync('php',check,{cwd:root,input:JSON.stringify(packet),encoding:'utf8'});
+      assert.equal(result.status,0,result.stdout || result.stderr);
+      const preview = JSON.parse(result.stdout);
+      assert.equal(preview.production_writes,0);
+      assert.equal(preview.provider_writes,0);
+      assert.deepEqual(preview.rows.map(row=>row.hotel_id),data.plan.rows.map(row=>row.hotel_id));
+      packet.plan = Buffer.concat([data.planBytes, Buffer.from(' ')]).toString('base64');
+      assert.notEqual(spawnSync('php',check,{cwd:root,input:JSON.stringify(packet),encoding:'utf8'}).status,0);
     }
     const pilotDigest=publisherCliCase(temp,command,field,preload);
     publisherWorkflowCases(temp,workflow,pilotDigest);

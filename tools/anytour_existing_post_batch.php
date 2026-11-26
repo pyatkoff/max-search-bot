@@ -1562,8 +1562,29 @@ function acquireRankedPriceLease($file, string $path, int $waitMs): bool
     } while (true);
 }
 
+/** Decode the exact sealed packet delivered by the existing publisher. */
+function transferRankedPacket(string $indexDigest, string $planDigest, ?string $applicationSha): string
+{
+    $input = file_get_contents('php://stdin', false, null, 0, 180001);
+    requirePost(is_string($input) && strlen($input) <= 180000, 'transfer_ranked_packet_invalid');
+    $packet = json_decode($input, true, 4, JSON_THROW_ON_ERROR);
+    requirePost(is_array($packet) && array_keys($packet) === ['index','plan']
+        && is_string($packet['index']) && is_string($packet['plan']), 'transfer_ranked_packet_invalid');
+    $index = base64_decode($packet['index'], true);
+    $plan = base64_decode($packet['plan'], true);
+    requirePost(is_string($index) && base64_encode($index) === $packet['index']
+        && is_string($plan) && base64_encode($plan) === $packet['plan'], 'transfer_ranked_packet_invalid');
+    $profile = AnyTourRankedHotelTransfer46::acceptPacket($index, $indexDigest, $plan, $planDigest);
+    if ($applicationSha !== null) {
+        requirePost(($profile['native_preflight']['application_sha'] ?? null) === $applicationSha
+            && ($profile['native_preflight']['repository_sha'] ?? null) === $applicationSha,
+            'transfer_ranked_packet_runtime_changed');
+    }
+    return $plan;
+}
+
 /** Only the explicit CLI branch below calls this; tick() remains unchanged. */
-function applyTransferPlan(string $root, string $approvedDigest, string $applicationSha, string $nativeRunId, bool|string $next = false, bool $remaining = false, bool $rankedContinuation = false, bool $rankedResume = false, bool $prewriteResume = false, ?array $unreachedParent = null): array
+function applyTransferPlan(string $root, string $approvedDigest, string $applicationSha, string $nativeRunId, bool|string $next = false, bool $remaining = false, bool $rankedContinuation = false, bool $rankedResume = false, bool $prewriteResume = false, ?array $unreachedParent = null, ?string $packetPlan = null): array
 {
     requirePost($unreachedParent === null || ($rankedContinuation && !$rankedResume && !$prewriteResume && !$remaining
         && ($unreachedParent['parent_run_id'] ?? null) !== $nativeRunId), 'transfer_unreached_scope_invalid');
@@ -1580,7 +1601,7 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
     $planFile = transferProfileFile($next);
     requirePost(preg_match('/\A[1-9][0-9]{0,19}\z/D', $nativeRunId) === 1, 'transfer_native_run_invalid');
     transferRuntime($root, $applicationSha);
-    $raw = file_get_contents($root.'/'.$planFile, false, null, 0, 64001);
+    $raw = $packetPlan ?? file_get_contents($root.'/'.$planFile, false, null, 0, 64001);
     requirePost(is_string($raw), 'transfer_plan_unavailable');
     $plan = transferPlanFromBytes($raw, $approvedDigest, $next);
     if (!$next) require_once $root.'/tools/direct_demand/operations/monitor-price-hook-contract.php';
@@ -1707,9 +1728,10 @@ function applyTransferPlan(string $root, string $approvedDigest, string $applica
             }
             $registryRow = transferRegistryRow($row);
             $preparedExport = null;
-            $runtime = static function () use ($root, $applicationSha, $approvedDigest, $planFile): void {
+            $runtime = static function () use ($root, $applicationSha, $approvedDigest, $planFile, $packetPlan): void {
                 transferRuntime($root, $applicationSha);
-                requirePost(hash_file('sha256', $root.'/'.$planFile) === $approvedDigest,
+                $digest = $packetPlan === null ? hash_file('sha256', $root.'/'.$planFile) : hash('sha256', $packetPlan);
+                requirePost($digest === $approvedDigest,
                     'transfer_installed_plan_changed');
             };
             $effects = [
@@ -1815,6 +1837,9 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     ini_set('display_errors', '0'); ini_set('log_errors', '0');
     $exitCode = 2;
     $command = $argv[1] ?? '';
+    $packetCheck = $command === '--check-ranked-transfer-data' && count($argv) === 4;
+    $packetApply = $command === '--apply-ranked-transfer-data' && count($argv) === 6;
+    $packetPlan = null;
     $publisherPilot = in_array($command, ['--check-publisher-keyboard-pilot','--apply-publisher-keyboard-pilot'], true);
     $prewriteResume = $command==='--apply-closed-prewrite-resume';
     $rankedUnreached = in_array($command, ['--check-ranked-unreached','--apply-ranked-unreached'], true);
@@ -1829,6 +1854,12 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
             $next = $selected;
         }
         $root = dirname(__DIR__);
+        if ($packetCheck || $packetApply) {
+            if ($packetApply) transferRuntime($root, $argv[3]);
+            $packetPlan = transferRankedPacket($packetApply ? $argv[5] : $argv[3], $argv[2],
+                $packetApply ? $argv[3] : null);
+            $next = $argv[2];
+        }
         $parent = $rankedUnreached ? rankedUnreachedEvidence() : null;
         if ($publisherPilot && count($argv) === 3 && $command === '--check-publisher-keyboard-pilot') {
             $plan = publisherKeyboardPlan($root, $argv[2]);
@@ -1837,9 +1868,9 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
                 'full_transfer'=>false, 'message_id'=>'1047'];
         } elseif ($publisherPilot && count($argv) === 5 && $command === '--apply-publisher-keyboard-pilot') {
             $result = applyPublisherKeyboardPilot($root, $argv[2], $argv[3], $argv[4]);
-        } elseif (count($argv) === 3 && in_array($command, ['--check-transfer-plan','--check-next-transfer-plan','--check-ranked-transfer-plan','--check-remaining-transfer-plan','--check-ranked-continuation','--check-ranked-resume','--check-ranked-unreached'], true)) {
+        } elseif ($packetCheck || (count($argv) === 3 && in_array($command, ['--check-transfer-plan','--check-next-transfer-plan','--check-ranked-transfer-plan','--check-remaining-transfer-plan','--check-ranked-continuation','--check-ranked-resume','--check-ranked-unreached'], true))) {
             $planFile = transferProfileFile($next);
-            $raw = file_get_contents($root.'/'.$planFile, false, null, 0, 64001);
+            $raw = $packetPlan ?? file_get_contents($root.'/'.$planFile, false, null, 0, 64001);
             requirePost(is_string($raw), 'transfer_plan_unavailable');
             $plan = transferPlanFromBytes($raw, $argv[2], $next);
             if ($remaining) $plan = selectRemainingTransferRows($plan);
@@ -1851,8 +1882,8 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
                 'rows'=>array_map(static fn(array $row): array => ['hotel_id'=>$row['hotel_id'],
                     'target_url'=>'https://t.me/anytour/'.$row['target_message_id'],
                     'caption_sha256'=>$row['next_caption_sha256']], $plan['rows'])] + ($rankedUnreached ? ['parent_run_id'=>$parent['parent_run_id']] : []);
-        } elseif (count($argv) === 5 && in_array($command, ['--apply-transfer','--apply-next-transfer','--apply-ranked-transfer','--apply-remaining-transfer','--apply-ranked-continuation','--apply-ranked-resume','--apply-closed-prewrite-resume','--apply-ranked-unreached'], true)) {
-            $result = applyTransferPlan($root, $argv[2], $argv[3], $argv[4], $next, $remaining, $rankedContinuation, $rankedResume, $prewriteResume, $parent);
+        } elseif ($packetApply || (count($argv) === 5 && in_array($command, ['--apply-transfer','--apply-next-transfer','--apply-ranked-transfer','--apply-remaining-transfer','--apply-ranked-continuation','--apply-ranked-resume','--apply-closed-prewrite-resume','--apply-ranked-unreached'], true))) {
+            $result = applyTransferPlan($root, $argv[2], $argv[3], $argv[4], $next, $remaining, $rankedContinuation, $rankedResume, $prewriteResume, $parent, $packetPlan);
         } else {
             throw new RuntimeException('transfer_explicit_command_required');
         }

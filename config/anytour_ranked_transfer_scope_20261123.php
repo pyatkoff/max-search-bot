@@ -36,9 +36,24 @@ final class AnyTourRankedHotelTransfer46
     ];
 
 
-    /** Only immutable, release-installed HOTEL indices enable the current writer. */
+    private static ?array $activePacket = null;
+
+    /** Register bytes for this invocation only, after the existing publisher's admission. */
+    public static function acceptPacket(string $indexBytes, string $indexDigest, string $planBytes, string $planDigest): array
+    {
+        if (self::$activePacket !== null || self::profile($planDigest) !== null) {
+            throw new RuntimeException('transfer_ranked_packet_already_known');
+        }
+        $profile = self::profileFromBytes($indexBytes, $indexDigest, $planBytes, $planDigest);
+        if (count($profile['pairs']) > 5) throw new RuntimeException('transfer_ranked_data_chunk_too_large');
+        self::$activePacket = ['digest'=>$planDigest, 'profile'=>$profile];
+        return $profile;
+    }
+
+    /** Use admitted in-memory profiles or the existing immutable installed list. */
     public static function profile(string $digest): ?array
     {
+        if (self::$activePacket !== null && self::$activePacket['digest'] === $digest) return self::$activePacket['profile'];
         if (isset(self::SPECIAL_PLANS[$digest])) return self::SPECIAL_PLANS[$digest];
         if (!preg_match('/\A[a-f0-9]{64}\z/D', $digest)) return null;
         static $profiles = [];
