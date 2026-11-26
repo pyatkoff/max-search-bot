@@ -1,4 +1,4 @@
-name: "#1566 Read MAX captions independently and confirm availability in the registry"
+name: "#1566 Resolve the precise Rixos source and candidate MID in the existing registry"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -15,181 +15,70 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '8e7a2736b4ad9856050c1a989862fefb89f2260d' && github.run_attempt == 1
+      github.event.before == '1505a5312d8ef1482c7067f161f39bdbf8a64f5b' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
-      - name: Authenticate the original archive and pin the native read to its shortlist
-        env:
-          GH_TOKEN: ${{ github.token }}
-        shell: bash
+      - name: Prepare the exact read-only target and source registry lookup
         run: |
           set -euo pipefail
           umask 077
-          p="$(mktemp -d)"
-          trap 'rm -rf "$p"' EXIT
-          export READ_DIR="$p"
-          gh api /repos/pyatkoff/max-search-bot/actions/runs/45630394590 > "$p/run.json"
-          gh api /repos/pyatkoff/max-search-bot/actions/runs/45630394590/attempts/1/jobs > "$p/jobs.json"
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/15032515599 > "$p/artifact.json"
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/15032515599/zip > "$p/archive.zip"
-          python3 - <<'PY'
-          from collections import Counter
-          from concurrent.futures import ThreadPoolExecutor
-          from hashlib import sha256
-          from html.parser import HTMLParser
-          from pathlib import Path
-          from urllib.error import HTTPError
-          from urllib.request import Request, urlopen
-          from zipfile import ZipFile
-          import json
-          import os
-          import re
-
-          root = Path(os.environ["READ_DIR"])
-          run = json.loads((root / "run.json").read_bytes())
-          jobs = json.loads((root / "jobs.json").read_bytes())
-          artifact = json.loads((root / "artifact.json").read_bytes())
-          run_id = 45630394590
-          run_head = "3a9195debcfbeb703a220895871f5a40a61d3010"
-          digest = "354407dec77c2ffc3b8ed739e5a3f3aac422a0120578c0501183bbe36ea8d795"
-          assert (run["id"], run["head_sha"], run["head_branch"], run["run_attempt"], run["event"], run["conclusion"]) == (
-              run_id, run_head, "ops/1566-max-archive-inventory-20261123", 1, "push", "success")
-          assert run["path"] == ".github/workflows/read-1566-max-archive-20261123.yml"
-          assert run["repository"]["id"] == 1342493152 and run["actor"]["id"] == 226193297
-          assert jobs["total_count"] == 1 and len(jobs["jobs"]) == 1
-          job = jobs["jobs"][0]
-          assert (job["id"], job["run_id"], job["head_sha"], job["run_attempt"], job["conclusion"]) == (
-              139261677044, run_id, run_head, 1, "success")
-          assert artifact["id"] == 15032515599 and artifact["name"] == "issue-1566-main-max-archive-inventory"
-          assert artifact["expired"] is False and artifact["workflow_run"]["id"] == run_id
-          assert artifact["digest"] == "sha256:" + digest and artifact["size_in_bytes"] == 25899
-          assert sha256((root / "archive.zip").read_bytes()).hexdigest() == digest
-          with ZipFile(root / "archive.zip") as archive:
-              assert archive.namelist() == ["registry.json"] and archive.getinfo("registry.json").file_size <= 1_000_000
-              registry = json.loads(archive.read("registry.json"))
-          assert registry["ok"] is True and registry["history_complete"] is True
-          assert registry["price_content_shared_lease"] is True and str(registry["native_run_id"]) == str(run_id)
-          assert registry["production_writes"] == registry["provider_writes"] == 0
-
-          selected = [row for row in registry["rows"] if row["status"] == "needs_content_and_route_review"]
-          assert len(selected) == len({row["mid"] for row in selected}) == 21
-          fields = ("mid", "url", "published_ms", "fingerprint")
-          selected = [{k: row[k] for k in fields} for row in selected if row["registered"] is False
-                      and row["keyboard_present"] is False and row["linked_message"] is False and row["media"] == ["image"]]
-          assert len(selected) == 21
-          encoded = __import__("base64").b64encode(json.dumps(selected, ensure_ascii=True).encode()).decode()
-          out = Path(os.environ["RUNNER_TEMP"]) / "native-photo.php"
-          out.write_text(r"""<?php
+          cat > "$RUNNER_TEMP/native-photo.php" <<'PHP'
+          <?php
           declare(strict_types=1);
-          ini_set('display_errors', '0');
-          ini_set('log_errors', '0');
-          $installed = '62d98b1f896eb8a5a3c26c8ab49baec55367eb76';
-          $channelId = '-68765999669267';
-          $checkout = static fn(): string => trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'));
-          $summary = ['ok'=>false,'installed_sha'=>$installed,'archive_run_id'=>'45630394590','writes'=>0,'provider_writes'=>0];
+          ini_set('display_errors','0');
+          ini_set('log_errors','0');
+          $app = '62d98b1f896eb8a5a3c26c8ab49baec55367eb76';
+          $target = 'mid.ffffc1752b045fed019aca84b9721cb5';
+          $source = 'mid.ffffb6caf0606fed01a1d46c23c52cc7';
+          $result = ['ok'=>false,'installed_sha'=>$app,'write_admission'=>false,'writes'=>0,
+              'hotel_id'=>2575,'source_id'=>1342,'target_mid'=>$target];
+          $lease = null;
           try {
-              if (PHP_SAPI !== 'cli' || $checkout() !== $installed
-                  || trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git status --porcelain --untracked-files=no')) !== '') {
-                  throw new RuntimeException('installed_release_changed');
-              }
+              $checkout = static fn(): string => trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'));
+              if ($checkout() !== $app) throw new RuntimeException('installed_release_changed');
               ob_start();
               try {
                   require getcwd().'/config.php';
                   require_once getcwd().'/services/ChannelPostEntryService.php';
-                  require_once getcwd().'/services/ChannelPostButtonTransport.php';
               } finally { ob_end_clean(); }
               if (ProjectConfig::projectId() !== 'anytour') throw new RuntimeException('wrong_project');
+              $path = '/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
+              if (!is_file($path) || is_link($path)) throw new RuntimeException('lease_missing');
+              $lease = fopen($path,'rb');
+              if (!is_resource($lease)) throw new RuntimeException('lease_missing');
+              $deadline = hrtime(true) + 8000000000;
+              while (!flock($lease,LOCK_SH|LOCK_NB)) {
+                  if (hrtime(true) >= $deadline) throw new RuntimeException('editor_busy');
+                  usleep(250000);
+              }
               $pdo = ConversationDb::connection();
-              $takeSnapshot = static function () use ($pdo): array {
-                  $path = '/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
-                  if (!is_file($path) || is_link($path)) throw new RuntimeException('lease_missing');
-                  $lease = fopen($path, 'rb');
-                  if (!is_resource($lease)) throw new RuntimeException('lease_missing');
-                  try {
-                      if (!flock($lease,LOCK_SH|LOCK_NB)) throw new RuntimeException('editor_busy');
-                      $pdo->exec('SET TRANSACTION READ ONLY');
-                      $pdo->beginTransaction();
-                      try {
-                          return $pdo->query('SELECT external_message_id,current_version_id FROM post_publications WHERE post_channel_id=4 ORDER BY id')->fetchAll(PDO::FETCH_NUM);
-                      } finally { $pdo->rollBack(); }
-                  } finally { fclose($lease); }
-              };
-              $selected = json_decode(base64_decode('__SELECTION__', true), true, 32, JSON_THROW_ON_ERROR);
-              $counts = [];
-              $found = [];
-              $read = 0;
-              foreach ($selected as $target) {
-                  $mid = $target['mid'];
-                  if (!preg_match('/\Amid\.ffffc1752b045fed[0-9a-f]{16}\z/D',$mid)
-                      || !preg_match('~\Ahttps://max\.ru/anytour/[A-Za-z0-9_-]{11}\z~D',$target['url'])) {
-                      throw new RuntimeException('archive_selection_changed');
-                  }
-                  $response = ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$mid,[],null);
-                  ++$read;
-                  if ((int)($response['http'] ?? 0) === 429) {
-                      $counts['rate_limited'] = ($counts['rate_limited'] ?? 0) + 1;
-                      break;
-                  }
-                  $message = $response['data'] ?? [];
-                  $post = ($response['http'] ?? 0) === 200 && empty($response['transport_error'])
-                      && ($message['body']['mid'] ?? '') === $mid
-                      && (string)($message['recipient']['chat_id'] ?? '') === $channelId
-                      && ($message['recipient']['chat_type'] ?? '') === 'channel'
-                      ? ChannelPostIncomingAdapter::maxSnapshot($message) : null;
-                  $reason = 'native_unavailable';
-                  if (is_array($post)) {
-                      $text = trim(preg_replace('/\s+/u', ' ', $post['text']) ?? '');
-                      if ((int)($message['timestamp'] ?? 0) !== (int)$target['published_ms']
-                          || !hash_equals($target['fingerprint'],ChannelPostIncomingAdapter::contentFingerprint($post))
-                          || array_column($post['attachments'],'type') !== ['image']
-                          || !empty($post['keyboard']) || !empty($message['link'])) {
-                          $reason = 'native_message_changed';
-                      } elseif (preg_match('/отзыв|отдыхал[аи]?|мы отдых|мы жили|вернул[аи]сь|вернулся|наш[аи]? турист|от турист|видео|влог|обзор от менеджера|доминикан|пунта.кан|мы побывали|мы были|нам понравил|наша поездка|мой отпуск/ui',$text)) {
-                          $reason = 'protected_content';
-                      } else {
-                          $signals = [
-                              'departure'=>'/вылет|перел[её]т|авиабил/ui',
-                              'duration'=>'/\d+\s+(?:ноч(?:ь|и|ей)|дн(?:я|ей))/ui',
-                              'travelers'=>'/за двоих|на двоих|два взрослых|за человека|на человека/ui',
-                              'meal'=>'/вс[её] включено|завтраки|полупансион|ультра|питание/ui',
-                              'booking'=>'/заброниров|брониру|рассчита|подбер[её]м|пакетн\w+ тур|горящ\w+ тур|отправлени[ея]/ui',
-                          ];
-                          $hits = array_keys(array_filter($signals,static fn(string $pattern): bool => preg_match($pattern,$text) === 1));
-                          $amount = preg_match('/\bцен[аы]\b|стоимость|₽|руб[.л]|(?:от\s+)?\d[\d\s ]{1,9}(?:тыс\.?|[кk]\b)/ui',$text) === 1;
-                          $commercial = ($amount && count($hits) >= 2)
-                              || (in_array('departure',$hits,true) && in_array('duration',$hits,true) && count($hits) >= 3);
-                          $reason = $commercial ? 'commercial_candidate' : 'insufficient_commercial_evidence';
-                          if ($commercial) {
-                              $found[] = $target + ['caption_sha256'=>hash('sha256',$text),'signals'=>$hits];
-                          }
-                      }
-                  }
-                  $counts[$reason] = ($counts[$reason] ?? 0) + 1;
-                  usleep(320000);
-              }
-              if ($checkout() !== $installed) throw new RuntimeException('installed_release_changed');
-              $registryState = 'verified';
-              $verified = [];
+              $pdo->exec('SET TRANSACTION READ ONLY');
+              $pdo->beginTransaction();
               try {
-                  $occupied = array_fill_keys(array_column($takeSnapshot(),0),true);
-                  $verified = array_values(array_filter($found,static fn(array $row): bool => !isset($occupied[$row['mid']])));
-              } catch (RuntimeException $error) {
-                  if (!in_array($error->getMessage(),['editor_busy','lease_missing'],true)) throw $error;
-                  $registryState = $error->getMessage();
-              }
-              if ($checkout() !== $installed) throw new RuntimeException('installed_release_changed');
-              $summary += ['selected'=>count($selected),'read'=>$read,'counts'=>$counts,
-                  'native_commercial_candidates'=>$found,'registry_confirmation'=>$registryState,
-                  'available_candidates'=>$verified,'write_admission'=>false];
-              $summary['ok'] = true;
-          } catch (Throwable $error) {
-              $summary['reason'] = preg_match('/\A[a-z_]{3,50}\z/D',$error->getMessage()) ? $error->getMessage() : 'native_read_unavailable';
+                  $stmt = $pdo->prepare('SELECT id,current_version_id FROM post_publications WHERE post_channel_id=4 AND external_message_id=?');
+                  $stmt->execute([$target]);
+                  $targetRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                  $registry = new ChannelPostRegistryService($pdo);
+                  $origin = $registry->publication(1342);
+                  $exactSource = is_array($origin) && $origin['platform']==='max'
+                      && $origin['state']==='sent' && (string)$origin['channel_id']==='-80492244209683'
+                      && ($origin['message_id']??$origin['external_message_id']??null)===$source
+                      && ($origin['snapshot']['post_url']??null)==='https://max.ru/channel_anytour/AaHUbCPFLMc'
+                      && (int)($origin['snapshot']['metadata']['hotel_catalog_id']??0)===2575;
+                  $result += ['target_registry_rows'=>$targetRows,'source_identity_verified'=>$exactSource,
+                      'source_registry_version'=>$exactSource?(int)$origin['version_id']:null];
+              } finally { $pdo->rollBack(); }
+              if ($checkout() !== $app) throw new RuntimeException('installed_release_changed');
+              $result['ok'] = true;
+          } catch(Throwable $error) {
+              $result['reason'] = preg_match('/\A[a-z_]{3,50}\z/D',$error->getMessage()) ? $error->getMessage() : 'registry_read_unavailable';
+          } finally {
+              if (is_resource($lease)) fclose($lease);
           }
-          echo json_encode($summary,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES),PHP_EOL;
-          exit($summary['ok'] ? 0 : 2);
-          """.replace("__SELECTION__", encoded))
-          PY
+          echo json_encode($result,JSON_THROW_ON_ERROR),PHP_EOL;
+          exit($result['ok'] ? 0 : 2);
+          PHP
           php -l "$RUNNER_TEMP/native-photo.php"
       - name: Pin established SSH host continuity and authentication identity
         env:
@@ -223,7 +112,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read the exact existing MAX messages through the official native reader
+      - name: Read only the exact source and candidate in the official publication registry
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
