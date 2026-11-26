@@ -1,4 +1,4 @@
-name: "#1566 Read JAZ Elite232 and an existing seasonal commercial photo831"
+name: "#1566 Prepare four reserve pairs while accepted232 awaits public"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '6be2b7b2b5be6eaf4ca92b92abce763b2e259bea' &&
+      github.event.before == 'f94fc74fd22a8a67135c7b44b7fbd2529305a04e' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
@@ -100,7 +100,7 @@ jobs:
            'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,'native_run_attempt'=>1,
            'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,'rows'=>[]];
           $pdo=null;$lock=null;$acquired=null;$rates=[];$start=hrtime(true);$stage='runtime';
-          $pairs=[232=>['source'=>'55','source_publication'=>191,'target'=>'831','target_date'=>1725182299,'target_caption'=>'2a9b05893e5e4338c6d48fd2619d59c135b886966c25c386637b5be6e8f0e4dc','target_photo'=>'4e1768b51efa296ffed6c69f81cab0906335e7e6b9a6c01bf92ba689be774952']];
+          $pairs=[13872=>['source'=>'57','source_publication'=>193,'target'=>'842','target_date'=>1725626066,'target_caption'=>'db6f5b4b493db1b6b58186a2934d6f7d66a1aa722ed5bb52d1bd43b1c7afbccf','target_photo'=>'1a5f78dc1e39cec2ec5c818d050d245314f65d9a8dab51abf59aa4a2806c8ea2'],13873=>['source'=>'58','source_publication'=>194,'target'=>'774','target_date'=>1721996715,'target_caption'=>'2e149a98e9d5314c2f9709d3302637fb1aa72c351588e6a0b76e7a049c44940b','target_photo'=>'a4c2ba9612e27984c36bc439f1509b1a3435c0168e920cd4b36a6eba65f027f3'],280=>['source'=>'59','source_publication'=>195,'target'=>'292','target_date'=>1704010513,'target_caption'=>'9ce4c037af4e7db606c93580064e612d8b88cfdfbd2e06581ca695afae2ebd22','target_photo'=>'54168c751c3631813fb7aa1bbc7978364a677660b0ed38fac4f54a05e4fbf0ee'],456=>['source'=>'60','source_publication'=>196,'target'=>'476','target_date'=>1709888359,'target_caption'=>'a2d5c92c8947dfad9aeb442e9dfef2c9c454260511b3012b2ee34b3bdddd2821','target_photo'=>'8f79ff191c86a6a08951a6e80b3114c2c7880a1ef27eadb77d1ada0edef5af30']];
           try {
            runtimeRead();requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
            $out['resources_before']=resourcesRead();$out['resource_budget']=serverReadBudgetRead($out['resources_before']);
@@ -242,7 +242,7 @@ jobs:
           pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
-      - name: Read only JAZ Elite232 source55 and candidate831 with full native holds
+      - name: Read four reserve source and target pairs without provider writes
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
