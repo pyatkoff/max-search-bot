@@ -4,6 +4,7 @@ import itertools
 import fnmatch
 import json
 import os
+import tempfile
 from pathlib import Path
 import subprocess
 import yaml
@@ -72,11 +73,18 @@ for name, jobs in [('workspace-v2-visual-qa.yml',['selection','firefox-history',
 for job in ['required','prepared-mysql','appleservice39-mysql']:
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
 check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
-check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'full') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'native groups keep full scope except proven unchanged backends')
+check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && (needs.change-scope.outputs.backend == 'full' || needs.change-scope.outputs.backend == 'telegram-public-observer')) || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'the observer retains all shared native MySQL groups')
 expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || (needs.change-scope.outputs.backend == 'hotel-catalogue-data' && '[{\"group\":\"manager\"}]') || '[]') }}"
 check(regression['required']['strategy']['matrix'] == {
     'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
     'catalogue excludes unrelated Manager2 tests and styling retains its existing matrix')
+pr_required = next(s for s in regression['required']['steps'] if s.get('name') == 'Run required group')
+check(pr_required['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}'
+      and pr_required['env']['REQUIRED_CHECK_GROUP'] == '${{ matrix.group }}'
+      and not pr_required.get('if') and not pr_required.get('continue-on-error')
+      and '"$BACKEND_PROFILE" == telegram-public-observer' in pr_required['run']
+      and 'php tests/run_required_group.php architecture "$BACKEND_PROFILE"' in pr_required['run'],
+      'PR architecture uses the proven profile without skipping the required group')
 check(source_gate['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}', 'aggregate uses the actual backend selection')
 hotel_job = regression['hotel-catalogue']
 check(hotel_job['needs'] == 'change-scope' and hotel_job['if'] ==
@@ -85,8 +93,10 @@ check(hotel_job['needs'] == 'change-scope' and hotel_job['if'] ==
 check(hotel_job['permissions'] == {'contents':'read'} and
       all(not s.get('if') and not s.get('continue-on-error', False) for s in hotel_job['steps']),
       'hotel data verification stays read-only and fatal')
-hotel_commands = hotel_job['steps'][-1]['run'].splitlines()
-check(hotel_commands == [
+hotel_check_script = root/'tools/check_hotel_catalogue_scope.sh'
+check(hotel_job['steps'][-1]['run'] == 'bash tools/check_hotel_catalogue_scope.sh', 'PR catalogue uses the canonical suite')
+check(hotel_check_script.read_text().splitlines() == [
+    '#!/usr/bin/env bash', 'set -euo pipefail', '',
     'php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-read',
     'php tests/run_manager_ai_draft_context_regression.php --hotel-knowledge-http',
     'php tests/run_manager_ai_draft_service_regression.php',
@@ -96,7 +106,7 @@ check(source_gate['env']['HOTEL_RESULT'] == '${{ needs.hotel-catalogue.result }}
       source_gate['env']['HOTEL_PROOF'] == '${{ needs.change-scope.outputs.hotel-proof }}',
       'hotel proof uses only actual canonical outputs')
 pilot_mysql = regression['appleservice39-mysql']
-check(pilot_mysql['if'] == regression['prepared-mysql']['if']
+check(pilot_mysql['if'] == "(needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'full') || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')"
       and pilot_mysql['needs'] == 'change-scope'
       and pilot_mysql['runs-on'] == 'ubuntu-latest'
       and pilot_mysql['timeout-minutes'] == 8
@@ -122,6 +132,11 @@ check(pilot_steps[2]['run'] == 'php tests/mysql/appleservice39-publisher.php'
       'actual migration and independent claim workers execute on the isolated fixture')
 check(source_gate['env']['APPLESERVICE39_MYSQL_RESULT'] == '${{ needs.appleservice39-mysql.result }}',
       'required aggregate consumes the actual pilot native job result')
+observer_gate = source_gate['run'].split('full:telegram-public-observer)', 1)[-1].split(';;', 1)[0]
+check('test "$REQUIRED_RESULT" = success' in observer_gate
+      and 'test "$PREPARED_MYSQL_RESULT" = success' in observer_gate
+      and 'test "$APPLESERVICE39_MYSQL_RESULT" = skipped' in observer_gate,
+      'observer excludes the pilot native fixture and keeps the whole shared stack')
 check('native-mysql' not in load('publish-appleservice39-pilot.yml')['jobs'],
       'pilot native fixture has one mandatory aggregate owner')
 scope_document = load('ci-change-scope.yml')
@@ -129,6 +144,9 @@ scope_events = scope_document.get('on',scope_document.get(True))
 check(scope_events['workflow_call']['outputs']['backend']['value'] == '${{ jobs.scope.outputs.backend }}'
       and scope_document['jobs']['scope']['outputs']['backend'] == '${{ steps.scope.outputs.backend }}',
       'backend profile is bound through the canonical scope job')
+scope_step = next(step for step in scope_document['jobs']['scope']['steps'] if step.get('id') == 'scope')
+check('["workspace-style", "hotel-catalogue-data", "telegram-public-observer"].includes(result.backend)' in scope_step['run'],
+      'the canonical workflow passes through the exact observer backend')
 check('node tests/check_ci_selection_style_scope.js' in policy['run'], 'style selector selftests are mandatory')
 check("needs.change-scope.outputs.mode == 'full'" in visual['browser-tests']['if'], 'full browser assembler must not run after OAuth-only skips')
 check(set(visual['full-screenshots']['needs']) == {'browser-tests','firefox-history','firefox-notifications'}, 'full screenshot proof preserves all engines and Firefox')
@@ -404,6 +422,68 @@ check(dj['deploy']['needs'] == ['verify-inventory','verify-syntax','verify-group
 check(dj['deploy']['steps'][0]['name'] == 'Require the complete deployment verification'
       and 'test "$GITHUB_RUN_ATTEMPT" = 1' in dj['deploy']['steps'][0]['run'],
       'installer replay stopped before checkout or protected access')
+production_scope = next(s for s in dj['verify-syntax']['steps'] if s.get('id') == 'hotel_scope')
+profile_output = '${{ needs.verify-syntax.outputs.profile }}'
+check(production_scope['run'] == 'node tools/deploy_hotel_catalogue_scope.js'
+      and not production_scope.get('if') and not production_scope.get('continue-on-error')
+      and dj['verify-syntax']['permissions'] == {
+          'contents':'read', 'actions':'read', 'pull-requests':'read', 'issues':'read'}
+      and dj['verify-syntax']['outputs'] == {'profile':'${{ steps.hotel_scope.outputs.profile }}'},
+      'production catalogue scope is selected by one fatal, read-only source gate')
+production_inventory = next(s for s in dj['verify-inventory']['steps']
+                            if s.get('name') == 'Verify required inventory and architecture')
+production_group = next(s for s in dj['verify-groups']['steps'] if s.get('name') == 'Run every required group in this lane')
+check(all(dj[job]['needs'] == 'verify-syntax' for job in ['verify-inventory','verify-groups'])
+      and production_inventory['env']['DEPLOY_CHECK_PROFILE'] == profile_output
+      and production_group['env']['DEPLOY_CHECK_PROFILE'] == profile_output
+      and 'bash tools/check_hotel_catalogue_scope.sh' in production_group['run']
+      and all(not s.get('if') and not s.get('continue-on-error') for job in
+              [dj['verify-inventory'],dj['verify-syntax'],dj['verify-groups']] for s in job['steps']),
+      'architecture and groups run on separate runners with the same proven profile')
+with tempfile.TemporaryDirectory() as stub_dir:
+    php_stub = Path(stub_dir)/'php'
+    php_stub.write_text(
+        '#!/usr/bin/env bash\nset -eu\n'
+        'if [[ "$1" == tests/run_required_group.php ]]; then\n'
+        '  shift\n  printf "%s\\n" "$*"\n'
+        'else\n  printf "catalogue:%s\\n" "$1"\nfi\n'
+    )
+    php_stub.chmod(0o755)
+    probe_env = {**os.environ, 'PATH': stub_dir + os.pathsep + os.environ['PATH']}
+    for profile, group, expected in [
+        ('hotel-catalogue-data','architecture','architecture hotel-catalogue-data'),
+        ('full','architecture','architecture'),
+        ('workspace-style','architecture','architecture'),
+        ('hotel-catalogue-data','website','website'),
+    ]:
+        probe = subprocess.run(['bash','-e','-c',pr_required['run']], capture_output=True, text=True,
+            env={**probe_env, 'BACKEND_PROFILE':profile, 'REQUIRED_CHECK_GROUP':group})
+        check(probe.returncode == 0 and probe.stdout.strip() == expected,
+              'required group command for '+profile+'/'+group)
+    for profile in ['full','hotel-catalogue-data','']:
+        probe = subprocess.run(['bash','-e','-c',production_inventory['run']], capture_output=True, text=True,
+            env={**probe_env, 'DEPLOY_CHECK_PROFILE':profile})
+        check((probe.returncode == 1 and not probe.stdout) if not profile else
+              (probe.returncode == 0 and probe.stdout.strip() == 'architecture '+profile),
+              'production architecture command for '+profile)
+    for profile, lane, groups, expected in [
+        ('full','application','dialogue website manager',['dialogue','website','manager']),
+        ('hotel-catalogue-data','application','dialogue website manager',
+            ['dialogue','website','catalogue:tests/run_manager_ai_draft_context_regression.php',
+             'catalogue:tests/run_manager_ai_draft_context_regression.php',
+             'catalogue:tests/run_manager_ai_draft_service_regression.php',
+             'catalogue:tests/run_manager_preparation_mcp_regression.php']),
+        ('full','diagnostics','diagnostics',['diagnostics']),
+        ('hotel-catalogue-data','diagnostics','diagnostics',['diagnostics']),
+        ('','application','dialogue website manager',None),
+        ('unknown','diagnostics','diagnostics',None),
+    ]:
+        probe = subprocess.run(['bash','-e','-c',production_group['run']], capture_output=True, text=True,
+            env={**probe_env,
+                 'DEPLOY_CHECK_PROFILE':profile,'DEPLOY_CHECK_LANE':lane,'DEPLOY_CHECK_GROUPS':groups})
+        check((probe.returncode == 1 and not probe.stdout) if expected is None else
+              (probe.returncode == 0 and probe.stdout.splitlines() == expected),
+              'actual deployment command routing for '+profile+'/'+lane)
 check(dj['verify']['needs'] == 'deploy', 'verification cannot precede installation')
 vs = dj['verify']['steps']
 admit = next(i for i,s in enumerate(vs) if s.get('id') == 'admission')
