@@ -1,4 +1,4 @@
-name: "#1566 Distinguish commercial photo offers from protected MAX posts"
+name: "#1566 Read full native captions only for the MAX photo shortlist"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -15,11 +15,11 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == 'e47888c2e5840ef808e0a67c03357cb488fbe50a' && github.run_attempt == 1
+      github.event.before == 'd511498ac9734e32ccc9c45e6cc367f5d7a74e4a' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 7
     steps:
-      - name: Read the original archive and classify old single-photo descriptions
+      - name: Authenticate the original archive and pin the native read to its shortlist
         env:
           GH_TOKEN: ${{ github.token }}
         shell: bash
@@ -72,98 +72,174 @@ jobs:
           assert registry["price_content_shared_lease"] is True and str(registry["native_run_id"]) == str(run_id)
           assert registry["production_writes"] == registry["provider_writes"] == 0
 
-          class Page(HTMLParser):
-              def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.meta = {}
-              def handle_starttag(self, tag, attrs):
-                  attrs = dict(attrs)
-                  if tag == "meta" and attrs.get("property"):
-                      self.meta[attrs["property"]] = attrs.get("content", "")
-
-          protected = re.compile(
-              r"отзыв|отдыхал[аи]?|мы отдых|мы жили|вернул[аи]сь|вернулся|наш[аи]? турист|от турист|"
-              r"видео|влог|обзор от менеджера|доминикан|пунта.кан|"
-              r"мы побывали|мы были|нам понравил|наша поездка|мой отпуск", re.I)
-          amount = re.compile(r"\bцен[аы]\b|стоимость|₽|руб[.л]|(?:от\s+)?\d[\d\s ]{1,9}(?:тыс\.?|[кk]\b)", re.I)
-          trip = {
-              "departure": re.compile(r"вылет|перел[её]т|авиабил", re.I),
-              "duration": re.compile(r"\d+\s+(?:ноч(?:ь|и|ей)|дн(?:я|ей))", re.I),
-              "travelers": re.compile(r"за двоих|на двоих|два взрослых|за человека|на человека", re.I),
-              "meal": re.compile(r"вс[её] включено|завтраки|полупансион|ультра|питание", re.I),
-              "booking": re.compile(r"заброниров|брониру|рассчита|подбер[её]м|пакетн\w+ тур|горящ\w+ тур|отправлени[ея]", re.I),
+          selected = [row for row in registry["rows"] if row["status"] == "needs_content_and_route_review"]
+          assert len(selected) == len({row["mid"] for row in selected}) == 21
+          fields = ("mid", "url", "published_ms", "fingerprint")
+          selected = [{k: row[k] for k in fields} for row in selected if row["registered"] is False
+                      and row["keyboard_present"] is False and row["linked_message"] is False and row["media"] == ["image"]]
+          assert len(selected) == 21
+          encoded = __import__("base64").b64encode(json.dumps(selected, ensure_ascii=True).encode()).decode()
+          out = Path(os.environ["RUNNER_TEMP"]) / "native-photo.php"
+          out.write_text(r"""<?php
+          declare(strict_types=1);
+          ini_set('display_errors', '0');
+          ini_set('log_errors', '0');
+          $installed = '62d98b1f896eb8a5a3c26c8ab49baec55367eb76';
+          $channelId = '-68765999669267';
+          $checkout = static fn(): string => trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git rev-parse HEAD'));
+          $summary = ['ok'=>false,'installed_sha'=>$installed,'archive_run_id'=>'45630394590','writes'=>0,'provider_writes'=>0];
+          try {
+              if (PHP_SAPI !== 'cli' || $checkout() !== $installed
+                  || trim((string)shell_exec('GIT_OPTIONAL_LOCKS=0 git status --porcelain --untracked-files=no')) !== '') {
+                  throw new RuntimeException('installed_release_changed');
+              }
+              ob_start();
+              try {
+                  require getcwd().'/config.php';
+                  require_once getcwd().'/services/ChannelPostEntryService.php';
+                  require_once getcwd().'/services/ChannelPostButtonTransport.php';
+              } finally { ob_end_clean(); }
+              if (ProjectConfig::projectId() !== 'anytour') throw new RuntimeException('wrong_project');
+              $pdo = ConversationDb::connection();
+              $takeSnapshot = static function () use ($pdo): array {
+                  $path = '/var/www/anytoour/data/channel-post-operations/monitor-price-after-collection-v1.jsonl';
+                  if (!is_file($path) || is_link($path)) throw new RuntimeException('lease_missing');
+                  $lease = fopen($path, 'rb');
+                  if (!is_resource($lease)) throw new RuntimeException('lease_missing');
+                  try {
+                      if (!flock($lease,LOCK_SH|LOCK_NB)) throw new RuntimeException('editor_busy');
+                      $pdo->exec('SET TRANSACTION READ ONLY');
+                      $pdo->beginTransaction();
+                      try {
+                          return $pdo->query('SELECT external_message_id,current_version_id FROM post_publications WHERE post_channel_id=4 ORDER BY id')->fetchAll(PDO::FETCH_NUM);
+                      } finally { $pdo->rollBack(); }
+                  } finally { fclose($lease); }
+              };
+              $before = $takeSnapshot();
+              $occupied = array_fill_keys(array_column($before,0),true);
+              $selected = json_decode(base64_decode('__SELECTION__', true), true, 32, JSON_THROW_ON_ERROR);
+              $counts = [];
+              $found = [];
+              $read = 0;
+              foreach ($selected as $target) {
+                  $mid = $target['mid'];
+                  if (!preg_match('/\Amid\.ffffc1752b045fed[0-9a-f]{16}\z/D',$mid)
+                      || !preg_match('~\Ahttps://max\.ru/anytour/[A-Za-z0-9_-]{11}\z~D',$target['url'])) {
+                      throw new RuntimeException('archive_selection_changed');
+                  }
+                  if (isset($occupied[$mid])) {
+                      $counts['occupied'] = ($counts['occupied'] ?? 0) + 1;
+                      continue;
+                  }
+                  $response = ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$mid,[],null);
+                  ++$read;
+                  if ((int)($response['http'] ?? 0) === 429) {
+                      $counts['rate_limited'] = ($counts['rate_limited'] ?? 0) + 1;
+                      break;
+                  }
+                  $message = $response['data'] ?? [];
+                  $post = ($response['http'] ?? 0) === 200 && empty($response['transport_error'])
+                      && ($message['body']['mid'] ?? '') === $mid
+                      && (string)($message['recipient']['chat_id'] ?? '') === $channelId
+                      && ($message['recipient']['chat_type'] ?? '') === 'channel'
+                      ? ChannelPostIncomingAdapter::maxSnapshot($message) : null;
+                  $reason = 'native_unavailable';
+                  if (is_array($post)) {
+                      $text = trim(preg_replace('/\s+/u', ' ', $post['text']) ?? '');
+                      if ((int)($message['timestamp'] ?? 0) !== (int)$target['published_ms']
+                          || !hash_equals($target['fingerprint'],ChannelPostIncomingAdapter::contentFingerprint($post))
+                          || array_column($post['attachments'],'type') !== ['image']
+                          || !empty($post['keyboard']) || !empty($message['link'])) {
+                          $reason = 'native_message_changed';
+                      } elseif (preg_match('/отзыв|отдыхал[аи]?|мы отдых|мы жили|вернул[аи]сь|вернулся|наш[аи]? турист|от турист|видео|влог|обзор от менеджера|доминикан|пунта.кан|мы побывали|мы были|нам понравил|наша поездка|мой отпуск/ui',$text)) {
+                          $reason = 'protected_content';
+                      } else {
+                          $signals = [
+                              'departure'=>'/вылет|перел[её]т|авиабил/ui',
+                              'duration'=>'/\d+\s+(?:ноч(?:ь|и|ей)|дн(?:я|ей))/ui',
+                              'travelers'=>'/за двоих|на двоих|два взрослых|за человека|на человека/ui',
+                              'meal'=>'/вс[её] включено|завтраки|полупансион|ультра|питание/ui',
+                              'booking'=>'/заброниров|брониру|рассчита|подбер[её]м|пакетн\w+ тур|горящ\w+ тур|отправлени[ея]/ui',
+                          ];
+                          $hits = array_keys(array_filter($signals,static fn(string $pattern): bool => preg_match($pattern,$text) === 1));
+                          $amount = preg_match('/\bцен[аы]\b|стоимость|₽|руб[.л]|(?:от\s+)?\d[\d\s ]{1,9}(?:тыс\.?|[кk]\b)/ui',$text) === 1;
+                          $commercial = ($amount && count($hits) >= 2)
+                              || (in_array('departure',$hits,true) && in_array('duration',$hits,true) && count($hits) >= 3);
+                          $reason = $commercial ? 'commercial_candidate' : 'insufficient_commercial_evidence';
+                          if ($commercial) {
+                              $found[] = $target + ['caption_sha256'=>hash('sha256',$text),'signals'=>$hits];
+                          }
+                      }
+                  }
+                  $counts[$reason] = ($counts[$reason] ?? 0) + 1;
+                  usleep(320000);
+              }
+              if ($checkout() !== $installed || $takeSnapshot() !== $before) {
+                  throw new RuntimeException('registry_or_installation_changed');
+              }
+              $summary += ['selected'=>count($selected),'read'=>$read,'counts'=>$counts,'candidates'=>$found];
+              $summary['ok'] = true;
+          } catch (Throwable $error) {
+              $summary['reason'] = preg_match('/\A[a-z_]{3,50}\z/D',$error->getMessage()) ? $error->getMessage() : 'native_read_unavailable';
           }
-
-          def classify(description):
-              if not description:
-                  return "description_missing", []
-              if protected.search(description):
-                  return "protected_content", []
-              flags = [key for key, pattern in trip.items() if pattern.search(description)]
-              if (amount.search(description) and len(flags) >= 2) or (
-                  {"departure", "duration"}.issubset(flags) and bool({"meal", "travelers", "booking"}.intersection(flags))
-              ):
-                  return "commercial_single_photo", flags
-              return "insufficient_commercial_evidence", flags
-
-          assert classify("Отзывы. Вылет завтра на 7 ночей, цена за двоих")[0] == "protected_content"
-          assert classify("Вылет из Москвы на 7 ночей, всё включено")[0] == "commercial_single_photo"
-          assert classify("Отель недели. Красивый пляж")[0] == "insufficient_commercial_evidence"
-
-          def check(row):
-              url = row["url"]
-              assert re.fullmatch(r"https://max\.ru/anytour/[A-Za-z0-9_-]{11}", url)
-              out = {key: row[key] for key in ("url", "mid", "published_ms", "fingerprint")}
-              try:
-                  with urlopen(Request(url, headers={"User-Agent": "Mozilla/5.0", "Cache-Control": "no-cache"}),
-                               timeout=8) as response:
-                      assert response.geturl() == url and response.status == 200
-                      body = response.read(3_000_001)
-                  assert len(body) <= 3_000_000
-                  public = Page()
-                  public.feed(body.decode("utf-8"))
-                  description = re.sub(r"\s+", " ", public.meta.get("og:description", "")).strip()
-                  result, signals = classify(description)
-                  if result == "commercial_single_photo":
-                      if not public.meta.get("og:image"):
-                          result = "image_not_visible"
-                      else:
-                          out.update(signals=signals, description_sha256=sha256(description.encode()).hexdigest(),
-                                     excerpt=description[:240])
-                  return out | {"classification": result}
-              except HTTPError as error:
-                  if error.code == 429:
-                      return out | {"classification": "rate_limited", "retry_after": error.headers.get("Retry-After")}
-                  return out | {"classification": "public_read_unavailable"}
-              except (OSError, ValueError, AssertionError):
-                  return out | {"classification": "public_read_unavailable"}
-
-          archive_rows = registry["rows"]
-          assert len(archive_rows) == 351
-          eligible = [row for row in archive_rows if row["status"] == "needs_content_and_route_review"]
-          assert len(eligible) == 21 and len({row["mid"] for row in eligible}) == 21
-          assert all(row["registered"] is False and row["keyboard_present"] is False
-                     and row["linked_message"] is False and row["media"] == ["image"] for row in eligible)
-          result = []
-          with ThreadPoolExecutor(max_workers=3) as pool:
-              for start in range(0, len(eligible), 3):
-                  slice_result = list(pool.map(check, eligible[start:start+3]))
-                  result.extend(slice_result)
-                  if any(row["classification"] == "rate_limited" for row in slice_result):
-                      break
-          counts = dict(Counter(row["classification"] for row in result))
-          summary = {
-              "archive_run_id": run_id, "original_artifact_sha256": digest, "archive_messages": len(archive_rows),
-              "old_single_photos_considered": len(eligible), "publicly_checked": len(result), "counts": counts,
-              "candidate_rows": [row for row in result if row["classification"] == "commercial_single_photo"],
-              "unavailable": [row for row in result if row["classification"] in ("rate_limited","public_read_unavailable")],
-              "source_or_editor_rights_verified": False, "writes": 0,
-          }
-          Path("max-commercial-evidence.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2))
-          print("MAX_COMMERCIAL_EVIDENCE=" + json.dumps(summary, ensure_ascii=False, separators=(",", ":")))
+          echo json_encode($summary,JSON_THROW_ON_ERROR|JSON_UNESCAPED_SLASHES),PHP_EOL;
+          exit($summary['ok'] ? 0 : 2);
+          """.replace("__SELECTION__", encoded))
           PY
+          php -l "$RUNNER_TEMP/native-photo.php"
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read the exact existing MAX messages through the official native reader
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+           -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+           -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          rc=0
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < "$RUNNER_TEMP/native-photo.php" > native-photo-evidence.json || rc=$?
+          if test -s native-photo-evidence.json; then cat native-photo-evidence.json; fi
+          exit "$rc"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
         with:
-          name: max-commercial-photo-evidence
-          path: max-commercial-evidence.json
+          name: max-native-single-photo-evidence
+          path: native-photo-evidence.json
           retention-days: 7
+      - name: Remove runner connection material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts" "$RUNNER_TEMP/native-photo.php"
