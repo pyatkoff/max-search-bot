@@ -1,4 +1,4 @@
-name: "Read the active hotel feeds and original large MAX publication revisions"
+name: "Verify seven current PRICE updates against the selected large MAX posts"
 on:
   push:
     branches: [ops/1566-max-archive-inventory-20261123]
@@ -17,7 +17,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '5c015775cc2b3253eb4484ddb7ca89db716df105' &&
+      github.event.before == '9425a3a952c4194b3f93e4e81232b1374c3c1ec4' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -218,7 +218,7 @@ jobs:
           $out=['ok'=>false,'at'=>gmdate('c'),'application_sha'=>$app,'provider_writes'=>0,'db_writes'=>0,'rows'=>[]];
           ob_start();
           try {
-              if(getcwd()!==$root || !in_array($app,['c35c354220f7e30cd639672015b52d5f11c767a1'],true)) throw new RuntimeException('installed_head_changed');
+              if(getcwd()!==$root || !in_array($app,['c35c354220f7e30cd639672015b52d5f11c767a1','69e41c8011b4c67692f631cf435dd20d90676c72'],true)) throw new RuntimeException('installed_head_changed');
               require_once $root.'/config.php';
               require_once $root.'/services/PromotedHotelPriceWriter.php';
               require_once $root.'/services/ChannelPostEntryService.php';
@@ -233,7 +233,7 @@ jobs:
               try {
                   $registry=new ChannelPostRegistryService($db);
                   $config=json_decode(file_get_contents($root.'/config/promoted_hotel_price_targets.json'),true,32,JSON_THROW_ON_ERROR);
-                  foreach(json_decode('[{"hotel_id":12107,"platform":"max","publication_id":3604,"url":"https://max.ru/anytour/AZwjaZt4Kz8","mid":"mid.ffffc1752b045fed019c23699b782b3f","price":"138354","observed":"2026-11-24T23:14:00+03:00"},{"hotel_id":469,"platform":"max","publication_id":3606,"url":"https://max.ru/anytour/AZ6sX9HGLTk","mid":"mid.ffffc1752b045fed019eac5fd1c62d39","price":"140889","observed":"2026-11-24T23:14:00+03:00"},{"hotel_id":12111,"platform":"max","publication_id":3607,"url":"https://max.ru/anytour/AZ6wa60cTlw","mid":"mid.ffffc1752b045fed019eb06bad1c4e5c","price":"145346","observed":"2026-11-25T10:22:00+03:00"}]',true,32,JSON_THROW_ON_ERROR) as $plan) {
+                  foreach(json_decode('[{"hotel_id":12107,"platform":"max","publication_id":3604,"url":"https://max.ru/anytour/AZwjaZt4Kz8","mid":"mid.ffffc1752b045fed019c23699b782b3f","price":"138354","observed":"2026-11-24T23:14:00+03:00"},{"hotel_id":469,"platform":"max","publication_id":3606,"url":"https://max.ru/anytour/AZ6sX9HGLTk","mid":"mid.ffffc1752b045fed019eac5fd1c62d39","price":"140889","observed":"2026-11-24T23:14:00+03:00"},{"hotel_id":12111,"platform":"max","publication_id":3607,"url":"https://max.ru/anytour/AZ6wa60cTlw","mid":"mid.ffffc1752b045fed019eb06bad1c4e5c","price":"145346","observed":"2026-11-25T10:22:00+03:00"},{"hotel_id":43689,"platform":"max","publication_id":3833,"url":"https://max.ru/anytour/AaBxuxe-Jxk","mid":"mid.ffffc1752b045fed01a071bb17be2719","price":"196925","observed":"2026-11-26T02:03:00+03:00"},{"hotel_id":1260,"platform":"max","publication_id":3744,"url":"https://max.ru/anytour/AaAQRP74HIo","mid":"mid.ffffc1752b045fed01a01044fef81c8a","price":"100246","observed":"2026-11-26T00:34:00+03:00"},{"hotel_id":47025,"platform":"max","publication_id":3869,"url":"https://max.ru/anytour/AZ82fl5vOjg","mid":"mid.ffffc1752b045fed019f367e5e6f3a38","price":"106765","observed":"2026-11-26T00:37:00+03:00"},{"hotel_id":64895,"platform":"max","publication_id":3617,"url":"https://max.ru/anytour/AZ-OUsaPJjg","mid":"mid.ffffc1752b045fed019f8e52c68f2638","price":"129010","observed":"2026-11-26T03:28:00+03:00"},{"hotel_id":293,"platform":"max","publication_id":3741,"url":"https://max.ru/anytour/AZ-3aA0tG-E","mid":"mid.ffffc1752b045fed019fb7680d2d1be1","price":"125898","observed":"2026-11-26T04:49:00+03:00"},{"hotel_id":73055,"platform":"max","publication_id":3864,"url":"https://max.ru/anytour/AZxcpmMWNUI","mid":"mid.ffffc1752b045fed019c5ca663163542","price":"122928","observed":"2026-11-26T04:54:00+03:00"},{"hotel_id":2588,"platform":"max","publication_id":3825,"url":"https://max.ru/anytour/AaAkdvyEBXQ","mid":"mid.ffffc1752b045fed01a02476fc840574","price":"276325","observed":"2026-11-26T02:05:00+03:00"}]',true,32,JSON_THROW_ON_ERROR) as $plan) {
                       $id=$plan['publication_id']; $item=$plan;
                       try {
                           $post=$registry->publication($id);
