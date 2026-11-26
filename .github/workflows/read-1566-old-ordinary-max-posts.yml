@@ -1,4 +1,4 @@
-name: "#1566 Read native proof for Stella Makadi and the six-photo MAX target"
+name: "#1566 Refresh Stella Makadi native proof on the accepted #1748 release"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -19,7 +19,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == '923a8b6a1ca70a1f6590683c1afcd9199a3e5529' &&
+      github.event.before == '34b3e4b16b77daa7b35504a8a3f3d6b937268f86' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -27,7 +27,7 @@ jobs:
       - name: Checkout exact installed provenance source
         uses: actions/checkout@v4
         with:
-          ref: 664390965a45cdcf5600ea6bbfa8ce1bf47d78e2
+          ref: e1511db16f24822d1271ab5e444ca859997be31e
           persist-credentials: false
       - name: Verify current main and accepted application without mutations
         env:
@@ -35,10 +35,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = '664390965a45cdcf5600ea6bbfa8ce1bf47d78e2'
+          test "$(git rev-parse HEAD)" = 'e1511db16f24822d1271ab5e444ca859997be31e'
           node - <<'NODE'
           const R = require('./tools/deployment_release')
-          const expected = '664390965a45cdcf5600ea6bbfa8ce1bf47d78e2'
+          const expected = 'e1511db16f24822d1271ab5e444ca859997be31e'
           async function read() {
             const api = R.makeReadApi(process.env.GITHUB_TOKEN)
             const current = async () => (await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha
@@ -54,8 +54,8 @@ jobs:
                 receipts.artifacts[0].expired || receipts.artifacts[0].name!=='issue-1566-main-max-archive-inventory') throw Error('previous_archive_unverified')
                         {
               if (await current() !== expected) throw Error('changed_release')
-              const install = await api('GET',R.API_ROOT+'/actions/runs/45899459761')
-              if (install.id !== 45899459761 || install.repository.id !== 1342493152 ||
+              const install = await api('GET',R.API_ROOT+'/actions/runs/45902246073')
+              if (install.id !== 45902246073 || install.repository.id !== 1342493152 ||
                   install.head_sha !== expected || install.run_attempt !== 1 ||
                   install.event !== 'push' || install.path !== '.github/workflows/deploy.yml') throw Error('installation_identity_changed')
               if (install.status === 'completed') {
@@ -91,7 +91,7 @@ jobs:
       - name: Stage read-only invocation of the existing hotel observer
         shell: bash
         env:
-          NATIVE_REPO: 664390965a45cdcf5600ea6bbfa8ce1bf47d78e2
+          NATIVE_REPO: e1511db16f24822d1271ab5e444ca859997be31e
         run: |
           set -euo pipefail
           umask 077
