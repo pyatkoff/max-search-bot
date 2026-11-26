@@ -1,4 +1,4 @@
-name: "#1566 Check the exact four commercially worded posts for protected text"
+name: "#1566 Read exact native occupancy and writer rights for two Maldives replacement candidates"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -6,116 +6,271 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: read
+  pull-requests: read
+# Bounded reads of the same two prepared pairs; no provider writes; strict actual application fences.
 jobs:
   registry:
     if: >-
       github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 &&
-      github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
-      github.event.created == false && github.event.forced == false &&
-      github.event.before == 'c8828b7f88433902192078cf111bfd9a00bdbed8' &&
+      github.actor == 'pyatkoff' &&
+      github.event.sender.id == 226193297 &&
+      github.event.created == false &&
+      github.event.forced == false &&
+      github.event.before == 'a1b20a479ee73eda2cbfd909ef98ff0c2c8d1d12' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 8
     steps:
-      - name: Check out the exact existing Telegram plans for exclusion
+      - name: Check out the exact candidate packet
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Check out main for the existing release verifier
         uses: actions/checkout@v4
         with:
           ref: 43c684f3d220f4808efe898d1ba14608f960fda7
           path: accepted
           persist-credentials: false
-      - name: Inspect full captions from unchanged archive receipts
+      - name: Authenticate original1730 terminal before bounded host observation
+        working-directory: accepted
         env:
-          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
+          node - <<'NODE'
+          const fs=require('node:fs'),R=require('./tools/deployment_release');
+          async function check(){
+            const api=R.makeReadApi(process.env.GITHUB_TOKEN);
+            const before=await R.readRecord(api);
+            const r=R.validateRelease(before.record).release;
+            const expected='43c684f3d220f4808efe898d1ba14608f960fda7';
+            if(r.repository_sha!==expected||r.application_sha!==expected||r.kind!=='installed'
+              ||r.release.run_id!=='45789574108'||r.release.run_attempt!==1
+              ||r.closure?.binding?.pr!==1730
+              ||r.closure?.binding?.comment_id!==6818332618
+              ||r.closure?.binding?.owner_id!==226193297
+              ||r.closure?.binding?.head_sha!=='c8282ba8b40e8852087b5ae803727f459d8a0b59'
+              ||r.closure?.binding?.updated_at!=='2026-11-26T09:09:34Z')throw Error('original1730_changed');
+            const resolved=await R.resolveCurrent(api,{sha:expected},before);
+            if(!resolved.ready||resolved.repository_sha!==expected||resolved.application_sha!==expected)
+              throw Error('original1730_not_canonically_accepted');
+            const main=(await api('GET',R.API_ROOT+'/git/ref/heads/main')).object.sha;
+            const after=await R.readRecord(api);
+            if(before.blob!==after.blob||before.record_digest!==after.record_digest)throw Error('accepted_record_changed');
+            fs.mkdirSync('../pub',{recursive:true});
+            fs.writeFileSync('../pub/accepted-read-admission.json',JSON.stringify({read_only:true,
+              current_main_sha:main,observed_repository_sha:expected,application_sha:expected,
+              technical_acceptance_complete:true,write_admission:false,canonical:resolved,
+              record_commit:before.commit,record_blob:before.blob,record_digest:before.record_digest,
+              original_installation_deploy:'45789574108',original_closer:r.closure.run_id,
+              original_guard_pr:1730,checked_at_utc:new Date().toISOString()})+'\n');
+            fs.appendFileSync(process.env.GITHUB_ENV,'REPOSITORY_SHA='+expected+'\nAPPLICATION_SHA='+expected+'\n');
+          }
+          check().catch(e=>{console.error('readonly_accepted_installation_refused',e.code||e.message);process.exitCode=1});
+          NODE
+      - name: Bind immutable packet to the admitted release and native run
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '9931623d23b085d2f344dde163b8d75e6982a753'
+          mkdir -p pub
           python3 - <<'PY'
-          from collections import Counter
-          import hashlib
-          import io
-          import json
-          import os
-          from pathlib import Path
-          import re
-          import subprocess
-          import zipfile
-          
-          repo = os.environ["GITHUB_REPOSITORY"]
-          workflow = ".github/workflows/read-1566-telegram-46-20261123.yml"
-          base = Path("accepted/config")
-          expected = [[45747718941,15083853001,"4a80c9b86444d30462e8371f8be9c854a3aebbe5",711069,"a5f9edd963c476f4e3f003f4f83007644e2b4d607fa9c49a608dad52fcf14d77"],[45747898971,15083559015,"e728c0aff8d2656c8529b299ceb5adfba99e214d",379064,"2c4919e754273a8bee9c63704eff165800e67d118f07c66eeee7f2b09ff6c875"],[45745214387,15082428655,"25147cfb950c4f114df0fc15bc688bd06814e264",303175,"b579c38168e5f79421c4344d95945555cbd25554e6c487d88dca3465eff82a84"]]
-          blocked = {220, 567, 588, 727, 831, 842, 907, 957, 1012, 1016, 1042, 1047,
-                     1058, 1089, 1099, 1103, 1109, 1111, 1136, 1535, 1559, 1584, 1585, 1586,
-                     1620, 1651, 1653, 1654, 1664, 1665, 1679, 1695, 1696}
-          checked_plans = 0
-          for file in sorted(base.glob("anytour*.json")):
-              if file.stat().st_size > 500000:
-                  continue
-              data = json.loads(file.read_bytes())
-              if isinstance(data, dict):
-                  for row in data.get("rows", []):
-                      if isinstance(row, dict) and str(row.get("target_message_id", "")).isdigit():
-                          blocked.add(int(row["target_message_id"]))
-                  checked_plans += 1
-          
-          def gh(resource):
-              return subprocess.check_output(["gh", "api", f"repos/{repo}/{resource}"], timeout=50)
-          
-          guard = re.compile(r"отзыв|впечатлен|впечатлён|делимс[яь] впечатлен|наш[аи]? турист|туристы поделил|туристы вернул|"
-                             r"менеджер.{0,12}рассказ|мы (?:отдыхали|побывали)|с дн[её]м|поздравляем|розыгрыш|конкурс|доминикан", re.I)
-          commercial = re.compile(r"\bRUB\b|₽|\d\s*руб|вылет|тур[а-яё]*|путешеств|отел|курорт|отдых", re.I)
-          seen, source_rows, scope, reviewed = set(), [], {}, {}
-          for run_id, artifact_id, head, size, digest in expected:
-              run = json.loads(gh(f"actions/runs/{run_id}"))
-              assert run["id"] == run_id and run["head_sha"] == head and run["run_attempt"] == 1
-              assert run["conclusion"] == "success" and run["actor"]["id"] == 226193297
-              assert run["event"] == "push" and run["path"] == workflow
-              meta = json.loads(gh(f"actions/artifacts/{artifact_id}"))
-              assert not meta["expired"] and meta["workflow_run"]["id"] == run_id
-              assert meta["size_in_bytes"] == size and meta["digest"] == f"sha256:{digest}"
-              raw = gh(f"actions/artifacts/{artifact_id}/zip")
-              assert len(raw) == size and hashlib.sha256(raw).hexdigest() == digest
-              with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-                  assert archive.testzip() is None
-                  names = [n for n in archive.namelist() if n.rsplit("/", 1)[-1] == "archive-windows.json"]
-                  assert len(names) == 1, (run_id, "missing or ambiguous archive projection", archive.namelist()[:25])
-                  assert archive.getinfo(names[0]).file_size <= 16000000, (run_id, "archive projection too large", archive.getinfo(names[0]).file_size)
-                  document = json.loads(archive.read(names[0]))
-              assert document["native_run_id"] == str(run_id) and document["reader_source_sha"] == head
-              assert document["write_admission"] is False
-              source_rows.append({"run":run_id, "artifact":artifact_id, "rows":len(document["rows"])})
-              for row in document["rows"]:
-                  mid = int(row["target_message_id"])
-                  seen.add(mid)
-                  public = row.get("public", {})
-                  original = 'saved_plan_or_hold' if mid in blocked else 'not_supported_or_parse_unavailable' if not public.get('single_photo') else 'legacy_keyboard' if public.get('buttons') else 'single_photo_empty_keyboard'
-                  scope[mid] = original
-                  if original != 'single_photo_empty_keyboard' or mid not in {951,966,1049,1115}:
-                      continue
-                  caption=public.get('caption','')
-                  if not isinstance(caption,str):
-                      continue
-                  entry={'target_mid':mid,'public_run':run_id,'caption':caption[:3000],'date':public.get('published_at'),
-                         'caption_sha256':public.get('caption_sha256'),'photo_marker_sha256':public.get('photo_marker_sha256'),
-                         'caption_entry_links':len(public.get('caption_links',[])),
-                         'has_editorial_hint':bool(guard.search(caption) or re.search(r'угада|загад|розыгрыш|играем|поздрав|поздравляем|счастья|игра\b|конкурс|юбилей|поделитесь|в комментар',caption,re.I)),
-                         'has_sale_hint':bool(re.search(r'вылет|стоимость|₽|RUB|цена|за двоих|заброниров',caption,re.I)),
-                         'write_admission':False}
-                  if mid not in reviewed or reviewed[mid]['public_run']<run_id:
-                      reviewed[mid]=entry
-          result={'rows':[reviewed[mid] for mid in sorted(reviewed)],'rows_reviewed':len(reviewed),
-                  'source_receipts':source_rows,'write_admission':False,'telegram_requests':0,'provider_writes':0}
-          Path('pub').mkdir()
-          Path('pub/no-keyboard-review.json').write_text(json.dumps(result,ensure_ascii=False))
-          for row in result['rows']:
-              print(json.dumps(row,ensure_ascii=False))
-          print(json.dumps({k:v for k,v in result.items() if k!='rows'},ensure_ascii=False))
+          import os,pathlib,re
+          p=pathlib.Path('tools/direct_demand/operations/read-1566-telegram-46-20261123.php')
+          program=p.read_text()
+          for name,pattern in [('APPLICATION_SHA',r'[a-f0-9]{40}'),('REPOSITORY_SHA',r'[a-f0-9]{40}'),('NATIVE_RUN_ID',r'[1-9][0-9]{0,19}')]:
+              value=os.environ['GITHUB_RUN_ID' if name=='NATIVE_RUN_ID' else name]
+              assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
+              program=program.replace('__'+name+'__',value)
+          # Execute the reviewed reader helpers for the same two prepared pairs.
+          # Preserve candidate holds, read-only SQL and the shared PRICE lease.
+          assert program.count("$out=['schema'=>1") == 1
+          program=program[:program.index("$out=['schema'=>1")]
+          entry=r'''function preparedLeaseAdmissionRead(bool $shared,array $blockers):array {
+           $prepared=$blockers===[];
+           if(!$shared)$blockers[]='price_shared_lease_not_acquired';
+           return ['preparation_ready'=>$prepared,'preview_ready'=>$blockers===[],'preview_blockers'=>$blockers];
+          }
+          $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_archive_telegram_ranked_registry','ok'=>false,
+           'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,'native_run_attempt'=>1,
+           'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,'rows'=>[]];
+          $pdo=null;$lock=null;$acquired=null;$rates=[];$start=hrtime(true);$stage='runtime';
+          $pairs=[2490=>['source'=>'685','source_publication'=>null,'target'=>'1713','target_date'=>1789301257,'target_caption'=>'55f0facbc825e848220cbf93da14c61b0a2c467effffc63aad4f52df550a54e9','target_photo'=>'c4020a75f132d2580638b4b10a68e78fa2498d3d54d3e125487dc03807727d0c'],
+           42647=>['source'=>'718','source_publication'=>null,'target'=>'1725','target_date'=>1790061812,'target_caption'=>'e40c68f565cddcc9591d59d32f852bbaa926853622efd19a1587d4afd70ff55f','target_photo'=>'6e6871c8723508f6ee53074ec7a67eb141148ac63068031138dd34c0f479b1e8']];
+          try {
+           runtimeRead();requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
+           $out['resources_before']=resourcesRead();$out['resource_budget']=serverReadBudgetRead($out['resources_before']);
+           requireRead($out['resource_budget']['allowed'],'server_resource_hold');
+           $prior=[];$public=[];$stage='bounded_public';
+           foreach($pairs as $hotel=>$pair){
+            $prior[$hotel]=telegramMediaOperationRead($pair['target']);
+            [$sp,$tp]=telegramPreparedPairPublicRead($pair,$prior[$hotel],static function(string $channel,string $message)use(&$rates):array{
+             $views=[];foreach(['embed','archive'] as $kind){
+              $url=$kind==='embed'?'https://t.me/'.$channel.'/'.$message.'?embed=1&mode=tme':'https://t.me/s/'.$channel.'?before='.((int)$message+1);
+              $raw=captionPublicBytes($url,$rates);
+              try{requireRead($raw['ok'],'pair_public_unavailable');$views[$kind]=parsePublicRead($raw['body'],$channel,$message);}
+              catch(Throwable $e){return ['ok'=>false,'reason'=>reasonRead($e),'http'=>$raw['http']??null,'retry_after'=>$raw['retry_after']??null];}
+             }
+             try{$v=corroborateTargetKeyboard($views['embed'],$views['archive']);
+              requireRead($views['embed']['photo_marker_sha256']===$views['archive']['photo_marker_sha256'],'public_photo_changed');
+              $v['ok']=true;return $v;
+             }catch(Throwable $e){return ['ok'=>false,'reason'=>reasonRead($e)];}
+            });$public[$hotel]=['source'=>$sp,'target'=>$tp];
+           }
+           ob_start();try{require APP.'/config.php';require_once APP.'/services/ProjectConfig.php';
+           require_once APP.'/services/ChannelPostRegistryService.php';require_once APP.'/services/ChannelPostButtonTransport.php';require_once APP.'/services/ChannelPostRuntime.php';}finally{ob_end_clean();}
+           requireRead(ProjectConfig::projectId()==='anytour','project_changed');
+           require_once APP.'/hotel-posts-telegram-main19.php';$xml=anytourTelegramFeedRead();$feed=anytourTelegramFeedOfferUrls($xml);$routes=anytourTelegramFeedDestinationPosts($feed);
+           $out['current_feed_sha256']=hash('sha256',$xml);$out['feed_count']=count($feed);
+           $pdo=ConversationDb::connection();$pdo->exec('SET SESSION TRANSACTION READ ONLY');$registry=new ChannelPostRegistryService($pdo);
+           $target=$registry->channel('anytour','telegram','anyru_bot','-1001845835645');
+           $source=$registry->channel('anytour','telegram','anyru_bot','-1002262666616');
+           requireRead(is_array($target)&&(int)$target['id']===6&&$target['source_key']==='tg_anytour_msk'&&is_array($source)&&(int)$source['id']===10,'channel_identity_changed');
+           $out['target_channel']=['registry_id'=>6,'chat_id'=>'-1001845835645','url'=>'https://t.me/anytour','config_version'=>(int)$target['config_version'],'button_text'=>$target['button_text'],'bot_url'=>$target['bot_url']];
+           $currentPin=null;$username=false;$stage='native_read_rights';
+           $readTransport=static function(string $platform,string $method,string $path,array $query,?array $body)use(&$currentPin,&$username,&$out):array{
+            requireRead($platform==='telegram'&&$method==='POST'&&$query===[]&&in_array($path,['getMe','getChatMember','getChat'],true)&&($path==='getMe'||(string)($body['chat_id']??'')==='-1001845835645'),'provider_read_scope_changed');
+            $r=ChannelPostApiTransport::buttonRequest($platform,$method,$path,$query,$body);
+            if(($r['http']??0)===429){$out['native_retry_after_seconds']=$r['data']['parameters']['retry_after']??null;throw new RuntimeException('provider_retry_after_hold');}
+            if($path==='getChat'){$chat=$r['data']['result']??[];$username=strtolower((string)($chat['username']??''))==='anytour';$currentPin=isset($chat['pinned_message']['message_id'])?(string)$chat['pinned_message']['message_id']:null;}
+            return $r;
+           };
+           $out['native_channel_rights']=(new ChannelPostButtonTransport($readTransport))->verifyChannel($target);
+           requireRead(!array_key_exists('native_retry_after_seconds',$out),'provider_retry_after_hold');
+           requireRead(($out['native_channel_rights']['receipt']['write_attempts']??null)===0,'read_only_transport_contract_changed');
+           $r=ChannelPostApiTransport::buttonRequest('telegram','POST','getChat',[],['chat_id'=>'-1002262666616']);
+           if(($r['http']??0)===429){$out['native_retry_after_seconds']=$r['data']['parameters']['retry_after']??null;throw new RuntimeException('provider_retry_after_hold');}
+           $chat=$r['data']['result']??[];
+           $sourceBinding=($r['http']??0)===200&&empty($r['transport_error'])&&($r['data']['ok']??null)===true&&($chat['type']??null)==='channel'&&(string)($chat['id']??'')==='-1002262666616'&&strtolower((string)($chat['username']??''))==='any_toour';
+           $out['native_public_channel_binding']=['anytour'=>$username,'any_toour'=>$sourceBinding];
+           $out['native_read_request_count']=(int)($out['native_channel_rights']['receipt']['request_count']??0)+1;
+           $stage='shared_price_lease';$path=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
+           requireRead(!is_link($path)&&is_file($path),'price_editor_lease_unknown');$lock=fopen($path,'rb');requireRead(is_resource($lock),'price_read_lease_unavailable');
+           $wait=hrtime(true);$shared=flock($lock,LOCK_SH|LOCK_NB);$acquired=$shared?hrtime(true):null;
+           $out['price_editor_shared_read_lease']=$shared;$out['preparation_during_price_hold']=!$shared;
+           $out['price_lease_wait_ms']=(int)((hrtime(true)-$wait)/1000000);runtimeRead();
+           $out['mysql_before']=mysqlResourcesRead($pdo);$pdo->beginTransaction();
+           foreach($pairs as $hotel=>$pair){
+            $stage='pair_'.$hotel;$assessment=telegramPreparedPairNativeRead($hotel,$pair,$public[$hotel],$prior[$hotel],($out['native_channel_rights']['state']??null)==='ready',$feed,$routes,
+             static fn(int $h,array $p):array=>telegramPreparedPairTargetRead($pdo,$registry,$h,$p),
+             static function(int $h,array $p)use($pdo,$registry):array{
+              if($p['source_publication']===null){$found=publicationRead($pdo,$registry,10,$p['source']);requireRead(is_array($found)&&is_int($found['publication_id']??null),'source_native_publication_unavailable');$p['source_publication']=$found['publication_id'];}
+              return telegramPreparedPairSourceRead($pdo,$registry,$h,$p);
+             },'telegramMediaOperationRead');
+            $blockers=[];$sn=null;$free=null;
+            if(($assessment['prepared_checks_pass']??false)!==true)$blockers[]=$assessment['hold_reason']??'prepared_checks_not_confirmed';
+            if(($assessment['candidate_preparation_allowed']??false)===true)$sn=publicationRead($pdo,$registry,10,$pair['source']);
+            $operation='anytour-issue1566-historical-tg-media-'.$pair['target'].'-v1';$q=$pdo->prepare('SELECT IS_FREE_LOCK(?)');$q->execute([$operation]);$free=$q->fetchColumn();$q->closeCursor();
+            if($free===false||$free===null||(int)$free!==1)$blockers[]='target_editor_busy_or_unknown';
+            if($currentPin===$pair['target'])$blockers[]='target_is_current_channel_pin';
+            if(!$username||!$sourceBinding)$blockers[]='native_public_channel_binding_not_confirmed';
+            $sp=$public[$hotel]['source'];$tp=$public[$hotel]['target'];
+            $sm=is_array($sn)&&($assessment['prepared_checks_pass']??false)===true&&$sn['current_token_resolves']===true&&!$sn['native_claim_held_or_unknown'];
+            if(!$sm)$blockers[]='source_not_confirmed';
+            $directory=OPERATIONS.'/'.$operation;
+            $admission=preparedLeaseAdmissionRead($out['price_editor_shared_read_lease'],$blockers);
+            $out['rows'][]=['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
+             'source_native'=>$sn,'target_native'=>$assessment['target_native']??null,'source_public'=>$sp,'target_public'=>$tp,
+             'source_matches'=>$sm,'historical_target_matches'=>($assessment['checks']['target_preimage']??false)===true,
+             'target_media_lock_free'=>$free!==false&&$free!==null&&(int)$free===1,'target_current_pin_matches'=>$currentPin===$pair['target'],
+             'prior_media_operation_directory_exists'=>file_exists($directory)||is_link($directory),
+             'existing_large_channel_hotel_registry_matches'=>array_merge($assessment['target_native_ids']??['unobserved'],$assessment['hotel_duplicate_publication_ids']??['unobserved']),
+             'prepared_assessment'=>$assessment,'preparation_ready'=>$admission['preparation_ready'],'preview_blockers'=>$admission['preview_blockers'],'preview_ready'=>$admission['preview_ready']];
+           }
+           $pdo->rollBack();$out['mysql_after']=mysqlResourcesRead($pdo);runtimeRead();$out['ok']=true;
+          }catch(Throwable $e){$out['failure_stage']=$stage;$out['failure_reason']=reasonRead($e);}
+          finally{if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();if(is_resource($lock)){if($acquired!==null)$out['price_lease_held_ms']=(int)((hrtime(true)-$acquired)/1000000);if($acquired!==null)flock($lock,LOCK_UN);fclose($lock);}}
+          $out['public_retry_after_holds']=$rates;$out['resources_after']=resourcesRead();$out['read_at_utc']=gmdate(DATE_ATOM);$out['read_elapsed_ms']=(int)((hrtime(true)-$start)/1000000);
+          if($out['ok'])$out['checkpoint_sha256']=hash('sha256',jsonRead($out));echo jsonRead($out),PHP_EOL;exit($out['ok']?0:2);
+          '''
+          pathlib.Path('pub/read-only.php').write_text(program+entry)
           PY
-      - name: Preserve the unfiltered public inventory
+          python3 - <<'PY'
+          import pathlib
+          s=pathlib.Path('pub/read-only.php').read_text()
+          start=s.index('function preparedLeaseAdmissionRead(')
+          end=s.index("$out=['schema'=>1",start)
+          function=s[start:end]
+          cases=r"""
+          $a=preparedLeaseAdmissionRead(true,[]);
+          if($a!==['preparation_ready'=>true,'preview_ready'=>true,'preview_blockers'=>[]])exit(2);
+          $a=preparedLeaseAdmissionRead(false,[]);
+          if($a!==['preparation_ready'=>true,'preview_ready'=>false,'preview_blockers'=>['price_shared_lease_not_acquired']])exit(3);
+          $a=preparedLeaseAdmissionRead(true,['occupied']);
+          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['occupied']])exit(4);
+          $a=preparedLeaseAdmissionRead(false,['protected_review']);
+          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['protected_review','price_shared_lease_not_acquired']])exit(5);
+          echo "FOUR_PRICE_PREPARATION_ADMISSION_CASES_PASS\\n";
+          """
+          pathlib.Path('pub/price-preparation-test.php').write_text('<?php\n'+function+cases)
+          PY
+          php -l pub/read-only.php
+          php pub/price-preparation-test.php
+      - name: Pin established SSH host continuity and authentication identity
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          python3 - <<'PY'
+          import os,re
+          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
+          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
+          PY
+          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
+            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
+          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
+          chmod 600 "$RUNNER_TEMP/channel_key"
+          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
+          python3 - <<'PY'
+          import base64,hashlib,os,pathlib,subprocess
+          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
+          for s in scan.stdout.splitlines():
+              q=s.split()
+              if len(q)<3 or q[0].startswith('#'):continue
+              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
+              except Exception:continue
+              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
+          assert found,'HOST_PIN_MISMATCH_STOP'
+          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
+          print('ESTABLISHED_HOST_PIN_VERIFIED')
+          PY
+      - name: Read exact villages and original destination buttons without provider writes
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          status=0
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru; php' < pub/read-only.php > pub/registry.json || status=$?
+          python3 - <<'PY'
+          import json
+          d=json.load(open('pub/registry.json'))
+          assert d['operation']=='hotel_archive_telegram_ranked_registry' and d['issue']==1566
+          assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
+          print(json.dumps({'ok':d['ok'],'failure_stage':d.get('failure_stage'),'reason':d.get('failure_reason'),'rows':[{'hotel_id':r['hotel_id'],'ready':r['preview_ready'],'blockers':r['preview_blockers'],'checks':r['prepared_assessment']['checks'],'target_registry_or_duplicate':r['existing_large_channel_hotel_registry_matches']} for r in d['rows']]}))
+          PY
+          test "$status" -eq 0
+      - name: Preserve the original bounded pair observation
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: issue-1566-telegram-exact-content-protection
-          path: pub/no-keyboard-review.json
+          name: issue-1566-telegram-ranked-preflight
+          path: |
+            pub/registry.json
           retention-days: 7
-          if-no-files-found: error
+          if-no-files-found: warn
+
