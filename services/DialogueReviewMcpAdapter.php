@@ -10,6 +10,13 @@ final class DialogueReviewMcpAdapter
     public const RETAINED_NAMES=['list_retained_dialogues','get_retained_dialogue_context'];
     public static function allNames():array{return self::NAMES;}
     public const MAX_OUTPUT_BYTES=65536;
+    public const BUSINESS_IDENTITY_CURSOR='qh.archive.business_identity.20261126';
+    public const BUSINESS_IDENTITY_FENCE='326088';
+    public const BUSINESS_IDENTITY_CUTOFF=1795691100; // 26 November 2026, 14:05 Europe/Moscow.
+    public static function isBusinessIdentity(array $args):bool
+    {
+        return($args['cursor']??null)===self::BUSINESS_IDENTITY_CURSOR;
+    }
     /** Only explicit server-returned history descriptors select the new capability. */
     public static function isHistory(array $args): bool
     {
@@ -17,7 +24,7 @@ final class DialogueReviewMcpAdapter
         return false;
     }
 
-    public function __construct(private PDO $pdo,private $store=null,private $clock=null,private $selectionSourceAuthorize=null) {}
+    public function __construct(private PDO $pdo,private $store=null,private $clock=null,private $selectionSourceAuthorize=null,private $businessIdentityAuthorize=null) {}
 
     public static function tools(): array
     {
@@ -65,9 +72,17 @@ final class DialogueReviewMcpAdapter
             foreach(['cursor','dialogue_ref']as$field)if(isset($args[$field])&&!str_starts_with($args[$field],'qh.'))throw new InvalidArgumentException();
         }
         $history=$retained||self::isHistory($args);
+        $businessIdentity=self::isBusinessIdentity($args);
+        if($businessIdentity&&(!$inventory||$retained||(isset($args['limit'])&&$args['limit']!==25)))throw new InvalidArgumentException();
         $operation=$inventory?'inventory':'context';
         try{
-            if($history){
+            if($businessIdentity){
+                if(!is_callable($this->businessIdentityAuthorize))throw new DomainException();
+                require_once __DIR__.'/ArchiveResearchReadService.php';
+                $result=(new ArchiveResearchReadService($this->pdo,$this->clock,null,true))
+                    ->businessIdentitySummary($this->businessIdentityAuthorize,self::BUSINESS_IDENTITY_FENCE,self::BUSINESS_IDENTITY_CUTOFF);
+                ($this->businessIdentityAuthorize)();
+            }elseif($history){
                 require_once __DIR__.'/MonthlyReplyQualityReadService.php';
                 $oauth=new ManagerPreparationOAuth($this->pdo,$this->clock);
                 $key=static fn(int $actor,string $family):string=>$oauth->qualityCursorKey($family,$actor);
@@ -84,7 +99,7 @@ final class DialogueReviewMcpAdapter
                 }
                 $result=$this->store->$operation($admin,$connection,$args);
             }
-        }catch(DialogueReviewReadException $error){
+        }catch(DialogueReviewReadException|ArchiveResearchReadException $error){
             if(in_array($error->reason,['forbidden','permission_changed'],true))throw new DomainException();
             if($error->reason==='invalid_arguments')throw new InvalidArgumentException();
             $restart=in_array($error->reason,['stale_cursor','dialogue_unavailable','source_changed'],true);

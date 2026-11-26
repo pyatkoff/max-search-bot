@@ -251,6 +251,33 @@ try{
     dialogueMcpCheck('ordinary inventory advertises separately consented monthly lanes without payload',
         ($inventory['result']['structuredContent']['quality_history']['scope']??null)===$qualityScope
         &&array_keys($inventory['result']['structuredContent']['quality_history']['lanes'])===['native','archive','manual','prepared','virtual']);
+    $identityDescriptor=$inventory['result']['structuredContent']['quality_history']['lanes']['archive']['business_identity']??[];
+    $identityArgs=['cursor'=>$identityDescriptor['start_cursor']??''];
+    dialogueMcpCheck('finite Business overlap descriptor fixes the cohort and three independent grants',
+        $identityArgs['cursor']===DialogueReviewMcpAdapter::BUSINESS_IDENTITY_CURSOR
+        &&$identityDescriptor['selection_fence']===DialogueReviewMcpAdapter::BUSINESS_IDENTITY_FENCE
+        &&$identityDescriptor['cutoff_at_unix']===DialogueReviewMcpAdapter::BUSINESS_IDENTITY_CUTOFF
+        &&$identityDescriptor['selection_limit']===25&&$identityDescriptor['historical_snapshot']===false
+        &&$identityDescriptor['text_materialized']===false
+        &&$identityDescriptor['required_scopes']===[$qualityScope,$archiveScope,$forecastScope]);
+    $identityBefore=dialogueMcpCredentialRows($pdo);$identityCalls=count($calls);
+    foreach([$legacyScope,$dialogueScope,$qualityScope,$archiveScope,$forecastScope]as$scope){
+        $granted=explode(' ',$scope);
+        $response=$invoke('list_current_dialogues',$identityArgs,1,$contexts[$scope]['connection_id'],$granted);
+        $wanted=implode(' ',array_values(array_intersect(ManagerPreparationOAuth::SUPPORTED_SCOPES,
+            array_unique([...$granted,$qualityScope,$archiveScope,$forecastScope]))));
+        dialogueMcpCheck('Business overlap step-up preserves existing rights and requests all missing grants '.$scope,
+            str_contains(dialogueMcpChallenge($response),'scope="'.$wanted.'"')
+            &&count($calls)===$identityCalls&&dialogueMcpCredentialRows($pdo)===$identityBefore);
+    }
+    $forgedIdentity=$invoke('list_current_dialogues',$identityArgs,1,$connection,[$qualityScope,$archiveScope,$forecastScope]);
+    dialogueMcpCheck('claimed Business permissions cannot replace actual stored grants',
+        ($forgedIdentity['error']['code']??null)===-32001&&count($calls)===$identityCalls);
+    try{(new DialogueReviewMcpAdapter($pdo,$store,$clock))->call('list_current_dialogues',$identityArgs,1,$contexts[$allScope]['connection_id']);
+        throw new RuntimeException('FAIL Business reader admitted without authority callback');}
+    catch(DomainException $expected){dialogueMcpCheck('direct adapter requires its real disclosure authority callback',count($calls)===$identityCalls);}
+    $badIdentityLimit=$invoke('list_current_dialogues',$identityArgs+['limit'=>1],1,$contexts[$allScope]['connection_id'],explode(' ',$allScope));
+    dialogueMcpCheck('fixed Business cohort cannot be resized by the caller',($badIdentityLimit['error']['code']??null)===-32602);
     $contextArgs=['dialogue_ref'=>'synthetic.ref','cursor'=>'synthetic.cursor','limit'=>10];
     $context=$invoke('get_dialogue_review_context',$contextArgs);
     dialogueMcpCheck('context dispatch preserves exact arguments and both returned JSON representations',
@@ -530,5 +557,49 @@ try{
     $nativeCall($native,$pairContext,'get_dialogue_review_context',['dialogue_ref'=>$sourceRef]);
     dialogueMcpCheck('canonical paired-scope source read changes no source draft event or read marker rows',
         (int)$pdo->query('SELECT total_changes()')->fetchColumn()===$nativeChanges);
+    // Exercise the fixed Business entry through the real grant boundary and reader.
+    // The shared disposable fixture supplies only synthetic metadata and visits.
+    require_once __DIR__.'/telegram_business_identity_summary_fixture.php';
+    telegramBusinessIdentityAssertions($pdo,static function(array $f)use($pdo,$oauth,$client,$qualityScope,$archiveScope,$forecastScope,$clock,&$now):void{
+        $now=$f['now'];
+        $pdo->exec('ALTER TABLE projects ADD COLUMN display_name TEXT');
+        $pdo->prepare('UPDATE projects SET display_name=? WHERE project_key=?')->execute(['Synthetic dialogue review','anytour']);
+        $f['message']((int)DialogueReviewMcpAdapter::BUSINESS_IDENTITY_FENCE);$f['visit'](1);
+        $rights=$qualityScope.' '.$archiveScope.' '.$forecastScope;
+        [, $ctx]=dialogueMcpGrant($oauth,$client,$rights);
+        $entry=new ManagerPreparationMcpService($pdo,clock:$clock);
+        $call=static fn():array=>$entry->handle(dialogueMcpRpc('list_current_dialogues',
+            ['cursor'=>DialogueReviewMcpAdapter::BUSINESS_IDENTITY_CURSOR]),1,$ctx['connection_id'],$ctx['scopes']);
+        $before=(int)$pdo->query('SELECT total_changes()')->fetchColumn();
+        $packet=$call();$data=$packet['result']['structuredContent']??[];
+        if(($data['operation']??null)!=='business_identity_summary')throw new RuntimeException('Business MCP fixture result '.json_encode([
+            'error'=>$packet['error']??null,'status'=>$data['status']??null,'reason'=>$data['reason']??null]));
+        if(($data['counts']['verified_inbound_records']??null)!==1||($data['identities']['events']['same_observation_pair']??null)!==1)
+            throw new RuntimeException('Business MCP fixture counts '.json_encode(['counts'=>$data['counts']??null,'metrics'=>$data['identities']['events']??null]));
+        dialogueMcpCheck('real triple grant executes finite Business reader and both anonymous MCP representations',
+            ($data['operation']??null)==='business_identity_summary'
+            &&($data['counts']['verified_inbound_records']??null)===1
+            &&($data['identities']['events']['same_observation_pair']??null)===1
+            &&json_encode(json_decode($packet['result']['content'][0]['text'],true))===json_encode($data)
+            &&(int)$pdo->query('SELECT total_changes()')->fetchColumn()===$before
+            &&!str_contains(json_encode($packet),$f['peer'])&&!str_contains(json_encode($packet),$f['client_id']));
+        foreach([$qualityScope,$archiveScope,$forecastScope]as$withdrawnScope){
+            $sawSnapshot=false;$revoked=false;
+            TelegramBusinessIdentityTraceStatement::$duringExecute=static function(string $sql)use($pdo,$ctx,$withdrawnScope,&$sawSnapshot,&$revoked):void{
+                if($pdo->inTransaction()&&str_contains($sql,'advertising_visit_observations'))$sawSnapshot=true;
+                if($sawSnapshot&&!$pdo->inTransaction()&&!$revoked){
+                    $revoked=true;
+                    $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')
+                        ->execute([implode(' ',array_values(array_diff($ctx['scopes'],[$withdrawnScope]))),$ctx['connection_id']]);
+                }
+            };
+            $denied=$call();TelegramBusinessIdentityTraceStatement::$duringExecute=null;
+            dialogueMcpCheck('Business aggregate suppressed after actual grant withdrawal '.$withdrawnScope,
+                $sawSnapshot&&$revoked&&($denied['error']['code']??null)===-32001
+                &&!isset($denied['result'])&&!str_contains(json_encode($denied),'same_observation_pair')&&!$pdo->inTransaction());
+            $pdo->prepare('UPDATE manager_preparation_oauth_grants SET scopes=? WHERE grant_id=?')
+                ->execute([implode(' ',$ctx['scopes']),$ctx['connection_id']]);
+        }
+    });
     echo 'Dialogue review MCP regression: '.$passed." checks passed\n";
 }catch(Throwable $error){fwrite(STDERR,$error->getMessage()."\n");exit(1);}
