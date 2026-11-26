@@ -820,10 +820,10 @@ $monitorMode=true;eval($pinSelection);$monitorPins=$accepted;
 hook_test_check($legacyPins['services/ChannelPostAutomationService.php']==='f5975ab95de5f45e087eb7a0f768f566c5bca648'
     &&$legacyPins['services/ChannelPostRegistryService.php']==='a407757b9ac54a9e286900d34385d519d22b8c84','legacy_manual_pin_scope_changed');
 hook_test_check(count($monitorPins)===23
-    &&$monitorPins['integrations/ChannelPostApiTransport.php']==='62fe4f4505be2273bd11a34985f6dfeeae10c651'
+    &&$monitorPins['integrations/ChannelPostApiTransport.php']==='8c6d048f6167828f17b8b38779050f6b7eb37c78'
     &&$monitorPins['services/ChannelPostAutomationService.php']==='9914ff7af27ab714204f7478a75a5dd971de152d'
     &&$monitorPins['services/ChannelPostButtonTransport.php']==='2dffadf8679caf6e9ed364a45ecfc44f7eb67388'
-    &&$monitorPins['services/ChannelPostRegistryService.php']==='c34c4758411c4879a9c6d94b99412e557a906bcd'
+    &&$monitorPins['services/ChannelPostRegistryService.php']==='27a9dd92c7babf110f109b299ac7643b5e387407'
     &&$monitorPins['services/ChannelPostReconciliationService.php']==='1fa260e9720a8421227ecbe740bfbe33a42e398d','reviewed_pr1657_monitor_pins_missing');
 $bundlePath=tempnam(sys_get_temp_dir(),'monitor-pin-test-');
 try {
@@ -871,6 +871,15 @@ foreach([
 foreach($ads19Roster['rows'] as $row){
     $telegramPath=parse_url($row['posts']['telegram'],PHP_URL_PATH);
     hook_test_check($telegramPath!=='/anytour/1047','publisher_keyboard_pilot_in_price_roster');
+}
+
+// The observed post-#1745 runtime accepts only the new reviewed transport and registry blobs.
+foreach([
+    'integrations/ChannelPostApiTransport.php'=>'62fe4f4505be2273bd11a34985f6dfeeae10c651',
+    'services/ChannelPostRegistryService.php'=>'c34c4758411c4879a9c6d94b99412e557a906bcd',
+] as $path=>$previousPin){
+    $runtimeFixturePins=$monitorPins;$runtimeFixturePins[$path]=$previousPin;
+    hook_test_reject(static fn()=>hook_test_runtime(),'pre_pr1745_surface_accepted_'.$path);
 }
 
 // Preserve the older pre-PR1612 Registry rejection as a separate historical case.
