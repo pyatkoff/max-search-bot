@@ -1,4 +1,4 @@
-name: "#1566 Test two detached Telegram packets against one installed publisher fixture"
+name: HOTEL1730 fresh ordinary release admission
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -6,83 +6,19 @@ on:
 permissions:
   contents: read
   actions: read
+  issues: read
+  pull-requests: read
 jobs:
   registry:
-    if: >-
-      github.repository == 'pyatkoff/max-search-bot' &&
-      github.event.repository.id == 1342493152 &&
-      github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
-      github.event.created == false && github.event.forced == false &&
-      github.event.before == '1f2c768fabec34afe3f82743faca0daed167d011' &&
-      github.run_attempt == 1
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '2b1f02692a1449691603ed603638a8c7b80b04f3' && github.run_attempt == 1
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 5
     steps:
-      - name: Check out the observed failing application
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: 69e41c8011b4c67692f631cf435dd20d90676c72
-          path: before
           persist-credentials: false
-      - name: Check out the exact repaired HOTELS branch
-        uses: actions/checkout@v4
-        with:
-          ref: c8282ba8b40e8852087b5ae803727f459d8a0b59
-          path: after
-          persist-credentials: false
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring, sqlite3, pdo_sqlite, curl, dom
-          coverage: none
-      - name: Run the same reservation test against both revisions
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          text = Path('after/tests/run_ranked_telegram_cli_regression.js').read_text()
-          prefix = "const registryOrder = spawnSync('php', ['-r', String.raw`"
-          assert text.count(prefix) == 1
-          script = text.split(prefix,1)[1].split('`], {cwd: root',1)[0]
-          assert 'The real JAZ Lamaya packet would fail' in script
-          Path('registry-test.php').write_text('<?php\ndeclare(strict_types=1);\n'+script)
-          PY
-          if (cd before && php ../registry-test.php) > "$RUNNER_TEMP/before.txt" 2>&1; then
-            echo 'The test failed to reproduce the original refusal.'; exit 1
-          fi
-          grep -F 'The real JAZ Lamaya packet would fail the strict reservation callback' "$RUNNER_TEMP/before.txt"
-          (cd after && php -l tools/anytour_existing_post_batch.php && php ../registry-test.php)
-          echo 'Real packet fails on the original code and passes on the repaired code.'
-      - name: Run the existing ranked Telegram packet and CLI suite
-        working-directory: after
-        run: node tests/run_ranked_telegram_cli_regression.js
-      - name: Compare all installed approval profiles across both versions
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat > "$RUNNER_TEMP/profiles.php" <<'PHP'
-          <?php
-          declare(strict_types=1);
-          require 'config/anytour_ranked_transfer_scope_20261123.php';
-          $approvals = json_decode(file_get_contents('config/anytour_ranked_approved_indexes.json'), true, 8, JSON_THROW_ON_ERROR);
-          $out = [];
-          foreach ($approvals as $entry) {
-              $index = json_decode(file_get_contents($entry['path']), true, 32, JSON_THROW_ON_ERROR);
-              foreach ($index['plans'] as $plan) $out[$plan['sha256']] = AnyTourRankedHotelTransfer46::profile($plan['sha256']);
-          }
-          if (count($out) !== 13) throw new RuntimeException('Expected 13 original approved profiles');
-          echo json_encode($out, JSON_THROW_ON_ERROR), PHP_EOL;
-          PHP
-          (cd before && php "$RUNNER_TEMP/profiles.php") > "$RUNNER_TEMP/profiles-before.json"
-          (cd after && php "$RUNNER_TEMP/profiles.php") > "$RUNNER_TEMP/profiles-after.json"
-          cmp "$RUNNER_TEMP/profiles-before.json" "$RUNNER_TEMP/profiles-after.json"
-          echo 'All 13 installed approval profiles match the observed application byte-for-byte.'
-      - name: Test original public readback and route preparation
-        working-directory: after
-        run: |
-          set -euo pipefail
-          php -l tools/verify_ranked_telegram_public.php
-          php tests/ranked_telegram_public_cases.php
-          python3 tests/test_merge_ranked_telegram_routes.py
-          python3 tests/test_ranked_route_artifact_source.py
+      - name: Fresh ordinary admission for the exact isolated Telegram publisher
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1730 c8282ba8b40e8852087b5ae803727f459d8a0b59 69e41c8011b4c67692f631cf435dd20d90676c72
