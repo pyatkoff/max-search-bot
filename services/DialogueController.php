@@ -80,6 +80,13 @@ class DialogueController
             $value = MaxSearchApi::getLastValue($chatId, $status);
             if ($value !== false && $value !== null && $value !== '') $status = MaxSearchApi::$statusAi;
         }
+        // A source-qualified customer can ask for a price before the needs are complete.
+        // Treat only a whole price question as guidance; never parse it as a city/date
+        // or create a search, a manager request, or a change to the saved trip.
+        if ($status == MaxSearchApi::$statusAi && SourceHandlingService::qualifyingTurn($chatId)
+            && MaxSearchApi::getEditMode($chatId) === '' && self::isCheckPriceQuestion($plainText)) {
+            return DialogueView::sourceEarlyPriceGuidance($chatId);
+        }
         // Explicit human help can interrupt a wizard or its completed check.
         // Keep the existing classifier, feature gate and canonical executor;
         // ordinary field answers and other V2 actions retain their current route.
