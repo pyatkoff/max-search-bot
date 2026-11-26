@@ -1,0 +1,24 @@
+name: Hotel catalogue PR1748 ordinary release admission
+on:
+  push:
+    branches: [ops/admit-hotel-core-1748-20261126]
+    paths: ['.github/workflows/hotel-core-pr1748-admission.yml']
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+jobs:
+  admission:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '664390965a45cdcf5600ea6bbfa8ce1bf47d78e2' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 664390965a45cdcf5600ea6bbfa8ce1bf47d78e2
+          persist-credentials: false
+      - name: Fresh ordinary release admission for PR1748
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1748 bf5d92654876b9f9ea34f89875e5e7d327dfec42 664390965a45cdcf5600ea6bbfa8ce1bf47d78e2
