@@ -95,6 +95,12 @@ const PUBLISHER_KEYBOARD_PREWRITE_REFUSAL = Object.freeze({
   run:45716283534,job:139563054439,sha:'58f15d1a147353a4b807f122525d75e1f4f35c1c',
   artifact:15070650654,size:1094,
   digest:'sha256:0412466a22de61baaeae4849c6d52d9ee9f74542014e6a4df495f5ddbdc23c9b'});
+// The second original also stopped before the credential lease/provider call.
+// Admit only its authenticated, known prewrite failure, not a general retry.
+const PUBLISHER_KEYBOARD_ACTOR_PREWRITE_REFUSAL = Object.freeze({
+  run:45724986458,job:139592437693,sha:'c1a445f48fd514b9a4f883faecd20e5ecf1bc4fb',
+  artifact:15074131951,size:1101,
+  digest:'sha256:36bbd6257202d88dbee445b67b24c32282892d37b4db02762967aceb9bc69dc2'});
 const RANKED_INPUT_BRANCH = /^ops\/anytour-hotel-ranked-plan-([0-9a-f]{64})$/;
 const RANKED_AFTER_BRANCH = /^ops\/anytour-hotel-ranked-after-([1-9][0-9]{0,15})$/;
 const RANKED_RESUME_SEED = Object.freeze({
@@ -2027,21 +2033,34 @@ async function proveRankedPrewriteHistory(api, runs, current) {
   return next;
 }
 
-// The pinned original ZIP records publisher_pilot_keyboard_unsupported in the
-// outer preflight envelope. At its immutable source that envelope precedes
-// publisherKeyboardExecute; it is not a provider receipt or a general retry.
-async function provePublisherKeyboardPrewriteHistory(api,runs,current) {
-  const p=PUBLISHER_KEYBOARD_PREWRITE_REFUSAL,profile=HOTEL_PUBLISHER_KEYBOARD_PILOT;
-  const prior=runs.find(run=>run.id===p.run),next=runs.find(run=>String(run.id)===String(current.id));
-  requireValue(runs.length===2&&prior&&next&&Number(current.id)>p.run&&current.sha!==p.sha,
+// The pinned ZIPs record respectively keyboard_unsupported and
+// administrator_ambiguous before publisherKeyboardExecute at their immutable
+// sources. This is a single forward recovery after two known prewrite stops.
+async function provePublisherKeyboardPrewriteHistory(api,runs,current,before=PUBLISHER_KEYBOARD_PREWRITE_REFUSAL.sha) {
+  const first=PUBLISHER_KEYBOARD_PREWRITE_REFUSAL,second=PUBLISHER_KEYBOARD_ACTOR_PREWRITE_REFUSAL;
+  const profile=HOTEL_PUBLISHER_KEYBOARD_PILOT;
+  requireValue(before===first.sha||before===second.sha,'publisher_keyboard_prewrite_history_changed');
+  const parents=before===second.sha?[first,second]:[first];
+  const next=runs.find(run=>String(run.id)===String(current.id));
+  const priors=parents.map(p=>runs.find(run=>run.id===p.run));
+  requireValue(runs.length===parents.length+1&&priors.every(Boolean)&&next
+    &&parents.every(p=>Number(current.id)>p.run&&current.sha!==p.sha),
     'publisher_keyboard_prewrite_history_changed');
-  runIdentity(prior,{id:p.run,attempt:1,head:p.sha,workflow:profile.workflow,event:'push',branch:profile.branch,conclusion:'failure'});
-  requireValue([prior,next].every(run=>run.repository?.id===profile.repository_id
+  for(const [i,p] of parents.entries()){
+    runIdentity(priors[i],{id:p.run,attempt:1,head:p.sha,workflow:profile.workflow,event:'push',branch:profile.branch,conclusion:'failure'});
+  }
+  requireValue([...priors,next].every(run=>run.repository?.id===profile.repository_id
     &&run.head_repository?.id===profile.repository_id&&run.actor?.id===profile.owner_id
     &&run.actor.login===profile.owner&&run.triggering_actor?.id===profile.owner_id
     &&run.triggering_actor.login===profile.owner)
     &&next.head_sha===current.sha&&next.head_branch===profile.branch&&next.run_attempt===1,
     'publisher_keyboard_prewrite_origin_changed');
+  for(const p of parents){
+    await provePublisherKeyboardPrewriteReceipt(api,p,profile,current);
+  }
+  return next;
+}
+async function provePublisherKeyboardPrewriteReceipt(api,p,profile,current) {
   const original=API_ROOT+'/actions/runs/'+p.run;
   const [jobList,artifactList]=await Promise.all([
     api('GET',original+'/attempts/1/jobs?per_page=100'),api('GET',original+'/artifacts?per_page=100')]);
@@ -2069,7 +2088,6 @@ async function provePublisherKeyboardPrewriteHistory(api,runs,current) {
     &&artifact.workflow_run.head_repository_id===profile.repository_id,
     'publisher_keyboard_prewrite_artifact_changed');
   await requireAncestry(api,p.sha,current.sha);
-  return next;
 }
 
 /** Follow the native runs back to the authorized first resume. Each parent has
@@ -2214,7 +2232,7 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   const rankedRecovery=p.branch===RANKED_PREWRITE_REFUSAL.branch && event?.created===false
     && event.before===RANKED_PREWRITE_REFUSAL.sha;
   const publisherRecovery=p===HOTEL_PUBLISHER_KEYBOARD_PILOT&&event?.created===false
-    &&event.before===PUBLISHER_KEYBOARD_PREWRITE_REFUSAL.sha;
+    &&[PUBLISHER_KEYBOARD_PREWRITE_REFUSAL.sha,PUBLISHER_KEYBOARD_ACTOR_PREWRITE_REFUSAL.sha].includes(event.before);
   const recovery=rankedRecovery||publisherRecovery;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
@@ -2238,7 +2256,7 @@ async function resolveHotelTransfer({env,event,api},p=HOTEL_FOUR_TRANSFER) {
   const runs=boundedList(await api('GET',API_ROOT+'/actions/workflows/'+p.workflow.slice(PREFIX.length)
     +'/runs?branch='+encodeURIComponent(p.branch)+'&per_page=100'),
     'workflow_runs','hotel_transfer_inventory_incomplete');
-  const currentRun=publisherRecovery ? await provePublisherKeyboardPrewriteHistory(api,runs,c)
+  const currentRun=publisherRecovery ? await provePublisherKeyboardPrewriteHistory(api,runs,c,event.before)
     : rankedRecovery ? await proveRankedPrewriteHistory(api,runs,c) : runs[0];
   requireValue((recovery || runs.length===1) && String(currentRun?.id)===c.id,'hotel_transfer_replay_forbidden');
   runIdentity(currentRun,{id:c.id,attempt:1,head:c.sha,workflow:p.workflow,event:'push',completed:false,branch:p.branch});

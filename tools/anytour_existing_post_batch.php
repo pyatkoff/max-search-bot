@@ -1243,6 +1243,21 @@ function publisherKeyboardReservation(PDO $pdo, array $reservation): void
 }
 
 /** One saved-publisher call, using the installed editor's existing locks and private journal. */
+/** Resolve the explicitly confirmed account only; no fallback to another administrator. */
+function publisherKeyboardActor(PDO $pdo, callable $mayConfigure): int
+{
+    $login = 'manager';
+    $q = $pdo->prepare("SELECT DISTINCT m.id,m.login FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id JOIN projects p ON p.id=mp.project_id WHERE m.login=? AND m.role='admin' AND m.is_active=1 AND p.project_key='anytour' AND p.is_active=1 ORDER BY m.id LIMIT 2");
+    $q->execute([$login]);
+    $actors = $q->fetchAll(PDO::FETCH_ASSOC);
+    $q->closeCursor();
+    requirePost(count($actors) === 1 && $actors[0]['login'] === $login && (int)$actors[0]['id'] > 0,
+        'publisher_pilot_owner_account_unconfirmed');
+    $actor = (int)$actors[0]['id'];
+    requirePost($mayConfigure($actor) === true, 'publisher_pilot_owner_access_unconfirmed');
+    return $actor;
+}
+
 function applyPublisherKeyboardPilot(string $root, string $digest, string $applicationSha, string $nativeRunId): array
 {
     $plan = publisherKeyboardPlan($root, $digest);
@@ -1279,13 +1294,9 @@ function applyPublisherKeyboardPilot(string $root, string $digest, string $appli
     requirePost(is_array($channel) && (int)$channel['id'] === 6 && (int)$channel['config_version'] === 2,
         'publisher_pilot_channel_changed');
     $connection = new \AnyTourPublisherBotConnection();
-    // The original owner push is authenticated before SSH. Resolve its sole
-    // active project administrator rather than inventing a synthetic actor.
-    $q = $pdo->query("SELECT DISTINCT m.id FROM managers m JOIN manager_projects mp ON mp.manager_id=m.id JOIN projects p ON p.id=mp.project_id WHERE m.role='admin' AND m.is_active=1 AND p.project_key='anytour' AND p.is_active=1 ORDER BY m.id LIMIT 2");
-    $actors = $q->fetchAll(PDO::FETCH_COLUMN); $q->closeCursor();
-    $actors = array_values(array_filter(array_map('intval', $actors), static fn(int $id): bool => $connection->mayConfigure($id)));
-    requirePost(count($actors) === 1, 'publisher_pilot_administrator_ambiguous');
-    $actor = $actors[0];
+    // The original owner push is authenticated before SSH; the owner confirmed
+    // the exact account for this pilot. The credential lease rechecks its ACL.
+    $actor = publisherKeyboardActor($pdo, static fn(int $id): bool => $connection->mayConfigure($id));
     $status = $connection->status($actor);
     requirePost($status['configured'] === true && $status['username'] === 'ANYTOURBOT_bot', 'publisher_pilot_not_configured');
     $pricePath = POST_OPS.'/monitor-price-after-collection-v1.jsonl';
