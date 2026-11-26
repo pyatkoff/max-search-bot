@@ -185,13 +185,15 @@ function advertisingVisitEntryContextAssertions(PDO $pdo, callable $check, int $
         // values are refused by MySQL before the read-only projection can see them.
         if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'&&in_array($i,[3,5],true)){
             $beforeClick=$pdo->query("SELECT yclid FROM advertising_visit_observations WHERE source_key='entry-context' AND source_cursor='1'")->fetchColumn();
-            $refused=false;
+            $driverCode=0;
             try{$update->execute([$invalid,'entry-context','1']);}
-            // Native prepared values may fail during charset conversion (3854)
-            // or at column assignment (1366); both refuse the same Unicode input.
-            catch(PDOException $error){$refused=in_array((int)($error->errorInfo[1]??0),$i===3?[1366,3854]:[1406],true);}
-            $check('native schema refuses invalid click before projection '.$i,$refused
-                &&$pdo->query("SELECT yclid FROM advertising_visit_observations WHERE source_key='entry-context' AND source_cursor='1'")->fetchColumn()===$beforeClick);
+            // MySQL rejects at assignment (1366), charset conversion (3854), or
+            // native prepared parameter collation conversion (3988, since 8.0.22).
+            catch(PDOException $error){$driverCode=(int)($error->errorInfo[1]??0);}
+            $refused=in_array($driverCode,$i===3?[1366,3854,3988]:[1406],true);
+            $unchanged=$pdo->query("SELECT yclid FROM advertising_visit_observations WHERE source_key='entry-context' AND source_cursor='1'")->fetchColumn()===$beforeClick;
+            if(!$refused||!$unchanged)fwrite(STDERR,'native_click_fixture case='.$i.' errno='.$driverCode.' unchanged='.(int)$unchanged.PHP_EOL);
+            $check('native schema refuses invalid click before projection '.$i.' errno='.$driverCode,$refused&&$unchanged);
             continue;
         }
         $update->execute([$invalid,'entry-context','1']);
