@@ -1,4 +1,4 @@
-name: "#1566 Verify independent data profiles and compatibility with the installed Telegram editor"
+name: "#1566 Test two detached Telegram packets against one installed publisher fixture"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == 'd8c2a5a5feb9840af5c9e0698031780690669fbb' &&
+      github.event.before == '18f22aa04c9a21ba4504f35cb91eb2226978e02c' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
@@ -27,7 +27,7 @@ jobs:
       - name: Check out the exact repaired HOTELS branch
         uses: actions/checkout@v4
         with:
-          ref: ade36918ec129e83633e04fe8cc713756ba00171
+          ref: 9369c9fa0466baaa95a72a122c59e52f3832a898
           path: after
           persist-credentials: false
       - uses: shivammathur/setup-php@v2
@@ -78,3 +78,11 @@ jobs:
           (cd after && php "$RUNNER_TEMP/profiles.php") > "$RUNNER_TEMP/profiles-after.json"
           cmp "$RUNNER_TEMP/profiles-before.json" "$RUNNER_TEMP/profiles-after.json"
           echo 'All 13 installed approval profiles match the observed application byte-for-byte.'
+      - name: Test original public readback and route preparation
+        working-directory: after
+        run: |
+          set -euo pipefail
+          php -l tools/verify_ranked_telegram_public.php
+          php tests/ranked_telegram_public_cases.php
+          python3 tests/test_merge_ranked_telegram_routes.py
+          python3 tests/test_ranked_route_artifact_source.py
