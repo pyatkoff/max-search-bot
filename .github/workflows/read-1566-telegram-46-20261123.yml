@@ -1,4 +1,4 @@
-name: "#1566 Review commercial candidates from the checked Telegram shortlist"
+name: "#1566 Inspect the full saved captions of the oldest shortlist candidates"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,7 +13,7 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '16b928414298b1f4dc59f2f43f79a5a4f710f4fe' && github.run_attempt == 1
+      github.event.before == 'eee490b15651ef26f8d9b8ad5a2950c166ad4240' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
@@ -46,9 +46,8 @@ jobs:
           for row in report['other_commercial_candidates']:
               caption=row['caption_preview']
               assert row['native_ready'] is False
-              if row['keyboard_group']!='generic' or not offer_text.search(caption) or forbidden.search(caption):
-                  continue
-              print(json.dumps(row,ensure_ascii=False))
+              print(json.dumps({**row,'number_or_date_in_caption':bool(offer_text.search(caption)),
+                  'editorial_text_hint':bool(forbidden.search(caption))},ensure_ascii=False))
           print(json.dumps({'saved_candidates_reviewed':len(report['other_commercial_candidates']),
               'authenticated_artifact':15102278365,'full_replacement_only':True,'writes':0,'telegram_requests':0},ensure_ascii=False))
           PY
