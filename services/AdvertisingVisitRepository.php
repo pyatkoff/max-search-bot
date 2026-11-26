@@ -139,7 +139,7 @@ final class AdvertisingVisitRepository
      * Its query callback owns the shared transaction, authorization and row/time/byte
      * budget. Limit is a sentinel: reaching it returns no partial candidates.
      */
-    public function entryContextCandidates(array $scope,array $externalUserIds,int $limit,callable $read):array
+    public function entryContextCandidates(array $scope,array $externalUserIds,int $limit,callable $read,bool $includeClickPresence=false):array
     {
         $scope=AdvertisingVisitContract::scope($scope);
         if(!$externalUserIds||count($externalUserIds)>100||$limit<1||$limit>50001)
@@ -163,7 +163,17 @@ final class AdvertisingVisitRepository
         $conflict='EXISTS(SELECT 1 FROM advertising_visit_observations x WHERE '.implode(' AND ',$same)
             ." AND x.visit_id=v.visit_id AND HEX(x.visit_id)=HEX(v.visit_id) AND x.identity_status='verified'"
             ." AND HEX(x.identity_status)=HEX('verified') AND HEX(x.external_user_id)<>HEX(v.external_user_id))";
-        $rows=$read('SELECT v.external_user_id,v.client_id,v.visit_at_unix,v.observed_at_unix,v.received_at_unix,'
+        // The private Business overlap report needs same-observation click presence,
+        // never the raw click identifier. Other consumers keep their exact projection.
+        $click='';
+        if($includeClickPresence){
+            $numeric=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'
+                ? "v.yclid NOT REGEXP '[^0-9]' AND SUBSTR(v.yclid,1,1) REGEXP '[1-9]'"
+                : "v.yclid NOT GLOB '*[^0-9]*' AND SUBSTR(v.yclid,1,1) GLOB '[1-9]'";
+            $click="CASE WHEN v.yclid='' THEN 0 WHEN LENGTH(v.yclid) BETWEEN 1 AND 40 AND ".$numeric
+                .' THEN 1 ELSE NULL END AS yclid_present,';
+        }
+        $rows=$read('SELECT v.external_user_id,v.client_id,v.visit_at_unix,v.observed_at_unix,v.received_at_unix,'.$click
             .$conflict.' AS identity_conflict FROM advertising_visit_observations v WHERE '.implode(' AND ',$where)
             .' LIMIT '.$limit,$args);
         return ['complete'=>true,'rows'=>$rows];

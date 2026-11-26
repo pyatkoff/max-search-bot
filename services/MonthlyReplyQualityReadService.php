@@ -31,6 +31,11 @@ final class MonthlyReplyQualityReadService
         $lanes['archive']['newest_retained']=['start_cursor'=>'qh.archive.recent.start','operation'=>'recent_business_message_inventory',
             'order'=>'archive_record_id_desc','clock_basis'=>'stored_record_order_not_receipt_time',
             'text_materialized'=>false,'required_scopes'=>['quality:read','archive:read']];
+        $lanes['archive']['business_identity']=['start_cursor'=>'qh.archive.business_identity.20261126',
+            'operation'=>'business_identity_summary','selection_fence'=>'326088','cutoff_at_unix'=>1795691100,
+            'selection_limit'=>25,'historical_snapshot'=>false,'text_materialized'=>false,
+            'meaning'=>'anonymous retained Business peer overlap with verified tgmini visits; no conversion or brand proof',
+            'required_scopes'=>['quality:read','archive:read','forecasts:read']];
         return ['requires_explicit_consent'=>true,'scope'=>'quality:read','lanes'=>$lanes,
             'period'=>'previous calendar month day at00:00 Moscow through the first lane read','max_inventory_limit'=>25,
             'retention'=>'retained rows only; deleted or overwritten versions may be absent',

@@ -6,6 +6,8 @@ require_once __DIR__.'/ManagerAiTextRedactor.php';
 require_once __DIR__.'/ArchiveResearchFeatureExtractor.php';
 require_once __DIR__.'/ArchiveResearchSemanticExtractor.php';
 require_once __DIR__.'/ArchivePredictiveStudyStore.php';
+require_once __DIR__.'/AdvertisingVisitRepository.php';
+require_once __DIR__.'/TelegramBusinessIdentitySummary.php';
 
 /** Private historical research reader. No intake, model, send or read-marker owner. */
 final class ArchiveResearchReadService
@@ -177,6 +179,220 @@ final class ArchiveResearchReadService
             }
             return $result;
         });
+    }
+
+    /** CLI wrapper; authority is supplied by the real operator boundary, never fabricated. */
+    public function operatorBusinessIdentitySummary(callable $authorize,string $fence,int $cutoff):array
+    {
+        if(PHP_SAPI!=='cli')self::fail('forbidden');
+        return $this->businessIdentitySummary($authorize,$fence,$cutoff);
+    }
+
+    /** Bounded anonymous overlap only. The caller owns current explicit read authorization. */
+    public function businessIdentitySummary(callable $authorize,string $fence,int $cutoff):array
+    {
+        $now=$this->now();
+        if(!$this->qualityHistory)self::fail('forbidden');
+        if(!self::decimal($fence,false)||$cutoff<1||$cutoff>$now)self::fail('invalid_arguments');
+        $readRows=0;$readBytes=0;$strictPermissions=null;
+        $read=function(string $sql,array $args=[])use(&$readRows,&$readBytes):array{
+            $q=$this->q($sql,$args);$out=[];
+            while($row=$q->fetch(PDO::FETCH_ASSOC)){
+                $readRows++;$readBytes+=strlen(self::json($row));$this->budget();
+                if($readRows>1001||$readBytes>1048576)self::fail('source_limit');
+                $out[]=$row;
+            }
+            return$out;
+        };
+        $permissions=function()use($read):array{
+            return$read('SELECT a.account_id,a.bot_key,a.connection_id FROM telegram_archive_accounts a '
+                .'JOIN telegram_dialogue_connections c ON c.project_key=a.project_key AND HEX(c.project_key)=HEX(a.project_key) '
+                .'AND c.bot_key=a.bot_key AND HEX(c.bot_key)=HEX(a.bot_key) '
+                .'AND c.connection_id=a.connection_id AND HEX(c.connection_id)=HEX(a.connection_id) '
+                .'JOIN projects p ON p.project_key=a.project_key AND HEX(p.project_key)=HEX(a.project_key) '
+                ."WHERE a.project_key='anytour' AND HEX(a.project_key)=HEX('anytour') AND p.is_active=1 "
+                .'AND a.approved=1 AND a.provider_enabled=1 AND c.is_enabled=1 AND c.account_id=a.account_id '
+                .'ORDER BY a.account_id,a.bot_key,a.connection_id LIMIT 101');
+        };
+        $authority=function()use($authorize,$permissions,&$strictPermissions):void{
+            try{$authorize();}catch(Throwable $ignored){self::fail('forbidden');}
+            // This second, exact-scope check is outside the original snapshot.
+            if($strictPermissions!==null&&$strictPermissions!==$permissions())self::fail('permission_changed');
+        };
+        return$this->readSnapshot($authority,function()use($read,$permissions,&$strictPermissions,$fence,$cutoff,$now,&$readRows,&$readBytes):array{
+            $strictPermissions=$permissions();
+            if(!$strictPermissions)self::fail('forbidden');
+            if(count($strictPermissions)>100)self::fail('source_limit');
+            $accounts=[];
+            foreach($strictPermissions as$p){
+                if(!self::decimal((string)$p['account_id'],false)||!is_string($p['bot_key'])||$p['bot_key']===''
+                    ||strlen($p['bot_key'])>96||!is_string($p['connection_id'])||$p['connection_id']===''||strlen($p['connection_id'])>512)self::fail('unavailable');
+                $accounts[(string)$p['account_id']]=true;
+            }
+            if(self::decimalGreater($fence,$this->fence()))self::fail('source_changed');
+            $this->stage='inventory_page';[$where,$values]=$this->scope($fence,false);
+            $where.=" AND HEX(m.project_key)=HEX('anytour') AND HEX(p.project_key)=HEX('anytour')"
+                ." AND m.source_kind='business_message' AND HEX(m.source_kind)=HEX('business_message')"
+                .' AND m.account_id IN ('.implode(',',array_fill(0,count($accounts),'?')).')';
+            array_push($values,...array_map('strval',array_keys($accounts)));
+            // Fix the finite IDs before touching JSON. Edits do not become a historical snapshot.
+            $selected=$read('SELECT m.id,m.account_id,m.chat_id,m.message_id,m.version_at,m.is_deleted '
+                .'FROM telegram_dialogue_messages m'.($this->mysql?' FORCE INDEX (PRIMARY)':'')
+                .' JOIN projects p ON p.project_key=m.project_key WHERE '.$where.' ORDER BY m.id DESC LIMIT 25',$values);
+            $counts=array_fill_keys(['selected_records','verified_inbound_records','verified_outbound_records',
+                'excluded_deleted_records','excluded_metadata_records','excluded_permission_records','excluded_service_records',
+                'excluded_known_test_records','excluded_role_records','cutoff_advanced_records'],0);
+            $counts['selected_records']=count($selected);$ids=[];
+            foreach($selected as$row)if((string)$row['is_deleted']==='0')$ids[]=(string)$row['id'];
+            $metadata=[];
+            if($ids){
+                $fields=['m.id'];
+                foreach(['account_id'=>32,'chat_id'=>32,'message_id'=>32,'sender_id'=>32,'source_kind'=>32,
+                    'sender_type'=>16,'direction'=>16,'bot_key'=>96,'connection_id'=>512]as$key=>$max)
+                    $fields[]=$this->businessScalar($key,'string',$max).' AS j_'.$key;
+                foreach(['created_at','version_at']as$key)$fields[]=$this->businessScalar($key,'integer',12).' AS j_'.$key;
+                $fields[]=$this->businessScalar('is_deleted','boolean',5).' AS j_is_deleted';
+                $this->stage='history_metadata';
+                foreach($read('SELECT '.implode(',',$fields).' FROM telegram_dialogue_messages m '
+                    .'JOIN projects p ON p.project_key=m.project_key WHERE '.$where
+                    .' AND m.id IN ('.implode(',',array_fill(0,count($ids),'?')).') LIMIT 25',[...$values,...$ids])as$row){
+                    $id=(string)$row['id'];if(isset($metadata[$id]))self::fail('source_changed');$metadata[$id]=$row;
+                }
+                if(count($metadata)!==count($ids))self::fail('source_changed');
+            }
+            $pending=[];$peers=[];
+            foreach($selected as$row){
+                if((string)$row['is_deleted']!=='0'){$counts['excluded_deleted_records']++;continue;}
+                $m=$metadata[(string)$row['id']]??[];$valid=true;
+                foreach(['account_id','chat_id','message_id']as$key)
+                    if(!self::decimal((string)$row[$key],false)||($m['j_'.$key]??null)!==(string)$row[$key])$valid=false;
+                $created=self::time($m['j_created_at']??null);$version=self::time($m['j_version_at']??null);
+                if(!$valid||($m['j_source_kind']??null)!=='business_message'||!in_array($m['j_is_deleted']??null,[0,'0'],true)
+                    ||!is_string($m['j_sender_id']??null)||!self::decimal($m['j_sender_id'],false)
+                    ||!is_string($m['j_sender_type']??null)||!is_string($m['j_direction']??null)
+                    ||$created===null||$created<946684800||$version===null||$version<$created||$version>$now
+                    ||(string)$version!==(string)$row['version_at']){$counts['excluded_metadata_records']++;continue;}
+                $permitted=false;
+                foreach($strictPermissions as$p)if((string)$p['account_id']===(string)$row['account_id']
+                    &&$p['bot_key']===($m['j_bot_key']??null)&&$p['connection_id']===($m['j_connection_id']??null)){$permitted=true;break;}
+                if(!$permitted){$counts['excluded_permission_records']++;continue;}
+                if($m['j_sender_id']==='777000'||(string)$row['account_id']===(string)$row['chat_id']){$counts['excluded_service_records']++;continue;}
+                if($version>$cutoff){$counts['cutoff_advanced_records']++;continue;}
+                $pending[]=['account'=>(string)$row['account_id'],'peer'=>(string)$row['chat_id'],'at'=>$created,
+                    'sender'=>$m['j_sender_id'],'role'=>$m['j_sender_type'],'direction'=>$m['j_direction']];
+                $peers[(string)$row['chat_id']]=true;
+            }
+            $native=[];
+            if($peers){
+                $peerIds=array_map('strval',array_keys($peers));$marks=implode(',',array_fill(0,count($peerIds),'?'));
+                foreach($read('SELECT cc.external_user_id,MAX(CASE WHEN c.is_test=1 THEN 1 ELSE 0 END) AS known_test '
+                    .'FROM conversations c JOIN customer_channels cc ON cc.id=c.customer_channel_id AND cc.customer_id=c.customer_id '
+                    .'AND HEX(cc.project_key)=HEX(c.project_key) AND HEX(cc.channel)=HEX(c.channel) '
+                    ."WHERE c.project_key='anytour' AND HEX(c.project_key)=HEX('anytour') AND c.channel='telegram' AND HEX(c.channel)=HEX('telegram') "
+                    .'AND HEX(c.external_chat_id)=HEX(cc.external_chat_id) AND HEX(cc.external_user_id)=HEX(cc.external_chat_id) '
+                    .'AND cc.external_user_id IN ('.$marks.') AND HEX(cc.external_user_id) IN ('
+                    .implode(',',array_fill(0,count($peerIds),'HEX(?)')).') GROUP BY cc.external_user_id LIMIT 26',[...$peerIds,...$peerIds])as$row){
+                    $peer=(string)$row['external_user_id'];if(!in_array($peer,$peerIds,true))self::fail('source_changed');
+                    $native[$peer]=(int)$row['known_test'];
+                }
+            }
+            $events=[];$admitted=[];$pairs=[];
+            foreach($pending as$row){
+                if(($native[$row['peer']]??0)===1){$counts['excluded_known_test_records']++;continue;}
+                if($row['role']==='customer'&&$row['direction']==='inbound'&&$row['sender']===$row['peer']){
+                    $counts['verified_inbound_records']++;$events[]=['peer'=>$row['peer'],'at'=>$row['at']];
+                    $admitted[$row['peer']]=true;$pairs[$row['account'].':'.$row['peer']]=true;
+                }elseif($row['role']==='manager'&&$row['direction']==='outbound'&&$row['sender']===$row['account'])$counts['verified_outbound_records']++;
+                else$counts['excluded_role_records']++;
+            }
+            if(array_sum($counts)!==2*$counts['selected_records'])self::fail('source_changed');
+            $history=[];$admittedIds=array_map('strval',array_keys($admitted));
+            if($admittedIds){
+                $limit=1001-$readRows;if($limit<1)self::fail('source_limit');
+                $candidates=(new AdvertisingVisitRepository($this->pdo))->entryContextCandidates(
+                    ['project_key'=>'anytour','source_key'=>'tgmini','platform'=>'telegram','counter_id'=>'98615635'],
+                    $admittedIds,$limit,$read,true);
+                if(!$candidates['complete'])self::fail('source_limit');
+                foreach($candidates['rows']as$row){
+                    $peer=(string)$row['external_user_id'];if(!in_array($peer,$admittedIds,true))self::fail('source_changed');
+                    $history[$peer][]=$row;
+                }
+            }
+            $overlap=['status'=>'available','basis'=>'current_saved_rows_not_historical_cutoff',
+                'native_bot_peers'=>count(array_intersect(array_keys($admitted),array_keys($native))),
+                'signal_peers'=>0,'outbox_peers'=>0,'signal_status'=>'available','outbox_status'=>'available'];
+            if($admittedIds){
+                $marks=implode(',',array_fill(0,count($admittedIds),'?'));
+                foreach(['signal'=>['advertising_signals','source_key','occurred_at_unix'],
+                    'outbox'=>['max_channel_conversion_outbox','identity_source_key','event_unix']]as$key=>[$table,$source,$clock]){
+                    try{
+                        $rows=$read('SELECT external_user_id FROM '.$table
+                            ." WHERE project_key='anytour' AND HEX(project_key)=HEX('anytour') AND platform='telegram' AND HEX(platform)=HEX('telegram')"
+                            ." AND counter_id='98615635' AND HEX(counter_id)=HEX('98615635') AND $source='tgmini' AND HEX($source)=HEX('tgmini')"
+                            .' AND '.$clock.'>=946684800 AND '.$clock.'<=? AND external_user_id IN ('.$marks.') AND HEX(external_user_id) IN ('
+                            .implode(',',array_fill(0,count($admittedIds),'HEX(?)')).') GROUP BY external_user_id LIMIT 26',[$now,...$admittedIds,...$admittedIds]);
+                        $found=[];foreach($rows as$r){$id=(string)$r['external_user_id'];if(!in_array($id,$admittedIds,true))self::fail('source_changed');$found[$id]=true;}
+                        $overlap[$key.'_peers']=count($found);
+                    }catch(PDOException $error){
+                        if(!self::businessSchemaUnavailable($error))throw$error;
+                        $overlap['status']='partial';$overlap[$key.'_status']='unknown';$overlap[$key.'_peers']=null;
+                    }
+                }
+            }
+            $import=['status'=>'available','checkpoint_present'=>false,'cursor_bound'=>false,
+                'last_observation_received_at_unix'=>null,'freshness'=>'unknown','history_complete'=>false];
+            try{
+                $rows=$read('SELECT c.last_cursor,o.source_cursor,o.received_at_unix FROM advertising_visit_cursors c '
+                    .'LEFT JOIN advertising_visit_observations o ON HEX(o.project_key)=HEX(c.project_key) AND HEX(o.source_key)=HEX(c.source_key) '
+                    .'AND HEX(o.platform)=HEX(c.platform) AND HEX(o.counter_id)=HEX(c.counter_id) AND HEX(o.source_cursor)=HEX(c.last_cursor) '
+                    ."WHERE c.project_key='anytour' AND HEX(c.project_key)=HEX('anytour') AND c.source_key='tgmini' AND HEX(c.source_key)=HEX('tgmini') "
+                    ."AND c.platform='telegram' AND HEX(c.platform)=HEX('telegram') AND c.counter_id='98615635' AND HEX(c.counter_id)=HEX('98615635') LIMIT 2");
+                if(count($rows)>1)self::fail('source_changed');
+                if($rows){
+                    $r=$rows[0];$import['checkpoint_present']=true;$received=self::time($r['received_at_unix']);
+                    $import['cursor_bound']=self::decimal((string)$r['last_cursor'],false)
+                        &&(string)$r['last_cursor']===(string)$r['source_cursor']&&$received!==null&&$received<=$now;
+                    if($import['cursor_bound'])$import['last_observation_received_at_unix']=$received;
+                }
+            }catch(PDOException $error){
+                if(!self::businessSchemaUnavailable($error))throw$error;
+                $import['status']='unknown';$import['checkpoint_present']=$import['cursor_bound']=null;
+            }
+            return ['ok'=>true,'schema_version'=>1,'operation'=>'business_identity_summary','project_key'=>'anytour',
+                'snapshot_at_unix'=>$now,'cutoff_at_unix'=>$cutoff,
+                'selection'=>['fence'=>$fence,'limit'=>25,'order'=>'archive_record_id_desc','historical_snapshot'=>false,
+                    'meaning'=>'fixed_ids_current_retained_versions; versions_after_cutoff_excluded'],
+                'coverage'=>['brand'=>'unknown','legacy_non_test'=>'unknown','history_complete'=>false,
+                    'scope'=>'currently_approved_account_bot_connection_in_anytour_registry','owner_service_exclusion'=>'applied',
+                    'native_test_exclusion'=>'applied','qualified_conversion_total'=>null],
+                'counts'=>$counts,'distinct'=>['account_chat_pairs'=>count($pairs),'telegram_peers'=>count($admitted)],
+                'identities'=>TelegramBusinessIdentitySummary::aggregate($events,$history,$now),'overlap'=>$overlap,'import'=>$import,
+                'budgets'=>['max_projected_rows'=>1001,'max_projected_bytes'=>1048576,'max_read_seconds'=>self::MAX_SECONDS],
+                'text_materialized'=>false,'model_calls'=>0,'database_writes'=>0,'conversion_uploads'=>0];
+        },$authority,self::MAX_RESPONSE_BYTES);
+    }
+
+    private static function businessSchemaUnavailable(PDOException $error):bool
+    {
+        if(substr((string)$error->getCode(),0,2)==='42')return true;
+        // SQLite reports missing optional tables under HY000; do not hide other storage errors.
+        return (string)$error->getCode()==='HY000'&&(int)($error->errorInfo[1]??0)===1
+            &&preg_match('/\bno such table: (?:advertising_signals|max_channel_conversion_outbox|advertising_visit_cursors)\b/',$error->getMessage())===1;
+    }
+
+    /** SQL extracts typed, byte-bounded scalars after the selected IDs have been fixed. */
+    private function businessScalar(string $key,string $type,int $max):string
+    {
+        $valid=$this->mysql?'JSON_VALID(m.record_json)':'json_valid(m.record_json)';
+        $doc='CASE WHEN '.$this->jsonBytes().'<='.self::MAX_RECORD_BYTES.' AND '.$valid."=1 THEN m.record_json ELSE '{}' END";
+        $path="'$.".$key."'";
+        $kind=$this->mysql?'JSON_TYPE(JSON_EXTRACT('.$doc.','.$path.'))':'json_type('.$doc.','.$path.')';
+        $value=$this->mysql?'JSON_UNQUOTE(JSON_EXTRACT('.$doc.','.$path.'))':'CAST(json_extract('.$doc.','.$path.') AS TEXT)';
+        if($type==='boolean')return$this->mysql?"CASE WHEN $kind='BOOLEAN' THEN CASE $value WHEN 'false' THEN 0 WHEN 'true' THEN 1 ELSE NULL END ELSE NULL END"
+            :"CASE WHEN $kind='false' THEN 0 WHEN $kind='true' THEN 1 ELSE NULL END";
+        $expected=$this->mysql?strtoupper($type):($type==='string'?'text':'integer');
+        $bytes=$this->mysql?'LENGTH('.$value.')':'LENGTH(CAST('.$value.' AS BLOB))';
+        return"CASE WHEN $kind='$expected' AND $bytes<=$max THEN $value ELSE NULL END";
     }
 
     /**
