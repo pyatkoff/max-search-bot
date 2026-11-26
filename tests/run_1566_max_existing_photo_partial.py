@@ -32,6 +32,20 @@ states,visits=exercise({"state":"stopped_before_edit","reason":"editor_busy"})
 assert len(visits)==4 and states[4]["state"]=="untouched"
 print("Partial MAX confirmations, ambiguity and common lease passed")
 
+
+# The legacy combined call retains its original stop when the read receipt
+# is missing. Only the explicitly read-only preparation may continue.
+legacy_visits = []
+def legacy_visit(mode, hotel, checkpoint):
+    legacy_visits.append((mode, hotel))
+    assert mode == "--batch-check" and checkpoint is None
+    return {"state": "unobserved", "reason": "missing_process_receipt"}
+
+legacy = module.run_batch(scope, plan, legacy_visit, lambda row: None)
+assert legacy_visits == [("--batch-check", 1)]
+assert legacy[1]["state"] == "unobserved" and legacy[3]["reason"] == "occupied"
+assert all(legacy[n]["state"] == "untouched" for n in (2, 4, 5, 6, 7))
+
 # Preparation holds only the row with a missing read-only receipt and never
 # reaches the writer. A later write of a different row still has PHP's recheck.
 prepared_visits = []
