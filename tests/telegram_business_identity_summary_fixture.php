@@ -303,6 +303,8 @@ function telegramBusinessIdentityAssertions(PDO $pdo,?callable $fixtureConsumer=
             'future_import'=>['received_at_unix'=>$now+1],
             'malformed_client'=>['client_id'=>'1e20'],
             'malformed_click'=>['yclid'=>'not-a-decimal'],
+            'space_click'=>['yclid'=>' '],
+            'spaces_click'=>['yclid'=>'  '],
             'null_click'=>['yclid'=>null]
         ]as$label=>$changes) {
             if($mysql && $label==='null_click')continue; // Real MySQL schema rejects NULL before a reader can observe it.

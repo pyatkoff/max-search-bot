@@ -170,7 +170,7 @@ final class AdvertisingVisitRepository
             $numeric=$this->pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'
                 ? "v.yclid NOT REGEXP '[^0-9]' AND SUBSTR(v.yclid,1,1) REGEXP '[1-9]'"
                 : "v.yclid NOT GLOB '*[^0-9]*' AND SUBSTR(v.yclid,1,1) GLOB '[1-9]'";
-            $click="CASE WHEN v.yclid='' THEN 0 WHEN LENGTH(v.yclid) BETWEEN 1 AND 40 AND ".$numeric
+            $click="CASE WHEN LENGTH(v.yclid)=0 THEN 0 WHEN LENGTH(v.yclid) BETWEEN 1 AND 40 AND ".$numeric
                 .' THEN 1 ELSE NULL END AS yclid_present,';
         }
         $rows=$read('SELECT v.external_user_id,v.client_id,v.visit_at_unix,v.observed_at_unix,v.received_at_unix,'.$click

@@ -180,7 +180,7 @@ function advertisingVisitEntryContextAssertions(PDO $pdo, callable $check, int $
         &&!array_key_exists('yclid',$projection['rows'][0]));
     $check('click projection retains completeness sentinel', $repo->entryContextCandidates($scope,$peer,2,$read,true)===['complete'=>false,'rows'=>[]]);
     $update=$pdo->prepare('UPDATE advertising_visit_observations SET yclid=? WHERE source_key=? AND source_cursor=?');
-    foreach(['0','01','1e3','１２３',"123\n",str_repeat('9',41)]as$i=>$invalid){
+    foreach(['0','01','1e3','１２３',"123\n",str_repeat('9',41),' ','  ']as$i=>$invalid){
         // The canonical native column is ASCII VARCHAR(40). These two invalid
         // values are refused by MySQL before the read-only projection can see them.
         if($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'&&in_array($i,[3,5],true)){
