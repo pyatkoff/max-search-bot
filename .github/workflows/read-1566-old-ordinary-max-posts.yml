@@ -1,4 +1,4 @@
-name: "#1566 Read full native captions only for the MAX photo shortlist"
+name: "#1566 Read MAX captions independently and confirm availability in the registry"
 on:
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == 'd511498ac9734e32ccc9c45e6cc367f5d7a74e4a' && github.run_attempt == 1
+      github.event.before == '8e7a2736b4ad9856050c1a989862fefb89f2260d' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
@@ -115,8 +115,6 @@ jobs:
                       } finally { $pdo->rollBack(); }
                   } finally { fclose($lease); }
               };
-              $before = $takeSnapshot();
-              $occupied = array_fill_keys(array_column($before,0),true);
               $selected = json_decode(base64_decode('__SELECTION__', true), true, 32, JSON_THROW_ON_ERROR);
               $counts = [];
               $found = [];
@@ -126,10 +124,6 @@ jobs:
                   if (!preg_match('/\Amid\.ffffc1752b045fed[0-9a-f]{16}\z/D',$mid)
                       || !preg_match('~\Ahttps://max\.ru/anytour/[A-Za-z0-9_-]{11}\z~D',$target['url'])) {
                       throw new RuntimeException('archive_selection_changed');
-                  }
-                  if (isset($occupied[$mid])) {
-                      $counts['occupied'] = ($counts['occupied'] ?? 0) + 1;
-                      continue;
                   }
                   $response = ChannelPostApiTransport::buttonRequest('max','GET','/messages/'.$mid,[],null);
                   ++$read;
@@ -174,10 +168,20 @@ jobs:
                   $counts[$reason] = ($counts[$reason] ?? 0) + 1;
                   usleep(320000);
               }
-              if ($checkout() !== $installed || $takeSnapshot() !== $before) {
-                  throw new RuntimeException('registry_or_installation_changed');
+              if ($checkout() !== $installed) throw new RuntimeException('installed_release_changed');
+              $registryState = 'verified';
+              $verified = [];
+              try {
+                  $occupied = array_fill_keys(array_column($takeSnapshot(),0),true);
+                  $verified = array_values(array_filter($found,static fn(array $row): bool => !isset($occupied[$row['mid']])));
+              } catch (RuntimeException $error) {
+                  if (!in_array($error->getMessage(),['editor_busy','lease_missing'],true)) throw $error;
+                  $registryState = $error->getMessage();
               }
-              $summary += ['selected'=>count($selected),'read'=>$read,'counts'=>$counts,'candidates'=>$found];
+              if ($checkout() !== $installed) throw new RuntimeException('installed_release_changed');
+              $summary += ['selected'=>count($selected),'read'=>$read,'counts'=>$counts,
+                  'native_commercial_candidates'=>$found,'registry_confirmation'=>$registryState,
+                  'available_candidates'=>$verified,'write_admission'=>false];
               $summary['ok'] = true;
           } catch (Throwable $error) {
               $summary['reason'] = preg_match('/\A[a-z_]{3,50}\z/D',$error->getMessage()) ? $error->getMessage() : 'native_read_unavailable';
