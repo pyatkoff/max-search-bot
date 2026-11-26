@@ -18,7 +18,7 @@ jobs:
       github.event.sender.id == 226193297 &&
       github.event.created == false &&
       github.event.forced == false &&
-      github.event.before == '8fa06dd1ad1e997ccdf86dfe0754ddc849c57643' && github.run_attempt == 1
+      github.event.before == '80d3824cb0d8e89dbe3893fc6071a985d70594be' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
