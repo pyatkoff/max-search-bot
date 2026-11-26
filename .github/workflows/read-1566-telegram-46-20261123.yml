@@ -1,4 +1,4 @@
-name: "#1566 Build a reusable shortlist from the saved commercial Telegram archive"
+name: "#1566 Prove the real Telegram hotel reservation regression before and after the fix"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,107 +13,47 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == 'f7204f819d57ab7238190ccc295c02affaf6fa73' &&
+      github.event.before == '7fefeea019fb07df9bfd6307f51011d133b0108f' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - name: Check out the exact existing Telegram plans for exclusion
+      - name: Check out the observed failing application
         uses: actions/checkout@v4
         with:
           ref: 69e41c8011b4c67692f631cf435dd20d90676c72
-          path: accepted
+          path: before
           persist-credentials: false
-      - name: Narrow authenticated archive receipts to unassigned public candidates
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Check out the exact repaired HOTELS branch
+        uses: actions/checkout@v4
+        with:
+          ref: ec912e8874e8a0f16ddd1df26c82ffd497d99074
+          path: after
+          persist-credentials: false
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, sqlite3, pdo_sqlite, curl, dom
+          coverage: none
+      - name: Run the same reservation test against both revisions
         shell: bash
         run: |
           set -euo pipefail
           python3 - <<'PY'
-          from collections import Counter
-          import hashlib
-          import io
-          import json
-          import os
           from pathlib import Path
-          import re
-          import subprocess
-          import zipfile
-          
-          repo = os.environ["GITHUB_REPOSITORY"]
-          workflow = ".github/workflows/read-1566-telegram-46-20261123.yml"
-          base = Path("accepted/config")
-          expected = [[45747718941,15083853001,"4a80c9b86444d30462e8371f8be9c854a3aebbe5",711069,"a5f9edd963c476f4e3f003f4f83007644e2b4d607fa9c49a608dad52fcf14d77"],[45747898971,15083559015,"e728c0aff8d2656c8529b299ceb5adfba99e214d",379064,"2c4919e754273a8bee9c63704eff165800e67d118f07c66eeee7f2b09ff6c875"],[45745214387,15082428655,"25147cfb950c4f114df0fc15bc688bd06814e264",303175,"b579c38168e5f79421c4344d95945555cbd25554e6c487d88dca3465eff82a84"]]
-          blocked = {220, 567, 588, 727, 831, 842, 907, 957, 1012, 1016, 1042, 1047,
-                     1058, 1089, 1099, 1103, 1109, 1111, 1136, 1535, 1559, 1584, 1585, 1586,
-                     1620, 1651, 1653, 1654, 1664, 1665, 1679, 1695, 1696}
-          checked_plans = 0
-          for file in sorted(base.glob("anytour*.json")):
-              if file.stat().st_size > 500000:
-                  continue
-              data = json.loads(file.read_bytes())
-              if isinstance(data, dict):
-                  for row in data.get("rows", []):
-                      if isinstance(row, dict) and str(row.get("target_message_id", "")).isdigit():
-                          blocked.add(int(row["target_message_id"]))
-                  checked_plans += 1
-          
-          def gh(resource):
-              return subprocess.check_output(["gh", "api", f"repos/{repo}/{resource}"], timeout=50)
-          
-          guard = re.compile(r"отзыв|впечатлен|впечатлён|делимс[яь] впечатлен|наш[аи]? турист|туристы поделил|туристы вернул|"
-                             r"менеджер.{0,12}рассказ|мы (?:отдыхали|побывали)|с дн[её]м|поздравляем|розыгрыш|конкурс|доминикан", re.I)
-          commercial = re.compile(r"\bRUB\b|₽|\d\s*руб|вылет|тур[а-яё]*|путешеств|отел|курорт|отдых", re.I)
-          seen, qualifying, source_rows, scope = set(), {}, [], {}
-          for run_id, artifact_id, head, size, digest in expected:
-              run = json.loads(gh(f"actions/runs/{run_id}"))
-              assert run["id"] == run_id and run["head_sha"] == head and run["run_attempt"] == 1
-              assert run["conclusion"] == "success" and run["actor"]["id"] == 226193297
-              assert run["event"] == "push" and run["path"] == workflow
-              meta = json.loads(gh(f"actions/artifacts/{artifact_id}"))
-              assert not meta["expired"] and meta["workflow_run"]["id"] == run_id
-              assert meta["size_in_bytes"] == size and meta["digest"] == f"sha256:{digest}"
-              raw = gh(f"actions/artifacts/{artifact_id}/zip")
-              assert len(raw) == size and hashlib.sha256(raw).hexdigest() == digest
-              with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-                  assert archive.testzip() is None
-                  names = [n for n in archive.namelist() if n.rsplit("/", 1)[-1] == "archive-windows.json"]
-                  assert len(names) == 1, (run_id, "missing or ambiguous archive projection", archive.namelist()[:25])
-                  assert archive.getinfo(names[0]).file_size <= 16000000, (run_id, "archive projection too large", archive.getinfo(names[0]).file_size)
-                  document = json.loads(archive.read(names[0]))
-              assert document["native_run_id"] == str(run_id) and document["reader_source_sha"] == head
-              assert document["write_admission"] is False
-              source_rows.append({"run":run_id, "artifact":artifact_id, "rows":len(document["rows"])})
-              for row in document["rows"]:
-                  mid = int(row["target_message_id"])
-                  seen.add(mid)
-                  public = row.get("public", {})
-                  original = 'saved_plan_or_hold' if mid in blocked else 'not_supported_or_parse_unavailable' if not public.get('single_photo') else 'legacy_keyboard' if public.get('buttons') else 'single_photo_empty_keyboard'
-                  scope[mid] = original
-                  if original != 'single_photo_empty_keyboard':
-                      continue
-                  caption = public.get("caption", "")
-                  if not isinstance(caption, str) or len(caption) < 100 or guard.search(caption) or not commercial.search(caption):
-                      continue
-                  qualifying[mid] = {"mid":mid, "archive_run":run_id, "caption":caption,
-                                     "caption_sha256":public.get("caption_sha256"),
-                                     "photo_marker_sha256":public.get("photo_marker_sha256"),
-                                     "published_at":public.get("published_at"), "public_only":True}
-          
-          result = {"source_receipts":source_rows, "observed_unique":len(seen), "plan_files_read":checked_plans,
-                    "blocked_mids":len(blocked), "format_counts":dict(Counter(scope.values())), "candidates":list(qualifying.values()),
-                    "native_ready":0, "telegram_gets":0, "server_calls":0, "provider_writes":0, "write_admission":False}
-          Path("pub").mkdir()
-          Path("pub/target-shortlist.json").write_text(json.dumps(result, ensure_ascii=False))
-          for row in sorted(qualifying.values(), key=lambda item: item["mid"]):
-              print(json.dumps({**row, "caption":row["caption"][:1000]}, ensure_ascii=False))
-          print(json.dumps({**result, "candidates":len(qualifying)}, ensure_ascii=False))
+          text = Path('after/tests/run_ranked_telegram_cli_regression.js').read_text()
+          prefix = "const registryOrder = spawnSync('php', ['-r', String.raw`"
+          assert text.count(prefix) == 1
+          script = text.split(prefix,1)[1].split('`], {cwd: root',1)[0]
+          assert 'The real JAZ Lamaya packet would fail' in script
+          Path('registry-test.php').write_text('<?php\ndeclare(strict_types=1);\n'+script)
           PY
-      - name: Preserve the target shortlist
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: issue-1566-telegram-target-shortlist
-          path: pub/target-shortlist.json
-          retention-days: 7
-          if-no-files-found: error
+          if (cd before && php ../registry-test.php) > "$RUNNER_TEMP/before.txt" 2>&1; then
+            echo 'The test failed to reproduce the original refusal.'; exit 1
+          fi
+          grep -F 'The real JAZ Lamaya packet would fail the strict reservation callback' "$RUNNER_TEMP/before.txt"
+          (cd after && php -l tools/anytour_existing_post_batch.php && php ../registry-test.php)
+          echo 'Real packet fails on the original code and passes on the repaired code.'
+      - name: Run the existing ranked Telegram packet and CLI suite
+        working-directory: after
+        run: node tests/run_ranked_telegram_cli_regression.js
