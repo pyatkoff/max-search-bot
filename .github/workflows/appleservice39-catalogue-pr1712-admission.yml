@@ -1,0 +1,24 @@
+name: Apple catalogue PR1712 ordinary release admission
+on:
+  push:
+    branches: [ops/admit-appleservice39-catalogue-1712-20261127]
+    paths: ['.github/workflows/appleservice39-catalogue-pr1712-admission.yml']
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+jobs:
+  admission:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'bdc596e797992bf50de409f9ff6e094a4ccfd623' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: bdc596e797992bf50de409f9ff6e094a4ccfd623
+          persist-credentials: false
+      - name: Fresh ordinary release admission for PR1712
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1712 7ed62dfe2359d9c8bf74956ebb84637156be6f9c bdc596e797992bf50de409f9ff6e094a4ccfd623
