@@ -1,11 +1,10 @@
 <?php
 declare(strict_types=1);
 
-/** Rehearsal only. Uses the existing publisher's lock, pointer swap and rollback in a private fixture. */
+/** Exercise the installed CLI and both readers in an isolated checkout. */
 function hotelCatalogueReleaseChecks(array $manifest, int $now): void
 {
     $repo = dirname(__DIR__, 2);
-    require_once $repo.'/modules/tour-selections/deploy-editor.php';
     $temp = realpath(sys_get_temp_dir());
     if ($temp === false) throw new RuntimeException('hotel_release_fixture_temp_unavailable');
     $root = $temp.'/hotel-release-'.bin2hex(random_bytes(10));
@@ -21,43 +20,50 @@ function hotelCatalogueReleaseChecks(array $manifest, int $now): void
         if (!copy($repo.'/services/ManagerHotelKnowledge.php', $reader)) throw new RuntimeException('hotel_reader_fixture_copy_failed');
         $readerSha = hash_file('sha256', $reader);
         $node = $repo.'/tools/hotel_catalogue_package.js';
-        $run = static function (array $args, int $expectedExit = 0): array {
+        $run = static function (array $args, int $expectedExit = 0, string $expectedError = ''): array {
             $p = proc_open($args, [0=>['file','/dev/null','r'],1=>['pipe','w'],2=>['pipe','w']], $io);
             if (!is_resource($p)) throw new RuntimeException('hotel_release_fixture_process_failed');
             $value = stream_get_contents($io[1]); fclose($io[1]);
             $error = stream_get_contents($io[2]); fclose($io[2]);
-            if (proc_close($p) !== $expectedExit || $error !== '') throw new RuntimeException('hotel_release_fixture_command_failed: '.$error);
-            return json_decode($value, true, 32, JSON_THROW_ON_ERROR);
+            if (proc_close($p) !== $expectedExit || trim($error) !== $expectedError) {
+                throw new RuntimeException('hotel_release_fixture_command_failed: '.$error);
+            }
+            return $value === '' ? [] : json_decode($value, true, 32, JSON_THROW_ON_ERROR);
         };
         $entries = array_slice($manifest['bindings'], 0, 2);
-        $snapshot = static function (string $dir, array $bindings) use ($manifest, $repo): void {
-            mkdir($dir, 0700, true);
-            $shard = json_encode(array_replace($manifest, ['bindings'=>$bindings]), JSON_THROW_ON_ERROR);
+        $writeShard = static function (string $dir, array $updated): void {
+            $shard = json_encode($updated, JSON_THROW_ON_ERROR);
             file_put_contents($dir.'/manifest.json', $shard);
             file_put_contents($dir.'/catalogue.json', json_encode([
                 'schema_version'=>'hotel_catalogue_v1', 'project_key'=>'anytour',
                 'shards'=>[['file'=>'manifest.json', 'git_blob_sha'=>hash('sha1', 'blob '.strlen($shard)."\0".$shard)]],
             ], JSON_THROW_ON_ERROR));
+        };
+        $snapshot = static function (string $dir, array $bindings) use ($manifest, $repo, $writeShard): void {
+            mkdir($dir, 0700, true);
+            $writeShard($dir, array_replace($manifest, ['bindings'=>$bindings]));
             foreach ($bindings as $entry) {
                 $file = $entry['bundle_file'];
                 if (!copy($repo.'/knowledge/hotels/'.$file, $dir.'/'.$file)) throw new RuntimeException('hotel_release_bundle_copy_failed');
             }
         };
-        $snapshot($root.'/empty', []);
         $snapshot($app.'/knowledge/hotels', [$entries[0]]);
         $snapshot($root.'/next', $entries);
-        $stage = static function (string $name, string $current, string $candidate) use ($run, $node, $reader, $root, $releases): string {
-            $archive = $root.'/'.$name.'.json';
-            $built = $run(['node', $node, 'build', $current, $reader, $candidate, $archive]);
-            $verified = $run(['node', $node, 'verify', $current, $reader, $archive, $built['package_sha256']]);
-            if ($built !== $verified) throw new RuntimeException('hotel_release_verified_receipt_changed');
-            $prepared = $run(['node', $node, 'stage', $current, $reader, $archive, $built['package_sha256'], $releases]);
-            $version = $built['package_sha256'].'-'.$built['reader_sha256'];
-            if (($prepared['staged_version'] ?? null) !== $version) throw new RuntimeException('hotel_release_stage_identity_changed');
-            return $releases.'/'.$version;
-        };
-        $base = $stage('base', $root.'/empty', $app.'/knowledge/hotels');
-        $next = $stage('next', $app.'/knowledge/hotels', $root.'/next');
+        $git = <<<'GIT'
+git -C "$1" init -q &&
+git -C "$1" add services knowledge &&
+git -C "$1" -c user.name=Fixture -c user.email=fixture@example.test commit -qm baseline &&
+printf '{"sha":"%s"}\n' "$(git -C "$1" rev-parse HEAD)"
+GIT;
+        $sha = $run(['bash', '-c', $git, 'fixture', $app])['sha'];
+        $archive = $root.'/candidate.json';
+        $built = $run(['node', $node, 'build', $app.'/knowledge/hotels', $reader, $root.'/next', $archive]);
+        $nextVersion = $built['package_sha256'].'-'.$built['reader_sha256'];
+        $next = $releases.'/'.$nextVersion;
+        $operation = 'hotel-release-rehearsal';
+        $cli = ['node', $repo.'/tools/hotel_catalogue_release.js'];
+        $activate = [...$cli, 'activate', $app, $sha, 'bundled', $archive, $built['package_sha256'], $operation];
+        $rollback = [...$cli, 'rollback', $app, $sha, $operation, 'hotel-fixture-rollback'];
         $selectors = array_map(static fn(array $entry): array => [
             'project_key'=>'anytour', 'source_identity'=>$entry['source_identity'],
             'selected_hotel'=>$entry['accepted_source_names'][0], 'selected_room'=>'Fixture room',
@@ -109,40 +115,59 @@ READER;
                 === ['ok'=>false, 'status'=>'invalid_input']);
         draftContextCheck('core preflight admits a checked reader when the catalogue is bundled',
             $run([...$guard, $changedReader]) === ['ok'=>true, 'status'=>'bundled']);
-        $deployment = new TourSelectionEditorDeployment($app, $site, $releases);
-        $exclusive = new ReflectionMethod($deployment, 'exclusive');
-        $point = new ReflectionMethod($deployment, 'point');
-        $current = new ReflectionMethod($deployment, 'current');
-        $write = new ReflectionMethod($deployment, 'write');
-        $exclusive->invoke($deployment, static function () use ($point, $deployment, $base): array {
-            $point->invoke($deployment, $base);
-            return [];
-        });
-        draftContextCheck('sealed hotel baseline matches ordinary approved capture',
-            $run($args) === $fallback && $fallback['native'][0]['status'] === 'available'
+        draftContextCheck('bundled hotel baseline matches ordinary approved capture',
+            $fallback['native'][0]['status'] === 'available'
             && $fallback['native'][1]['reason'] === 'binding_unresolved'
             && $fallback['retained'][0]['status'] === 'available' && $fallback['retained'][1]['reason'] === 'binding_unresolved');
+        $invalid = $root.'/invalid';
+        $snapshot($invalid, $entries);
+        $badMember = $invalid.'/'.$entries[1]['bundle_file'];
+        $bad = json_decode(file_get_contents($badMember), true, 32, JSON_THROW_ON_ERROR);
+        $bad['price_authority'] = 'supplier';
+        $badBytes = json_encode($bad, JSON_THROW_ON_ERROR);
+        file_put_contents($badMember, $badBytes);
+        $badRows = $entries;
+        $badRows[1]['bundle_sha256'] = hash('sha256', $badBytes);
+        $writeShard($invalid, array_replace($manifest, ['bindings'=>$badRows]));
+        $badArchive = $root.'/invalid.json';
+        $badPackage = $run(['node', $node, 'build', $app.'/knowledge/hotels', $reader, $invalid, $badArchive]);
+        draftContextCheck('correct archive hashes cannot authorize a bundle rejected by the real reader',
+            $run([...$cli, 'activate', $app, $sha, 'bundled', $badArchive, $badPackage['package_sha256'],
+                'hotel-invalid-package'], 1, 'catalogue_typed_validation_failed') === []
+            && !is_link($releases.'/current'));
+        $lock = fopen($releases.'/operation.lock', 'c+b');
+        if ($lock === false || !flock($lock, LOCK_EX | LOCK_NB)) throw new RuntimeException('hotel_fixture_lock_failed');
+        try {
+            draftContextCheck('publisher refuses the core installer lock without switching',
+                $run($activate, 1, 'catalogue_operation_busy') === [] && !is_link($releases.'/current'));
+        } finally {
+            fclose($lock);
+        }
         $held = proc_open([...$args, 'hold'], [0=>['pipe','r'],1=>['pipe','w'],2=>['pipe','w']], $heldIo);
         if (!is_resource($held)) throw new RuntimeException('hotel_held_reader_unavailable');
         stream_set_timeout($heldIo[1], 10);
         if (fgets($heldIo[1]) !== "ready\n") throw new RuntimeException('hotel_held_reader_not_ready');
-        $operation = 'hotel-release-rehearsal';
         $pending = $releases.'/pending.json';
-        $exclusive->invoke($deployment, static function () use ($point, $current, $write, $deployment, $base, $next, $pending, $operation): array {
-            if ($current->invoke($deployment) !== $base || file_exists($pending)) throw new RuntimeException('hotel_rehearsal_baseline_changed');
-            $write->invoke(null, $pending, json_encode([
-                'target'=>$next, 'previous'=>$base, 'active'=>null, 'front'=>false,
-                'operation'=>$operation, 'release_kind'=>'independent',
-            ], JSON_THROW_ON_ERROR));
-            $point->invoke($deployment, $next);
-            return [];
-        });
+        $activated = $run($activate);
+        $activationReceipt = $releases.'/operations/'.$operation.'.json';
+        draftContextCheck('publisher activates the admitted bytes and leaves one immutable receipt',
+            $activated['state'] === 'activated' && $activated['from'] === 'bundled' && $activated['to'] === $nextVersion
+            && readlink($releases.'/current') === $next && !file_exists($pending)
+            && json_decode(file_get_contents($activationReceipt), true, 16, JSON_THROW_ON_ERROR) === $activated);
+        // Reconstruct the exact state after the pointer rename and before the receipt link.
+        copy($activationReceipt, $pending);
+        unlink($activationReceipt);
+        $foreign = [...array_slice($activate, 0, -1), 'foreign-hotel-operation'];
+        draftContextCheck('another request cannot consume a pending catalogue activation',
+            $run($foreign, 1, 'catalogue_release_pending') === [] && readlink($releases.'/current') === $next);
+        draftContextCheck('recovery records an already selected catalogue without replaying the switch',
+            $run($activate) === $activated && !file_exists($pending) && readlink($releases.'/current') === $next);
         $updated = $run($args);
         draftContextCheck('core preflight admits the exact active reader bytes',
             $run([...$guard, $reader]) === ['ok'=>true, 'status'=>'compatible']);
         draftContextCheck('core preflight refuses different reader bytes and leaves the active package selected',
             $run([...$guard, $changedReader], 1) === ['ok'=>false, 'status'=>'incompatible_reader']
-            && $current->invoke($deployment) === $next && $run($args) === $updated);
+            && readlink($releases.'/current') === $next && $run($args) === $updated);
         fwrite($heldIo[0], "continue\n"); fclose($heldIo[0]);
         $old = stream_get_contents($heldIo[1]); fclose($heldIo[1]);
         $err = stream_get_contents($heldIo[2]); fclose($heldIo[2]);
@@ -168,22 +193,24 @@ READER;
             && $rejected['retained'][0]['reason'] === 'knowledge_unavailable' && $rejected['retained'][1]['reason'] === 'knowledge_unavailable');
         file_put_contents($index, $indexBytes);
 
-        try { $deployment->rollbackIndependent('foreign-hotel-operation'); $foreign = false; }
-        catch (RuntimeException $e) { $foreign = $e->getMessage() === 'editor_operation_changed'; }
-        draftContextCheck('foreign operation cannot roll back the hotel packet', $foreign && $run($args) === $updated);
-        $result = $deployment->rollbackIndependent($operation);
-        $receipt = $releases.'/operations/'.$operation.'.json';
-        draftContextCheck('core preflight accepts the previous package after a verified rollback',
-            $run([...$guard, $reader]) === ['ok'=>true, 'status'=>'compatible']);
-        draftContextCheck('existing rollback restores the prior hotel version and emits a receipt',
-            $result === ['ok'=>true,'rolled_back'=>true] && $run($args) === $fallback
-            && ManagerTourSelectionEditorHost::json($receipt) === ['state'=>'rolled_back','package_id'=>basename($next)]
-            && hash_file('sha256', $reader) === $readerSha);
+        $foreignRollback = [...$cli, 'rollback', $app, $sha, 'foreign-activation', 'foreign-rollback'];
+        draftContextCheck('foreign operation cannot roll back the hotel packet',
+            $run($foreignRollback, 1, 'invalid_catalogue_activation_receipt') === [] && $run($args) === $updated);
+        $result = $run($rollback);
+        $receipt = $releases.'/operations/hotel-fixture-rollback.json';
+        draftContextCheck('core preflight accepts the bundled catalogue after a verified rollback',
+            $run([...$guard, $reader]) === ['ok'=>true, 'status'=>'bundled']);
+        draftContextCheck('rollback restores the bundled version and emits its own receipt',
+            $result['state'] === 'rolled_back' && $result['to'] === 'bundled' && $result['from'] === $nextVersion
+            && $run($args) === $fallback && hash_file('sha256', $reader) === $readerSha);
         $receiptSha = hash_file('sha256', $receipt);
-        try { $deployment->rollbackIndependent($operation); $replay = false; }
-        catch (RuntimeException $e) { $replay = $e->getMessage() === 'editor_operation_unconfirmed'; }
         draftContextCheck('completed hotel rollback cannot be replayed after a lost result',
-            $replay && hash_file('sha256', $receipt) === $receiptSha && $run($args) === $fallback);
+            $run($rollback) === $result && hash_file('sha256', $receipt) === $receiptSha && $run($args) === $fallback);
+        $run([...array_slice($activate, 0, -1), 'hotel-release-second']);
+        draftContextCheck('an older rollback cannot affect a later activation of the same catalogue',
+            $run([...array_slice($rollback, 0, -1), 'hotel-stale-rollback'], 1,
+                'catalogue_activation_already_rolled_back') === []
+            && readlink($releases.'/current') === $next && $run($args) === $updated);
     } finally {
         if (is_resource($held)) {
             foreach ($heldIo as $pipe) if (is_resource($pipe)) fclose($pipe);
