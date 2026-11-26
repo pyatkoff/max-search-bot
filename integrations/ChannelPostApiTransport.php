@@ -40,6 +40,48 @@ final class ChannelPostApiTransport
         return $allowed ? self::postRequest('telegram', $method, $path, $query, $body, false, $token) : $denied;
     }
 
+    /** Pure shape check for the separately authorized, URL-only keyboard pilot. */
+    public static function publisherKeyboardPilotPayload(array $body): ?array
+    {
+        if (array_keys($body) !== ['chat_id', 'message_id', 'reply_markup']
+            || $body['chat_id'] !== '-1001845835645' || !in_array($body['message_id'], [1047, '1047'], true)
+            || !is_array($body['reply_markup']) || array_keys($body['reply_markup']) !== ['inline_keyboard']) return null;
+        $rows = $body['reply_markup']['inline_keyboard'];
+        if (!is_array($rows) || !array_is_list($rows) || count($rows) < 1 || count($rows) > 3) return null;
+        $buttons = 0;
+        foreach ($rows as $row) {
+            if (!is_array($row) || !array_is_list($row) || count($row) < 1 || ($buttons += count($row)) > 3) return null;
+            foreach ($row as $button) {
+                if (!is_array($button) || array_keys($button) !== ['text', 'url']
+                    || !is_string($button['text']) || trim($button['text']) === ''
+                    || !mb_check_encoding($button['text'], 'UTF-8') || mb_strlen($button['text'], 'UTF-8') > 128
+                    || preg_match('/[\x00-\x1f\x7f-\x{009f}]/u', $button['text']) !== 0
+                    || !is_string($button['url']) || strlen($button['url']) > 2048
+                    || !str_starts_with($button['url'], 'https://')
+                    || preg_match('/[\x00-\x20\x7f]/', $button['url']) !== 0
+                    || filter_var($button['url'], FILTER_VALIDATE_URL) === false) return null;
+                $url = parse_url($button['url']);
+                if (!is_array($url) || ($url['scheme'] ?? null) !== 'https' || empty($url['host'])
+                    || isset($url['user']) || isset($url['pass'])) return null;
+            }
+        }
+        return $body;
+    }
+
+    /** The pilot never admits the legacy target, media, captions or a new message. */
+    public static function publisherKeyboardPilotRequest(#[\SensitiveParameter] string $token, string $method, string $path, array $query, ?array $body): array
+    {
+        $denied = ['http' => 0, 'data' => null, 'transport_error' => true];
+        if ($path !== 'editMessageReplyMarkup') {
+            return in_array($path, ['getMe', 'getChat', 'getChatMember'], true)
+                ? self::publisherButtonRequest($token, $method, $path, $query, $body) : $denied;
+        }
+        if (!preg_match('/\A[1-9][0-9]{4,18}:[A-Za-z0-9_-]{20,200}\z/D', $token)
+            || $method !== 'POST' || $query !== [] || !is_array($body)
+            || self::publisherKeyboardPilotPayload($body) === null) return $denied;
+        return self::postRequest('telegram', $method, $path, $query, $body, false, $token);
+    }
+
     /** Caption edits of already bound posts. Attachments and publish calls are excluded. */
     public static function captionRequest(string $platform, string $channelId, string $messageId, array $body): array
     {

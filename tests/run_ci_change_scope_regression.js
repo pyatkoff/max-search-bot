@@ -447,7 +447,7 @@ async function productionCatalogueScope() {
   const repository = 'pyatkoff/max-search-bot', branch = 'refs/heads/main';
   const env = {GITHUB_REPOSITORY:repository,GITHUB_EVENT_NAME:'push',
     GITHUB_WORKFLOW_REF:repository+'/.github/workflows/deploy.yml@'+branch,
-    GITHUB_JOB:'verify-inventory',GITHUB_RUN_ATTEMPT:'1',GITHUB_REF:branch,GITHUB_SHA:head};
+    GITHUB_JOB:'verify-syntax',GITHUB_RUN_ATTEMPT:'1',GITHUB_REF:branch,GITHUB_SHA:head};
   const event = {before:base,after:head,ref:branch,repository:{full_name:repository},
     forced:false,created:false,deleted:false};
   const rawDiff = changes => changes.map(change => ':'+change.oldMode+' '+change.newMode+' '+
@@ -471,6 +471,7 @@ async function productionCatalogueScope() {
     {env:{...env,GITHUB_EVENT_NAME:'workflow_dispatch'}},
     {env:{...env,GITHUB_RUN_ATTEMPT:'2'}},
     {env:{...env,GITHUB_JOB:'deploy'}},
+    {env:{...env,GITHUB_JOB:'verify-inventory'}},
     {env:{...env,GITHUB_SHA:base}},
     {event:undefined},
     {event:{...event,forced:true}},

@@ -15,7 +15,7 @@ async function selectDeployScope({env, event, git, acceptedBaseline}) {
   const after = event?.after;
   if (env.GITHUB_REPOSITORY !== release.REPOSITORY || env.GITHUB_EVENT_NAME !== 'push'
       || env.GITHUB_WORKFLOW_REF !== release.REPOSITORY + '/' + release.DEPLOY + '@' + MAIN
-      || env.GITHUB_JOB !== 'verify-inventory' || env.GITHUB_RUN_ATTEMPT !== '1'
+      || env.GITHUB_JOB !== 'verify-syntax' || env.GITHUB_RUN_ATTEMPT !== '1'
       || env.GITHUB_REF !== MAIN || event?.ref !== MAIN || event.repository?.full_name !== release.REPOSITORY
       || event.forced !== false || event.created !== false || event.deleted !== false
       || !release.sha(before) || /^0+$/.test(before) || !release.sha(after)

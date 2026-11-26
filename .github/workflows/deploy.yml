@@ -16,11 +16,13 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  verify-inventory:
+  verify-syntax:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       actions: read
+      pull-requests: read
+      issues: read
     outputs:
       profile: ${{ steps.hotel_scope.outputs.profile }}
     steps:
@@ -36,8 +38,8 @@ jobs:
           php-version: '8.3'
           extensions: mbstring
           coverage: none
-      - name: Verify required inventory and architecture
-        run: php tests/run_required_group.php architecture
+      - name: PHP syntax check
+        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
 
       - name: Select bounded production verification profile
         id: hotel_scope
@@ -45,7 +47,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: node tools/deploy_hotel_catalogue_scope.js
 
-  verify-syntax:
+  verify-inventory:
+    needs: verify-syntax
     runs-on: ubuntu-latest
     steps:
       - name: Checkout exact verification SHA
@@ -58,11 +61,15 @@ jobs:
           php-version: '8.3'
           extensions: mbstring
           coverage: none
-      - name: PHP syntax check
-        run: find . -type f -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
+      - name: Verify required inventory and architecture
+        env:
+          DEPLOY_CHECK_PROFILE: ${{ needs.verify-syntax.outputs.profile }}
+        run: |
+          test -n "$DEPLOY_CHECK_PROFILE"
+          php tests/run_required_group.php architecture "$DEPLOY_CHECK_PROFILE"
 
   verify-groups:
-    needs: verify-inventory
+    needs: verify-syntax
     strategy:
       fail-fast: false
       max-parallel: 2
@@ -89,7 +96,7 @@ jobs:
         env:
           DEPLOY_CHECK_GROUPS: ${{ matrix.groups }}
           DEPLOY_CHECK_LANE: ${{ matrix.lane }}
-          DEPLOY_CHECK_PROFILE: ${{ needs.verify-inventory.outputs.profile }}
+          DEPLOY_CHECK_PROFILE: ${{ needs.verify-syntax.outputs.profile }}
         run: |
           set -euo pipefail
           case "$DEPLOY_CHECK_PROFILE:$DEPLOY_CHECK_LANE" in

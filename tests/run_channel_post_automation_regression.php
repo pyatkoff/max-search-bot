@@ -2011,6 +2011,188 @@ require_once __DIR__ . '/support/ranked-unreached.php';
 require_once __DIR__ . '/ranked_telegram_public_cases.php';
 \AnyTour\Tests\RankedPublicReadback\runCases();
 
+// The original publisher pilot changes only one existing label. It does not
+// reopen a consumed media operation, register a hotel, or start a generic worker.
+$pilotPlan = AnyTour\ExistingPostBatch\publisherKeyboardPlan(dirname(__DIR__), AnyTour\ExistingPostBatch\PUBLISHER_KEYBOARD_DIGEST);
+channelPostCheck('publisher pilot selects only the newly approved single target',
+    [$pilotPlan['message_id'], $pilotPlan['publication_id'], $pilotPlan['publisher'], $pilotPlan['full_transfer']],
+    ['1047',3847,'ANYTOURBOT_bot',false]);
+$pilotRefuses = static function (string $label, callable $call, string $reason): void {
+    try { $call(); channelPostCheck($label, 'accepted', $reason); }
+    catch (RuntimeException $e) { channelPostCheck($label, $e->getMessage(), $reason); }
+};
+$pilotRefuses('publisher pilot refuses a different approval',
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardPlan(dirname(__DIR__), str_repeat('0',64)),
+    'publisher_pilot_approval_changed');
+// The real account reader must select the approved login even when other
+// administrators are active. The database is an isolated in-memory fixture.
+$pilotActorDb = new PDO('sqlite::memory:', null, null, [PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+$pilotActorDb->exec("CREATE TABLE managers(id INTEGER PRIMARY KEY,login TEXT COLLATE NOCASE,role TEXT,is_active INTEGER);
+    CREATE TABLE projects(id INTEGER PRIMARY KEY,project_key TEXT,is_active INTEGER);
+    CREATE TABLE manager_projects(manager_id INTEGER,project_id INTEGER);
+    INSERT INTO managers VALUES (1,'other_admin','admin',1),(2,'manager','admin',1),(3,'elsewhere','admin',1);
+    INSERT INTO projects VALUES (1,'anytour',1),(2,'apple',1);
+    INSERT INTO manager_projects VALUES (1,1),(2,1),(3,2)");
+$pilotActorDb->exec('PRAGMA query_only=ON');
+$pilotAclIds = [];
+$pilotAcl = static function(int $id) use (&$pilotAclIds): bool { $pilotAclIds[]=$id; return $id===2; };
+channelPostCheck('publisher pilot selects only the confirmed owner among multiple administrators',
+    AnyTour\ExistingPostBatch\publisherKeyboardActor($pilotActorDb,$pilotAcl),2);
+channelPostCheck('publisher pilot validates only the selected account ACL',$pilotAclIds,[2]);
+$pilotRefuses('publisher pilot rejects an account whose current ACL is absent',
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardActor($pilotActorDb,static fn(int $id):bool=>false),
+    'publisher_pilot_owner_access_unconfirmed');
+foreach (["UPDATE managers SET is_active=0 WHERE id=2",
+    "UPDATE managers SET role='manager' WHERE id=2",
+    "DELETE FROM manager_projects WHERE manager_id=2",
+    "UPDATE managers SET login='MANAGER' WHERE id=2",
+    "UPDATE projects SET is_active=0 WHERE id=1",
+    "INSERT INTO managers VALUES (4,'manager','admin',1); INSERT INTO manager_projects VALUES (4,1)"] as $invalidActorSql) {
+    $pilotActorDb->exec('PRAGMA query_only=OFF');
+    $pilotActorDb->beginTransaction();
+    $pilotActorDb->exec($invalidActorSql);
+    $pilotActorDb->exec('PRAGMA query_only=ON');
+    $pilotRefuses('publisher pilot never substitutes another administrator: '.$invalidActorSql,
+        static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardActor($pilotActorDb,static fn(int $id):bool=>true),
+        'publisher_pilot_owner_account_unconfirmed');
+    $pilotActorDb->exec('PRAGMA query_only=OFF');
+    $pilotActorDb->rollBack();
+}
+$pilotActorDb->exec('PRAGMA query_only=ON');
+$pilotPublicPlan = $pilotPlan;
+$pilotCaption = 'Old Lusso Sorgun offer, unchanged by this keyboard experiment.';
+$pilotPhotoClass = 'tgme_widget_message_photo_wrap 123456789';
+$pilotPublicPlan['target_caption_sha256'] = hash('sha256', $pilotCaption);
+$pilotPublicPlan['target_photo_marker_sha256'] = hash('sha256', $pilotPhotoClass);
+$pilotHtml = static function (string $label = 'Менеджер', bool $keyboard = true) use ($pilotCaption, $pilotPhotoClass): string {
+    return '<html><head><meta charset="UTF-8"></head><body><div data-post="anytour/1047">'
+        .'<div class="tgme_widget_message_text">'.$pilotCaption.'</div>'
+        .'<a class="'.$pilotPhotoClass.'" href="https://t.me/anytour/1047" style="background-image:url(https://cdn4.telesco.pe/photo.jpg)"></a>'
+        .'<time datetime="2025-03-14T07:11:44+00:00"></time>'
+        .($keyboard ? '<div class="tgme_widget_message_inline_keyboard"><div class="tgme_widget_message_inline_row">'
+            .'<a class="tgme_widget_message_inline_button url_button" href="https://t.me/AnyTour_MSK">'.$label.'</a>'
+            .'<a class="tgme_widget_message_inline_button url_button" href="https://t.me/Any_tour_bot?start=old">Другие туры</a>'
+            .'</div></div>' : '').'</div></body></html>';
+};
+$pilotBefore = AnyTour\ExistingPostBatch\publisherKeyboardPublic($pilotHtml(), $pilotHtml('Менеджер', false), $pilotPublicPlan);
+$pilotBody = AnyTour\ExistingPostBatch\publisherKeyboardBody($pilotBefore, $pilotPublicPlan);
+$pilotAfter = AnyTour\ExistingPostBatch\publisherKeyboardPublic($pilotHtml('Менеджер →'), $pilotHtml('Менеджер', false), $pilotPublicPlan);
+channelPostCheck('publisher pilot observes the keyboard hidden by embed', $pilotBefore['reply_markup'],
+    ['inline_keyboard'=>[[['text'=>'Менеджер','url'=>'https://t.me/AnyTour_MSK'],
+        ['text'=>'Другие туры','url'=>'https://t.me/Any_tour_bot?start=old']]]]);
+channelPostCheck('publisher pilot preserves URLs and changes exactly the first label', $pilotBody,
+    ['chat_id'=>'-1001845835645','message_id'=>1047,'reply_markup'=>['inline_keyboard'=>[[
+        ['text'=>'Менеджер →','url'=>'https://t.me/AnyTour_MSK'],['text'=>'Другие туры','url'=>'https://t.me/Any_tour_bot?start=old']]]]]);
+// Actual MID1047 DOM from read-only run45718436590/artifact15071411390.
+// Its node bytes are retained verbatim with the archive's UTF-8 document metadata.
+// The old parser rejected this ordinary URL button solely for its confirm handler.
+$pilotRealHtml = file_get_contents(__DIR__.'/fixtures/telegram-publisher-1047-public.html');
+$pilotRealBefore = AnyTour\ExistingPostBatch\publisherKeyboardPublic($pilotRealHtml, $pilotRealHtml, $pilotPlan);
+channelPostCheck('publisher pilot accepts the real Telegram confirmation wrapper', $pilotRealBefore['reply_markup'],
+    ['inline_keyboard'=>[[['text'=>'СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱','url'=>'https://t.me/AnyTour_MSK']]]]);
+channelPostCheck('real public button keeps its exact URL and only gains the approved label suffix',
+    AnyTour\ExistingPostBatch\publisherKeyboardBody($pilotRealBefore,$pilotPlan),
+    ['chat_id'=>'-1001845835645','message_id'=>1047,'reply_markup'=>['inline_keyboard'=>[[
+        ['text'=>'СВЯЗАТЬСЯ С МЕНЕДЖЕРОМ 📱 →','url'=>'https://t.me/AnyTour_MSK']]]]]);
+foreach ([
+    'unknown onclick'=>str_replace("return confirm('Open this link?\\n\\n'+this.href);",'return otherAction();',$pilotRealHtml),
+    'confirmation without URL type'=>str_replace('inline_button url_button','inline_button',$pilotRealHtml),
+    'confirmation with non-HTTPS URL'=>str_replace('href="https://t.me/AnyTour_MSK"','href="javascript:otherAction()"',$pilotRealHtml),
+] as $label=>$html) $pilotRefuses('real publisher button refuses '.$label,
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardPublic($html,$pilotRealHtml,$pilotPlan),
+    'publisher_pilot_keyboard_unsupported');
+foreach ([
+    'hidden row'=>str_replace('tgme_widget_message_inline_row','other_row',$pilotHtml()),
+    'callback'=>str_replace('https://t.me/AnyTour_MSK','javascript:callback()',$pilotHtml()),
+    'untyped HTTPS button'=>str_replace('inline_button url_button','inline_button',$pilotHtml()),
+    'non-URL'=>str_replace('href="https://t.me/AnyTour_MSK"','data-copy="unknown"',$pilotHtml()),
+    'unknown button'=>str_replace('</div></div></div>', '<span class="tgme_widget_message_inline_button">Unknown</span></div></div></div>', $pilotHtml()),
+] as $label=>$html) $pilotRefuses('publisher pilot refuses '.$label,
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardPublic($html,$pilotHtml('Менеджер',false),$pilotPublicPlan),
+    'publisher_pilot_keyboard_unsupported');
+$pilotRefuses('publisher pilot refuses changed public caption',
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardPublic(str_replace($pilotCaption,'changed',$pilotHtml()),$pilotHtml(),$pilotPublicPlan),
+    'publisher_pilot_preimage_changed');
+$pilotRefuses('publisher pilot refuses a duplicate label change',
+    static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardBody($pilotAfter,$pilotPublicPlan), 'publisher_pilot_already_changed');
+$pilotNative = ['http'=>200,'transport_error'=>false,'data'=>['ok'=>true,'result'=>[
+    'chat'=>['id'=>-1001845835645,'type'=>'channel','username'=>'anytour'],'message_id'=>1047,
+    'date'=>1741936304,'edit_date'=>1795648800,'caption'=>$pilotCaption,
+    'photo'=>[['file_id'=>'native_publisher_photo','file_unique_id'=>'same_photo']],
+    'reply_markup'=>$pilotBody['reply_markup']]]];
+channelPostCheck('native pilot acceptance stays distinct from transfer completion',
+    AnyTour\ExistingPostBatch\publisherKeyboardResponse($pilotNative,$pilotBody,$pilotPublicPlan), 'native_keyboard_edit_accepted');
+$pilotRejected = ['http'=>400,'transport_error'=>false,'data'=>['ok'=>false,'error_code'=>400,'description'=>'Bad Request: MESSAGE_ID_INVALID']];
+$pilotNoop = $pilotRejected; $pilotNoop['data']['description'] = 'Bad Request: message is not modified: specified new content and reply markup are exactly the same';
+channelPostCheck('publisher pilot retains exact Telegram rejection',
+    AnyTour\ExistingPostBatch\publisherKeyboardResponse($pilotRejected,$pilotBody,$pilotPublicPlan), 'provider_message_id_rejected');
+channelPostCheck('publisher pilot does not call a no-op a successful edit',
+    AnyTour\ExistingPostBatch\publisherKeyboardResponse($pilotNoop,$pilotBody,$pilotPublicPlan), 'message_not_modified');
+$pilotEvents = [
+    ['state'=>'intent_saved','execution'=>['native_run_id'=>$pilotPlan['parent_run_id'],'application_sha'=>$pilotPlan['parent_application_sha']],
+        'plan_sha256'=>$pilotPlan['parent_plan_sha256'],'row'=>['target_message_id'=>'1047']],
+    ['state'=>'identity_reserved','reservation'=>['publication_id'=>3847,'target_message_id'=>'1047']],
+    ['state'=>'request_prepared'],['state'=>'provider_edit_started','provider_write_attempts'=>1],
+    ['state'=>'provider_response_saved','response'=>$pilotRejected],['state'=>'provider_message_id_rejected','provider_write_attempts'=>1],
+];
+$pilotParentBytes = implode("\n", array_map(static fn(array $x):string=>json_encode($x, JSON_THROW_ON_ERROR), $pilotEvents))."\n";
+$pilotParentPlan = $pilotPlan; $pilotParentPlan['parent_receipt_sha256'] = hash('sha256',$pilotParentBytes);
+channelPostCheck('publisher pilot authenticates the original definite rejection',
+    AnyTour\ExistingPostBatch\publisherKeyboardParent($pilotParentBytes,$pilotParentPlan), ['publication_id'=>3847,'target_message_id'=>'1047']);
+foreach (['timeout','other_message','other_bot_attempt'] as $case) {
+    $badEvents=$pilotEvents;
+    if($case==='timeout')$badEvents[4]['response']=['http'=>0,'transport_error'=>true,'data'=>null];
+    elseif($case==='other_message')$badEvents[0]['row']['target_message_id']='1058';
+    else $badEvents[0]['execution']['native_run_id']='45567178734';
+    $raw=implode("\n",array_map(static fn(array $x):string=>json_encode($x, JSON_THROW_ON_ERROR),$badEvents))."\n";
+    $p=$pilotParentPlan;$p['parent_receipt_sha256']=hash('sha256',$raw);
+    $pilotRefuses('publisher pilot cannot reinterpret '.$case.' as original rejection',
+        static fn()=>AnyTour\ExistingPostBatch\publisherKeyboardParent($raw,$p),'publisher_pilot_parent_unconfirmed');
+}
+$pilotTmp = sys_get_temp_dir().'/publisher-keyboard-pilot-'.bin2hex(random_bytes(8)); mkdir($pilotTmp,0700);
+try {
+    foreach (['success','success_without_edit_date','wrong_target_without_edit_date','unchanged_keyboard_without_edit_date',
+        'rejected','noop','timeout','public_changed','payload_changed'] as $case) {
+        $dir=$pilotTmp.'/'.$case;mkdir($dir,0700);file_put_contents($dir.'/receipt.jsonl',$pilotParentBytes);
+        $parentSha=hash_file('sha256',$dir.'/receipt.jsonl');$writes=0;$startedBeforeRequest=false;
+        $effects=['context'=>['application_sha'=>str_repeat('a',40),'native_run_id'=>'49999999999'],
+            'publisher'=>['username'=>'ANYTOURBOT_bot','bot_id'=>'123456','credential_version'=>1],
+            'assert'=>static function()use($dir,$parentSha):void { if(hash_file('sha256',$dir.'/receipt.jsonl')!==$parentSha)throw new RuntimeException('parent_changed'); },
+            'request'=>static function(array $payload)use(&$writes,&$startedBeforeRequest,$dir,$case,$pilotNative,$pilotRejected,$pilotNoop,$pilotBefore):array {
+                $writes++;$startedBeforeRequest=str_contains(file_get_contents($dir.'/publisher-keyboard-20261125.jsonl'),'"state":"provider_edit_started"');
+                if($case==='timeout')throw new RuntimeException('provider_timeout');
+                // Telegram Message.edit_date is optional, including in edit responses.
+                if(str_ends_with($case,'_without_edit_date'))unset($pilotNative['data']['result']['edit_date']);
+                if($case==='wrong_target_without_edit_date')$pilotNative['data']['result']['message_id']=1058;
+                if($case==='unchanged_keyboard_without_edit_date')$pilotNative['data']['result']['reply_markup']=$pilotBefore['reply_markup'];
+                return $case==='rejected'?$pilotRejected:($case==='noop'?$pilotNoop:$pilotNative);
+            },
+            'readback'=>static function()use($case,$pilotBefore,$pilotAfter):array {
+                if($case==='public_changed')throw new RuntimeException('publisher_pilot_preimage_changed');
+                return in_array($case,['rejected','noop'],true)?$pilotBefore:$pilotAfter;
+            },'parent_unchanged'=>static function()use($dir,$parentSha):void { if(hash_file('sha256',$dir.'/receipt.jsonl')!==$parentSha)throw new RuntimeException('parent_changed'); }];
+        $body=$pilotBody;if($case==='payload_changed')$body['reply_markup']['inline_keyboard'][0][0]['url']='https://t.me/other';
+        $result=AnyTour\ExistingPostBatch\publisherKeyboardExecute($pilotPublicPlan,$pilotBefore,$body,$effects,$dir);
+        $expected=match($case){'success','success_without_edit_date'=>'publisher_keyboard_verified','rejected'=>'provider_message_id_rejected',
+            'noop'=>'message_not_modified','timeout'=>'provider_outcome_unknown','payload_changed'=>'held_before_provider',default=>'response_saved_requires_readback'};
+        channelPostCheck('publisher pilot retains honest '.$case.' outcome',[$result['state'],$result['full_transfer'],$writes],[$expected,false,$case==='payload_changed'?0:1]);
+        if ($case === 'public_changed') channelPostCheck('public read failure retains the accepted Telegram answer',
+            $result['native_state'] ?? null, 'native_keyboard_edit_accepted');
+        if (in_array($case,['timeout','wrong_target_without_edit_date'],true))
+            channelPostCheck('unconfirmed '.$case.' has no invented native acceptance', isset($result['native_state']), false);
+        channelPostCheck('publisher pilot preserves consumed parent on '.$case,hash_file('sha256',$dir.'/receipt.jsonl'),$parentSha);
+        if($case==='payload_changed')continue;
+        channelPostCheck('publisher pilot durable marker precedes '.$case.' HTTP',$startedBeforeRequest);
+        $journalSha=hash_file('sha256',$dir.'/publisher-keyboard-20261125.jsonl');
+        $again=AnyTour\ExistingPostBatch\publisherKeyboardExecute($pilotPublicPlan,$pilotBefore,$pilotBody,$effects,$dir);
+        channelPostCheck('publisher pilot refuses replay after '.$case,
+            [$again['reason'],$writes,hash_file('sha256',$dir.'/publisher-keyboard-20261125.jsonl')],
+            ['publisher_pilot_previous_attempt_do_not_replay',1,$journalSha]);
+    }
+} finally {
+    foreach(glob($pilotTmp.'/*') as $dir){foreach(glob($dir.'/*') as $file)unlink($file);rmdir($dir);}rmdir($pilotTmp);
+}
+
 echo 'Channel post automation: ' . $passed . ' passed, ' . $failed . ' failed' . PHP_EOL;
 exit($failed === 0 ? 0 : 1);
 

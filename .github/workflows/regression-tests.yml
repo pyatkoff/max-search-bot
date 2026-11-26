@@ -68,7 +68,14 @@ jobs:
       - name: Run required group
         env:
           REQUIRED_CHECK_REPORT: ${{ runner.temp }}/required-check-${{ matrix.group }}.json
-        run: php tests/run_required_group.php "${{ matrix.group }}"
+          REQUIRED_CHECK_GROUP: ${{ matrix.group }}
+          BACKEND_PROFILE: ${{ needs.change-scope.outputs.backend }}
+        run: |
+          if [[ "$REQUIRED_CHECK_GROUP" == architecture && "$BACKEND_PROFILE" == hotel-catalogue-data ]]; then
+            php tests/run_required_group.php architecture hotel-catalogue-data
+          else
+            php tests/run_required_group.php "$REQUIRED_CHECK_GROUP"
+          fi
       - name: Upload required-check timing report
         if: always()
         uses: actions/upload-artifact@v4

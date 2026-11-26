@@ -274,6 +274,7 @@ async function gitBridge(){
     await hotelRegistryReadConsumer(f, a, a);
     await max2HoldPairReadConsumer(f, a, a);
     await hotelFourTransferConsumer(f, a, a);
+    await hotelPublisherKeyboardConsumer(f, a, a);
     await hotelMaxTransferConsumer(f, a, a);
     await remainingTransferOriginalProof();
     const nextRun={...context,event:'push'};
@@ -332,6 +333,7 @@ async function gitBridge(){
     await hotelRegistryReadConsumer(f, r, a);
     await max2HoldPairReadConsumer(f, r, a);
     await hotelFourTransferConsumer(f, r, a);
+    await hotelPublisherKeyboardConsumer(f, r, a);
     await hotelMaxTransferConsumer(f, r, a);
     equal(f.calls.filter(c=>c.method==='PATCH'&&c.path.endsWith('/issues/comments/900')).length,2,
       'two independent waves each make exactly one terminal mutation');
@@ -864,6 +866,209 @@ async function hotelFourTransferConsumer(f,repositorySha,applicationSha){
     const closer=f.wave.own,oldStatus=closer.status,oldConclusion=closer.conclusion;
     closer.status='in_progress';closer.conclusion=null;
     await refuses(resolve,'release_pending','an unclosed release cannot enable the editor');
+    closer.status=oldStatus;closer.conclusion=oldConclusion;
+  }finally{f.hook=null;f.runs.delete(run.id);f.jobs.delete(run.id);f.main=repositorySha;}
+}
+const PUBLISHER_ACTOR_REFUSAL_FIXTURE={
+  run:45724986458,job:139592437693,sha:'c1a445f48fd514b9a4f883faecd20e5ecf1bc4fb',
+  artifact:15074131951,size:1101,digest:'sha256:36bbd6257202d88dbee445b67b24c32282892d37b4db02762967aceb9bc69dc2'};
+function publisherKeyboardPrewriteFixture(source,id=45716283535,pin={
+  run:45716283534,job:139563054439,sha:'58f15d1a147353a4b807f122525d75e1f4f35c1c',
+  artifact:15070650654,size:1094,digest:'sha256:0412466a22de61baaeae4849c6d52d9ee9f74542014e6a4df495f5ddbdc23c9b'}){
+  const branch='ops/anytour-publisher-keyboard-1047-20261125',sha=pin.sha;
+  const owner={id:226193297,login:'pyatkoff'},repository={id:1342493152,full_name:R.REPOSITORY};
+  const prior={id:pin.run,head_sha:sha,head_branch:branch,path:R.PREFIX+'edit-1566-ranked-46-historical-telegram.yml',
+    event:'push',run_attempt:1,status:'completed',conclusion:'failure',created_at:T,
+    repository:copy(repository),head_repository:copy(repository),actor:copy(owner),triggering_actor:copy(owner)};
+  const next={...copy(prior),id,head_sha:source,status:'in_progress',conclusion:null};
+  const originalJob={id:pin.job,run_id:prior.id,head_sha:sha,run_attempt:1,name:'transfer',status:'completed',conclusion:'failure',
+    steps:[step('Check out the native run source'),step('Resolve accepted repository and application'),
+      step('Require exact APPLY admission before loading credentials'),step('Pin established SSH host continuity and authentication identity'),
+      step('Apply the installed editor once and retain its original receipts','failure'),
+      step('Save the original sanitized transfer result'),step('Remove runner connection material')]};
+  const artifact={id:pin.artifact,name:'issue-1566-hotel-ranked-46-transfer',expired:false,size_in_bytes:pin.size,
+    digest:pin.digest,
+    workflow_run:{id:prior.id,head_sha:sha,head_branch:branch,repository_id:repository.id,head_repository_id:repository.id}};
+  const p=R.API_ROOT+'/actions/runs/'+prior.id;
+  const paths={jobs:p+'/attempts/1/jobs?per_page=100',artifacts:p+'/artifacts?per_page=100',
+    ancestry:R.API_ROOT+'/compare/'+sha+'...'+source+'?per_page=1'};
+  const f={prior,next,job:originalJob,artifact,runs:[next,prior],paths,calls:[],
+    jobs:{total_count:1,jobs:[originalJob]},artifacts:{total_count:1,artifacts:[artifact]},
+    ancestry:{status:'ahead',merge_base_commit:{sha}}};
+  f.api=async(method,route)=>{
+    f.calls.push({method,path:route});if(method!=='GET')throw Error('unexpected publisher proof writer');
+    if(route===paths.jobs)return f.jobs;if(route===paths.artifacts)return f.artifacts;
+    if(route===paths.ancestry)return f.ancestry;throw Error('unexpected publisher proof path '+route);
+  };
+  return f;
+}
+async function publisherKeyboardPrewriteProofCases(){
+  const current={id:'45716283535',sha:H('installed publisher keyboard parser correction')},first=publisherKeyboardPrewriteFixture(current.sha);
+  equal(await R.provePublisherKeyboardPrewriteHistory(first.api,first.runs,current),first.next,
+    'only the pinned original preflight refusal can precede one new original keyboard run');
+  equal(first.calls.every(c=>c.method==='GET'),true,'continuation proof reads the original evidence without writing');
+  for(const [label,change,code] of [
+    ['missing original',f=>f.runs.pop(),'publisher_keyboard_prewrite_history_changed'],
+    ['third branch run',f=>f.runs.push({...f.next,id:45716283536}),'publisher_keyboard_prewrite_history_changed'],
+    ['original rerun',f=>f.prior.run_attempt=2,'untrusted_workflow_run'],
+    ['different old source',f=>f.prior.head_sha=H('other stopped source'),'untrusted_workflow_run'],
+    ['different old branch',f=>f.prior.head_branch='ops/foreign','untrusted_workflow_run'],
+    ['successful old operation',f=>f.prior.conclusion='success','producer_not_successful'],
+    ['foreign owner',f=>f.prior.actor.id=1,'publisher_keyboard_prewrite_origin_changed'],
+    ['foreign triggering login',f=>f.prior.triggering_actor.login='other','publisher_keyboard_prewrite_origin_changed'],
+    ['foreign source repository',f=>f.prior.head_repository.id=1,'publisher_keyboard_prewrite_origin_changed'],
+    ['new attempt2',f=>f.next.run_attempt=2,'publisher_keyboard_prewrite_origin_changed'],
+    ['new source mismatch',f=>f.next.head_sha=H('uninstalled source'),'publisher_keyboard_prewrite_origin_changed'],
+    ['incomplete original jobs',f=>f.jobs.total_count=2,'publisher_keyboard_prewrite_jobs_changed'],
+    ['different original job',f=>f.job.id++,'publisher_keyboard_prewrite_proof_changed'],
+    ['old job attempt2',f=>f.job.run_attempt=2,'publisher_keyboard_prewrite_proof_changed'],
+    ['wrong old job source',f=>f.job.head_sha=H('foreign old job'),'publisher_keyboard_prewrite_proof_changed'],
+    ['old apply not failed',f=>f.job.steps[4].conclusion='success','publisher_keyboard_prewrite_steps_changed'],
+    ['old result not preserved',f=>f.job.steps[5].conclusion='skipped','publisher_keyboard_prewrite_steps_changed'],
+    ['duplicate old apply step',f=>f.job.steps.push(copy(f.job.steps[4])),'publisher_keyboard_prewrite_steps_changed'],
+    ['incomplete artifact list',f=>f.artifacts.total_count=2,'publisher_keyboard_prewrite_artifacts_changed'],
+    ['expired original',f=>f.artifact.expired=true,'publisher_keyboard_prewrite_artifact_changed'],
+    ['different artifact ID',f=>f.artifact.id++,'publisher_keyboard_prewrite_artifact_changed'],
+    ['different ZIP bytes',f=>f.artifact.size_in_bytes++,'publisher_keyboard_prewrite_artifact_changed'],
+    ['different failure or unknown result',f=>f.artifact.digest='sha256:'+D('different original result'),'publisher_keyboard_prewrite_artifact_changed'],
+    ['artifact from another run',f=>f.artifact.workflow_run.id++,'publisher_keyboard_prewrite_artifact_changed'],
+    ['artifact from another source',f=>f.artifact.workflow_run.head_sha=H('foreign artifact'),'publisher_keyboard_prewrite_artifact_changed'],
+    ['foreign artifact repository',f=>f.artifact.workflow_run.repository_id=1,'publisher_keyboard_prewrite_artifact_changed'],
+    ['diverged correction',f=>f.ancestry.status='diverged','unpublished_diagnostics_proof']]){
+    const bad=publisherKeyboardPrewriteFixture(current.sha);change(bad);
+    await refuses(()=>R.provePublisherKeyboardPrewriteHistory(bad.api,bad.runs,current),code,label);
+  }
+  const unchanged=publisherKeyboardPrewriteFixture(first.prior.head_sha);
+  await refuses(()=>R.provePublisherKeyboardPrewriteHistory(unchanged.api,unchanged.runs,{...current,sha:first.prior.head_sha}),
+    'publisher_keyboard_prewrite_history_changed','the failed source cannot run again');
+}
+async function hotelPublisherKeyboardConsumer(f,repositorySha,applicationSha){
+  const branch='ops/anytour-publisher-keyboard-1047-20261125',ref='refs/heads/'+branch;
+  const workflow=R.PREFIX+'edit-1566-ranked-46-historical-telegram.yml',owner={id:226193297,login:'pyatkoff'};
+  const run={...copy(f.wave.parent),id:45724986459,path:workflow,event:'push',head_branch:branch,
+    repository:{id:1342493152,full_name:R.REPOSITORY},head_repository:{id:1342493152,full_name:R.REPOSITORY},
+    status:'in_progress',conclusion:null,actor:copy(owner),triggering_actor:copy(owner)};
+  f.runs.set(run.id,run);
+  const own={...job('transfer',run,[],null),status:'in_progress'};f.jobs.set(run.id,[own]);
+  const env={...consumerEnv(run,workflow,'push','transfer'),GITHUB_REF:ref,
+    GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+workflow+'@'+ref,GITHUB_ACTOR:owner.login,GITHUB_TRIGGERING_ACTOR:owner.login};
+  const event={repository:{full_name:R.REPOSITORY,id:1342493152},sender:copy(owner),ref,
+    after:repositorySha,before:'0'.repeat(40),created:true,deleted:false,forced:false};
+  const planPath='config/anytour_publisher_keyboard_pilot_20261125.json';
+  const bytes=fs.readFileSync(path.join(__dirname,'..',planPath)),plan=JSON.parse(bytes);
+  const originalPlan={type:'file',path:planPath,sha:R.gitBlob(bytes),size:bytes.length,encoding:'base64',content:bytes.toString('base64')};
+  equal([bytes.length,originalPlan.sha,D(bytes)],
+    [1026,'72453334d2ca09dfbe690ba8310e72f6b4e168df','a92092aed3523efd38931a8a32f1b78db3d3946c3e449e7d4d4f0a781d1dbca1'],
+    'publisher control admits only the separately reviewed immutable 1047 plan');
+  equal([plan.operation,plan.message_id,plan.publisher,plan.full_transfer,plan.label_suffix],
+    ['hotel_publisher_keyboard_pilot','1047','ANYTOURBOT_bot',false,' →'],
+    'the control is a label-only publisher experiment, not a resumed hotel transfer');
+  const inventoryPath=R.API_ROOT+'/actions/workflows/'+path.basename(workflow)+'/runs?branch='+encodeURIComponent(branch)+'&per_page=100';
+  let inventory=[run],total=null,nativePlan=copy(originalPlan),branchHead=repositorySha;
+  const previous=publisherKeyboardPrewriteFixture(repositorySha,run.id);
+  const actorRefusal=publisherKeyboardPrewriteFixture(repositorySha,run.id,PUBLISHER_ACTOR_REFUSAL_FIXTURE);
+  let advanceMain=false,mainReads=0,advanceBranch=false,branchReads=0;
+  f.hook=({path:route})=>{
+    if(route===inventoryPath)return {total_count:total??inventory.length,workflow_runs:inventory};
+    if(route===R.API_ROOT+'/contents/'+planPath+'?ref='+repositorySha)return nativePlan;
+    if(route===R.API_ROOT+'/git/ref/heads/'+branch)return {object:{sha:advanceBranch&&++branchReads>1?H('moved control branch'):branchHead}};
+    if(route===R.API_ROOT+'/git/ref/heads/main'&&advanceMain&&++mainReads>1)return {object:{sha:H('new main after control admission')}};
+    if(Object.values(previous.paths).includes(route))return previous.api('GET',route);
+    if(Object.values(actorRefusal.paths).includes(route))return actorRefusal.api('GET',route);
+  };
+  const resolve=()=>R.resolveConsumer({env,event,api:f.api});
+  const continuationEvent={...event,before:previous.prior.head_sha,created:false};
+  const resume=()=>R.resolveConsumer({env,event:continuationEvent,api:f.api});
+  const actorEvent={...event,before:actorRefusal.prior.head_sha,created:false};
+  const actorResume=()=>R.resolveConsumer({env,event:actorEvent,api:f.api});
+  try{
+    if(repositorySha!==applicationSha){
+      await refuses(resolve,'publisher_keyboard_editor_not_installed',
+        'a repository-only release cannot use an older installed keyboard editor');
+      inventory=[run,previous.prior];
+      await refuses(resume,'publisher_keyboard_editor_not_installed',
+        'the bounded prewrite continuation also requires the corrected editor installed exactly');
+      inventory=[run,previous.prior,actorRefusal.prior];
+      await refuses(actorResume,'publisher_keyboard_editor_not_installed',
+        'the exact actor continuation requires the corrected editor installed');
+      return;
+    }
+    const before=f.calls.length,result=await resolve();
+    equal([result.repository_sha,result.application_sha,result.ready,result.perform_actions,result.write_operation,result.publisher_pilot_digest],
+      [repositorySha,repositorySha,true,true,'hotel_publisher_keyboard_pilot',D(bytes)],
+      'the original owner push resolves the accepted exact application and control digest');
+    equal(['ranked_index_digest','ranked_artifact_id','parent_evidence'].map(k=>Object.hasOwn(result,k)),[false,false,false],
+      'the label control never consumes ranked transfer chunks or reopens the old fifteen operations');
+    equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'publisher admission is read-only');
+    const rejectedBeforeApi=f.calls.length;
+    for(const patch of [{created:false},{before:H('earlier control branch')},{forced:true},{deleted:true},
+      {after:H('other source')},{repository:{full_name:R.REPOSITORY,id:1}},{sender:{id:1,login:owner.login}}]){
+      await refuses(()=>R.resolveConsumer({env,event:{...event,...patch},api:f.api}),'untrusted_hotel_four_transfer');
+    }
+    for(const patch of [{GITHUB_RUN_ATTEMPT:'2'},{GITHUB_JOB:'registry'},{GITHUB_EVENT_NAME:'workflow_dispatch'},
+      {GITHUB_ACTOR:'other'},{GITHUB_TRIGGERING_ACTOR:'other'},
+      {GITHUB_WORKFLOW_REF:R.REPOSITORY+'/'+R.PREFIX+'read-1566-main-hotel-registry.yml@'+ref}]){
+      await refuses(()=>R.resolveConsumer({env:{...env,...patch},event,api:f.api}),'untrusted_hotel_four_transfer');
+    }
+    equal(f.calls.length,rejectedBeforeApi,'invalid control envelopes cannot reach runtime or credentials');
+    for(const [patch,code] of [[{head_sha:H('foreign control')},'untrusted_workflow_run'],
+      [{run_attempt:2},'untrusted_workflow_run'],[{status:'completed',conclusion:'success'},'workflow_not_active'],
+      [{actor:{id:1,login:owner.login}},'foreign_hotel_transfer_actor'],
+      [{triggering_actor:{id:1,login:owner.login}},'foreign_hotel_transfer_actor']]){
+      const original=copy(run);Object.assign(run,patch);await refuses(resolve,code);Object.assign(run,original);
+    }
+    const oldJob=copy(own);own.name='registry';
+    await refuses(resolve,'hotel_transfer_job_unconfirmed');Object.assign(own,oldJob);
+    total=2;await refuses(resolve,'hotel_transfer_inventory_incomplete');total=null;
+    inventory=[run,{...copy(run),id:run.id-1,status:'completed',conclusion:'failure'}];
+    await refuses(resolve,'hotel_transfer_replay_forbidden','even an earlier failed branch run prevents recreation');inventory=[run];
+    for(const patch of [{type:'symlink'},{path:'config/other.json'},{sha:H('different control plan')},
+      {size:bytes.length+1},{encoding:'none'},{content:'!invalid-base64'},
+      {content:Buffer.from(bytes.toString().replace('"1047"','"1048"')).toString('base64')}]){
+      nativePlan={...originalPlan,...patch};await refuses(resolve,'hotel_transfer_plan_changed');
+    }
+    nativePlan=copy(originalPlan);branchHead=H('changed control branch');
+    await refuses(resolve,'hotel_transfer_branch_changed');branchHead=repositorySha;advanceBranch=true;branchReads=0;
+    await refuses(resolve,'hotel_transfer_branch_changed');advanceBranch=false;
+    f.main=H('new main before control');await refuses(resolve,'main_changed');f.main=repositorySha;
+    advanceMain=true;mainReads=0;await refuses(resolve,'main_changed');advanceMain=false;
+    const closer=f.wave.own,oldStatus=closer.status,oldConclusion=closer.conclusion;
+    closer.status='in_progress';closer.conclusion=null;await refuses(resolve,'release_pending');
+    closer.status=oldStatus;closer.conclusion=oldConclusion;
+    inventory=[run,previous.prior];
+    const continued=await resume();
+    equal([continued.repository_sha,continued.application_sha,continued.write_operation,continued.publisher_pilot_digest],
+      [repositorySha,repositorySha,'hotel_publisher_keyboard_pilot',D(bytes)],
+      'one nonforced update after the pinned prewrite refusal retains the same keyboard operation and immutable plan');
+    for(const patch of [{forced:true},{created:true},{before:H('later branch head')},{deleted:true}])
+      await refuses(()=>R.resolveConsumer({env,event:{...continuationEvent,...patch},api:f.api}),
+        'untrusted_hotel_four_transfer','the continuation cannot force, recreate or follow another update');
+    await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_RUN_ATTEMPT:'2'},event:continuationEvent,api:f.api}),
+      'untrusted_hotel_four_transfer','the continuation is not a workflow rerun');
+    await refuses(resolve,'hotel_transfer_replay_forbidden','deleting and recreating the old branch cannot repeat the pilot');
+    inventory.push({...copy(run),id:run.id+1});
+    await refuses(resume,'publisher_keyboard_prewrite_history_changed','a third branch run cannot use the first recovery');
+    inventory=[run,previous.prior,actorRefusal.prior];
+    const actorContinued=await actorResume();
+    equal([actorContinued.repository_sha,actorContinued.application_sha,actorContinued.write_operation,actorContinued.publisher_pilot_digest],
+      [repositorySha,repositorySha,'hotel_publisher_keyboard_pilot',D(bytes)],
+      'both authenticated prewrite refusals admit only the exact actor continuation');
+    await refuses(resume,'publisher_keyboard_prewrite_history_changed','the first forward cannot be replayed');
+    inventory=[run,actorRefusal.prior];
+    await refuses(actorResume,'publisher_keyboard_prewrite_history_changed','both originals must be present');
+    inventory=[run,previous.prior,actorRefusal.prior];
+    const savedDigest=actorRefusal.artifact.digest;actorRefusal.artifact.digest='sha256:'+D('unrelated refusal');
+    await refuses(actorResume,'publisher_keyboard_prewrite_artifact_changed','the actor refusal must retain the exact artifact');
+    actorRefusal.artifact.digest=savedDigest;
+    const savedConclusion=actorRefusal.prior.conclusion;actorRefusal.prior.conclusion='success';
+    await refuses(actorResume,'producer_not_successful','an accepted edit cannot be repeated');
+    actorRefusal.prior.conclusion=savedConclusion;
+    inventory.push({...copy(run),id:run.id+1});
+    await refuses(actorResume,'publisher_keyboard_prewrite_history_changed','no fourth branch run is admitted');
+    inventory=[run,previous.prior,actorRefusal.prior];
+    await refuses(()=>R.resolveConsumer({env:{...env,GITHUB_RUN_ATTEMPT:'2'},event:actorEvent,api:f.api}),'untrusted_hotel_four_transfer');
+    closer.status='in_progress';closer.conclusion=null;await refuses(actorResume,'release_pending');
+    inventory=[run,previous.prior];await refuses(resume,'release_pending');
     closer.status=oldStatus;closer.conclusion=oldConclusion;
   }finally{f.hook=null;f.runs.delete(run.id);f.jobs.delete(run.id);f.main=repositorySha;}
 }
@@ -2842,6 +3047,7 @@ async function rankedPrewriteProofCases() {
 }
 
 async function rankedParentCases() {
+  await publisherKeyboardPrewriteProofCases();
   await rankedPrewriteProofCases();
   const seed = 45372056681, child = seed + 10, leaf = child + 1;
   const seedSha = 'e3e1a9bdf29dd0d7530fe6b3b393f1286834d092', head = H('ranked-child');

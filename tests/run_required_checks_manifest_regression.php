@@ -45,7 +45,9 @@ manifestCheck('canonical full runner still performs PHP syntax validation', strp
 manifestCheck('group runner loads metadata catalog', strpos($groupRunner, "required_checks_catalog.php") !== false && strpos($groupRunner, "if (\$group === 'all')") !== false);
 manifestCheck('group runner records per-check duration and machine-readable result', strpos($groupRunner, 'duration_ms') !== false && strpos($groupRunner, 'CHECK_RESULT ') !== false && strpos($groupRunner, 'REQUIRED_CHECK_REPORT') !== false);
 manifestCheck('PR workflow has matrix groups', strpos($workflow, 'matrix:') !== false && strpos($workflow, 'group: [architecture, dialogue, website, manager, diagnostics]') !== false);
-manifestCheck('PR workflow executes group runner', strpos($workflow, 'php tests/run_required_group.php "${{ matrix.group }}"') !== false);
+manifestCheck('PR workflow executes the canonical runner for both architecture profiles',
+    str_contains($workflow, 'php tests/run_required_group.php "$REQUIRED_CHECK_GROUP"')
+    && str_contains($workflow, 'php tests/run_required_group.php architecture hotel-catalogue-data'));
 manifestCheck('PR workflow preserves all final regression gates including native MySQL', strpos($workflow, 'regression:') !== false && strpos($workflow, 'name: regression') !== false && strpos($workflow, 'needs: [change-scope, inventory, php-syntax, required, prepared-mysql, appleservice39-mysql, hotel-catalogue, oauth]') !== false && strpos($workflow, 'test "$PREPARED_MYSQL_RESULT" = success') !== false && strpos($workflow, 'test "$APPLESERVICE39_MYSQL_RESULT" = success') !== false && strpos($workflow, 'test "$HOTEL_RESULT" = success') !== false && strpos($workflow, 'php tests/mysql/appleservice39-publisher.php') !== false);
 manifestCheck('PR workflow persists required-check timing artifacts', strpos($workflow, 'REQUIRED_CHECK_REPORT:') !== false && strpos($workflow, 'actions/upload-artifact@v4') !== false && strpos($workflow, 'required-check-report-') !== false);
 
@@ -72,7 +74,7 @@ $sourceGate = $sourceGateRows[1] ?? '';
 manifestCheck('deployment retains distinct source checks, aggregate and install jobs',
     $uniqueJobs && $inventoryJob !== '' && $syntaxJob !== '' && $groupsJob !== '' && $verifyJob !== '' && $deployJob !== '');
 manifestCheck('deployment preflight runs architecture once with inventory first',
-    preg_match('/^        run: php tests\/run_required_group\.php architecture$/m', $inventoryJob) === 1
+    str_contains($inventoryJob, 'php tests/run_required_group.php architecture "$DEPLOY_CHECK_PROFILE"')
     && ($manifest['architecture'][0] ?? null) === 'php tests/run_required_checks_inventory_regression.php');
 
 $include = [];
@@ -93,8 +95,9 @@ manifestCheck('two deployment lanes plus preflight cover every catalog group exa
     count($laneRows) === 2 && count(array_unique($lanes)) === 2
     && trim(preg_replace($lanePattern, '', $include[1] ?? '')) === ''
     && $selectedGroups === $expectedGroups);
-manifestCheck('deployment lanes require inventory and limit concurrent runners',
-    preg_match('/^    needs: verify-inventory$/m', $groupsJob) === 1
+manifestCheck('architecture and application lanes run independently with bounded concurrency',
+    preg_match('/^    needs: verify-syntax$/m', $inventoryJob) === 1
+    && preg_match('/^    needs: verify-syntax$/m', $groupsJob) === 1
     && preg_match('/^      fail-fast: false$/m', $groupsJob) === 1
     && preg_match('/^      max-parallel: 2$/m', $groupsJob) === 1
     && str_contains($groupsJob, 'DEPLOY_CHECK_GROUPS: ${{ matrix.groups }}')

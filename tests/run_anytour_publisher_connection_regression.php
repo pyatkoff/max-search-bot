@@ -292,6 +292,162 @@ try {
     publisherCheck('publisher use leaves the credential version and encrypted record unchanged', $connection->status(1)['version'] === 1
         && (string)file_get_contents($tmp.'/vault/connection.json') === $registryPreimage && !$pdo->inTransaction());
 
+    // The 1047 pilot has its own transport and an immutable request, not a
+    // caller-selectable target for the legacy Aloft capability. No network I/O.
+    $pilotCalls = [];
+    $pilotHook = null;
+    $pilotNative = static function ($candidate, $method, $path, $query, $body) use ($token, &$pilotCalls, &$pilotHook): array {
+        if ($candidate !== $token) throw new LogicException('wrong_synthetic_pilot_credential');
+        $pilotCalls[] = [$method, $path, $query, $body];
+        $result = match ($path) {
+            'getMe'=>['id'=>123456, 'username'=>'ANYTOURBOT_bot', 'is_bot'=>true],
+            'getChatMember'=>['user'=>['id'=>123456, 'username'=>'ANYTOURBOT_bot', 'is_bot'=>true], 'status'=>'administrator', 'can_edit_messages'=>true],
+            'getChat'=>['id'=>-1001845835645, 'type'=>'channel', 'username'=>'anytour'],
+            'editMessageReplyMarkup'=>['message_id'=>1047, 'chat'=>['id'=>-1001845835645, 'type'=>'channel'], 'reply_markup'=>$body['reply_markup']],
+            default=>throw new LogicException('unexpected_synthetic_pilot_method'),
+        };
+        if ($pilotHook) $result = $pilotHook($path, $result);
+        return ['http'=>200, 'data'=>['ok'=>true, 'result'=>$result], 'transport_error'=>false];
+    };
+    $pilot = new AnyTourPublisherBotConnection($tmp.'/vault', $reader, $native, $pilotNative);
+    $pilotBody = ['chat_id'=>'-1001845835645', 'message_id'=>'1047', 'reply_markup'=>['inline_keyboard'=>[
+        [['text'=>'Подробнее об отеле', 'url'=>'https://example.invalid/lusso?hotel=old']],
+        [['text'=>'Связаться', 'url'=>'https://t.me/ANYTOURBOT_bot?start=existing_lusso']],
+        [['text'=>'Другие даты', 'url'=>'https://example.invalid/lusso/dates#existing']],
+    ]]];
+    publisherCheck('pilot accepts three existing URL buttons without requiring the transfer CTA',
+        ChannelPostApiTransport::publisherKeyboardPilotPayload($pilotBody) === $pilotBody);
+    $invalidPilotBodies = [
+        array_replace($pilotBody, ['message_id'=>'1678']),
+        array_replace($pilotBody, ['message_id'=>'1048']),
+        array_replace($pilotBody, ['chat_id'=>'-1001845835646']),
+        $pilotBody + ['caption'=>'must not change'],
+        $pilotBody + ['media'=>['type'=>'photo', 'media'=>'must_not_send']],
+        $pilotBody + ['business_connection_id'=>'must_not_send'],
+        array_replace($pilotBody, ['reply_markup'=>['inline_keyboard'=>[]]]),
+        array_replace($pilotBody, ['reply_markup'=>['inline_keyboard'=>array_fill(0, 4, $pilotBody['reply_markup']['inline_keyboard'][0])]]),
+        array_replace($pilotBody, ['reply_markup'=>['inline_keyboard'=>[array_fill(0, 4, $pilotBody['reply_markup']['inline_keyboard'][0][0])]]]),
+        array_replace_recursive($pilotBody, ['reply_markup'=>['inline_keyboard'=>[[['url'=>'http://example.invalid/lusso']]]]]),
+        array_replace_recursive($pilotBody, ['reply_markup'=>['inline_keyboard'=>[[['url'=>'https://user:password@example.invalid/lusso']]]]]),
+        array_replace_recursive($pilotBody, ['reply_markup'=>['inline_keyboard'=>[[['url'=>"https://example.invalid/\r\nother"]]]]]),
+        array_replace_recursive($pilotBody, ['reply_markup'=>['inline_keyboard'=>[[['text'=>"line\nbreak"]]]]]),
+        array_replace_recursive($pilotBody, ['reply_markup'=>['inline_keyboard'=>[[['text'=>"\xff"]]]]]),
+        array_replace_recursive($pilotBody, ['reply_markup'=>['inline_keyboard'=>[[['callback_data'=>'different_action']]]]]),
+        array_replace_recursive($pilotBody, ['reply_markup'=>['inline_keyboard'=>[[['web_app'=>['url'=>'https://example.invalid/']]]]]]),
+    ];
+    $pilotVaultBefore = publisherFiles($tmp.'/vault');
+    $legacyBeforePilot = count($publisherCalls);
+    foreach ($invalidPilotBodies as $invalidBody) {
+        publisherCheck('pilot transport payload refuses an unrelated or unsupported request',
+            ChannelPostApiTransport::publisherKeyboardPilotPayload($invalidBody) === null);
+        publisherRefuses('publisher_operation_forbidden', fn()=>$pilot->withPublisherKeyboardPilot(1, 1, $invalidBody, $readPublisher, true));
+    }
+    foreach ([0, 2, 3] as $actor)
+        publisherRefuses('forbidden', fn()=>$pilot->withPublisherKeyboardPilot($actor, 1, $pilotBody, $readPublisher));
+    publisherRefuses('context_changed', fn()=>$pilot->withPublisherKeyboardPilot(1, 2, $pilotBody, $readPublisher));
+    publisherRefuses('publisher_operation_forbidden', fn()=>$publisher->withPublisher(1, 1,
+        static fn($binding, $request)=>$request('telegram', 'POST', 'editMessageReplyMarkup', [], $pilotBody), true));
+    publisherCheck('pilot admission leaves both transports and credentials untouched', $pilotCalls === []
+        && count($publisherCalls) === $legacyBeforePilot && publisherFiles($tmp.'/vault') === $pilotVaultBefore);
+
+    publisherRefuses('publisher_verification_required', fn()=>$pilot->withPublisherKeyboardPilot(1, 1, $pilotBody,
+        static fn($binding, $request)=>$request('telegram', 'POST', 'editMessageReplyMarkup', [], $pilotBody), true));
+    publisherRefuses('publisher_operation_forbidden', fn()=>$pilot->withPublisherKeyboardPilot(1, 1, $pilotBody,
+        static function ($binding, $request) use ($readPublisher, $pilotBody): array {
+            $readPublisher($binding, $request);
+            return $request('telegram', 'POST', 'editMessageReplyMarkup', [], $pilotBody);
+        }));
+    foreach (['getMe', 'getChatMember', 'getChat'] as $wrongNative) {
+        $pilotHook = static function ($path, $result) use ($wrongNative): array {
+            if ($path === $wrongNative) {
+                if ($path === 'getMe') $result['username'] = 'anyru_bot';
+                elseif ($path === 'getChatMember') $result['can_edit_messages'] = false;
+                else $result['id'] = -1001845835646;
+            }
+            return $result;
+        };
+        publisherRefuses('publisher_verification_required', fn()=>$pilot->withPublisherKeyboardPilot(1, 1, $pilotBody,
+            static function ($binding, $request) use ($readPublisher, $pilotBody): array {
+                $readPublisher($binding, $request);
+                return $request('telegram', 'POST', 'editMessageReplyMarkup', [], $pilotBody);
+            }, true));
+    }
+    publisherCheck('pilot requires its own fresh identity rights and channel before writing',
+        !in_array('editMessageReplyMarkup', array_column($pilotCalls, 1), true));
+    $pilotHook = null;
+    $pilotCalls = [];
+    $editedPilot = $pilot->withPublisherKeyboardPilot(1, 1, $pilotBody,
+        static function ($binding, $request) use ($readPublisher, $pilotBody, $button, $invalidRequests): array {
+            $readPublisher($binding, $request);
+            foreach ($invalidRequests as $arguments)
+                publisherRefuses('publisher_operation_forbidden', fn()=>$request(...$arguments));
+            foreach ([$button,
+                array_replace_recursive($pilotBody, ['reply_markup'=>['inline_keyboard'=>[[['url'=>'https://example.invalid/another-hotel']]]]]),
+                array_replace_recursive($pilotBody, ['reply_markup'=>['inline_keyboard'=>[[['text'=>'unapproved label']]]]]),
+            ] as $changedBody)
+                publisherRefuses('publisher_operation_forbidden', fn()=>$request('telegram', 'POST', 'editMessageReplyMarkup', [], $changedBody));
+            $response = $request('telegram', 'POST', 'editMessageReplyMarkup', [], $pilotBody);
+            publisherRefuses('publisher_operation_forbidden', fn()=>$request('telegram', 'POST', 'editMessageReplyMarkup', [], $pilotBody));
+            return $response;
+        }, true);
+    publisherCheck('pilot sends exactly the frozen keyboard once through its separate transport',
+        array_column($pilotCalls, 1) === ['getMe', 'getChatMember', 'getChat', 'editMessageReplyMarkup']
+        && $pilotCalls[3][3] === $pilotBody && $editedPilot['data']['result']['message_id'] === 1047
+        && count($publisherCalls) === $legacyBeforePilot);
+
+    $referencedBody = $pilotBody;
+    $mutableUrl = $pilotBody['reply_markup']['inline_keyboard'][0][0]['url'];
+    $referencedBody['reply_markup']['inline_keyboard'][0][0]['url'] = &$mutableUrl;
+    $pilotCalls = [];
+    $pilot->withPublisherKeyboardPilot(1, 1, $referencedBody,
+        static function ($binding, $request) use ($readPublisher, $pilotBody, $referencedBody, &$mutableUrl): array {
+            $readPublisher($binding, $request);
+            $mutableUrl = 'https://example.invalid/substituted-after-admission';
+            publisherRefuses('publisher_operation_forbidden', fn()=>$request('telegram', 'POST', 'editMessageReplyMarkup', [], $referencedBody));
+            return $request('telegram', 'POST', 'editMessageReplyMarkup', [], $pilotBody);
+        }, true);
+    publisherCheck('caller references cannot mutate the admitted keyboard during a lease', $pilotCalls[3][3] === $pilotBody);
+
+    $pilotHook = static function ($path, $result) use ($token): array {
+        if ($path === 'editMessageReplyMarkup') throw new RuntimeException('Synthetic uncertain pilot '.$token);
+        return $result;
+    };
+    $pilotCalls = [];
+    $uncertainPilot = $pilot->withPublisherKeyboardPilot(1, 1, $pilotBody,
+        static function ($binding, $request) use ($readPublisher, $pilotBody, $button): array {
+            $readPublisher($binding, $request);
+            $response = $request('telegram', 'POST', 'editMessageReplyMarkup', [], $pilotBody);
+            publisherRefuses('publisher_operation_forbidden', fn()=>$request('telegram', 'POST', 'editMessageReplyMarkup', [], $pilotBody));
+            publisherRefuses('publisher_operation_forbidden', fn()=>$request('telegram', 'POST', 'editMessageReplyMarkup', [], $button));
+            return $response;
+        }, true);
+    publisherCheck('unknown pilot outcome cannot retry or fall back to the legacy transport',
+        $uncertainPilot === ['http'=>0, 'data'=>null, 'transport_error'=>true]
+        && array_column($pilotCalls, 1) === ['getMe', 'getChatMember', 'getChat', 'editMessageReplyMarkup']
+        && count($publisherCalls) === $legacyBeforePilot);
+    $pilotHook = static function ($path, $result) use ($tmp, $registryPreimage): array {
+        if ($path === 'getMe') {
+            $changed = json_decode($registryPreimage, true, 512, JSON_THROW_ON_ERROR);
+            $changed['version'] = 2;
+            file_put_contents($tmp.'/vault/connection.json', json_encode($changed, JSON_THROW_ON_ERROR));
+        }
+        return $result;
+    };
+    $pilotCalls = [];
+    publisherRefuses('context_changed', fn()=>$pilot->withPublisherKeyboardPilot(1, 1, $pilotBody, $readPublisher, true));
+    publisherCheck('pilot credential rotation stops before the next provider request', array_column($pilotCalls, 1) === ['getMe']);
+    file_put_contents($tmp.'/vault/connection.json', $registryPreimage);
+    $pilotHook = null;
+    $escapedPilot = null;
+    $pilot->withPublisherKeyboardPilot(1, 1, $pilotBody,
+        static function ($binding, $request) use (&$escapedPilot): array { $escapedPilot = $request; return []; });
+    publisherRefuses('publisher_scope_closed', fn()=>$escapedPilot('telegram', 'POST', 'editMessageReplyMarkup', [], $pilotBody));
+    publisherRefuses('publisher_invalid_result', fn()=>$pilot->withPublisherKeyboardPilot(1, 1, $pilotBody,
+        static fn($binding, $request)=>['request'=>$request]));
+    publisherCheck('pilot leaves stored credentials and the registry transaction state unchanged',
+        (string)file_get_contents($tmp.'/vault/connection.json') === $registryPreimage
+        && $connection->status(1)['version'] === 1 && !$pdo->inTransaction());
+
     $connection->save(1, 1, $next);
     publisherCheck('explicit rotation advances exactly one version', $connection->status(1)['version'] === 2);
     $transactionPreimage = hash_file('sha256', $tmp.'/vault/connection.json');

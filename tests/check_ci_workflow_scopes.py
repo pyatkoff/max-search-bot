@@ -78,6 +78,11 @@ expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-sele
 check(regression['required']['strategy']['matrix'] == {
     'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
     'catalogue excludes unrelated Manager2 tests and styling retains its existing matrix')
+pr_required = next(s for s in regression['required']['steps'] if s.get('name') == 'Run required group')
+check(pr_required['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}'
+      and pr_required['env']['REQUIRED_CHECK_GROUP'] == '${{ matrix.group }}'
+      and not pr_required.get('if') and not pr_required.get('continue-on-error'),
+      'PR architecture uses the proven profile without skipping the required group')
 check(source_gate['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}', 'aggregate uses the actual backend selection')
 hotel_job = regression['hotel-catalogue']
 check(hotel_job['needs'] == 'change-scope' and hotel_job['if'] ==
@@ -407,22 +412,50 @@ check(dj['deploy']['needs'] == ['verify-inventory','verify-syntax','verify-group
 check(dj['deploy']['steps'][0]['name'] == 'Require the complete deployment verification'
       and 'test "$GITHUB_RUN_ATTEMPT" = 1' in dj['deploy']['steps'][0]['run'],
       'installer replay stopped before checkout or protected access')
-production_scope = next(s for s in dj['verify-inventory']['steps'] if s.get('id') == 'hotel_scope')
+production_scope = next(s for s in dj['verify-syntax']['steps'] if s.get('id') == 'hotel_scope')
+profile_output = '${{ needs.verify-syntax.outputs.profile }}'
 check(production_scope['run'] == 'node tools/deploy_hotel_catalogue_scope.js'
       and not production_scope.get('if') and not production_scope.get('continue-on-error')
-      and dj['verify-inventory']['permissions'] == {'contents':'read','actions':'read'},
+      and dj['verify-syntax']['permissions'] == {
+          'contents':'read', 'actions':'read', 'pull-requests':'read', 'issues':'read'}
+      and dj['verify-syntax']['outputs'] == {'profile':'${{ steps.hotel_scope.outputs.profile }}'},
       'production catalogue scope is selected by one fatal, read-only source gate')
+production_inventory = next(s for s in dj['verify-inventory']['steps']
+                            if s.get('name') == 'Verify required inventory and architecture')
 production_group = next(s for s in dj['verify-groups']['steps'] if s.get('name') == 'Run every required group in this lane')
-check(dj['verify-groups']['needs'] == 'verify-inventory'
-      and production_group['env']['DEPLOY_CHECK_PROFILE'] == '${{ needs.verify-inventory.outputs.profile }}'
+check(all(dj[job]['needs'] == 'verify-syntax' for job in ['verify-inventory','verify-groups'])
+      and production_inventory['env']['DEPLOY_CHECK_PROFILE'] == profile_output
+      and production_group['env']['DEPLOY_CHECK_PROFILE'] == profile_output
       and 'bash tools/check_hotel_catalogue_scope.sh' in production_group['run']
       and all(not s.get('if') and not s.get('continue-on-error') for job in
               [dj['verify-inventory'],dj['verify-syntax'],dj['verify-groups']] for s in job['steps']),
-      'every existing required deployment job still runs and propagates catalogue and group failures')
+      'architecture and groups run on separate runners with the same proven profile')
 with tempfile.TemporaryDirectory() as stub_dir:
     php_stub = Path(stub_dir)/'php'
-    php_stub.write_text('#!/usr/bin/env bash\nset -eu\nif [[ "$1" == tests/run_required_group.php ]]; then printf "%s\\n" "$2"; else printf "catalogue:%s\\n" "$1"; fi\n')
+    php_stub.write_text(
+        '#!/usr/bin/env bash\nset -eu\n'
+        'if [[ "$1" == tests/run_required_group.php ]]; then\n'
+        '  shift\n  printf "%s\\n" "$*"\n'
+        'else\n  printf "catalogue:%s\\n" "$1"\nfi\n'
+    )
     php_stub.chmod(0o755)
+    probe_env = {**os.environ, 'PATH': stub_dir + os.pathsep + os.environ['PATH']}
+    for profile, group, expected in [
+        ('hotel-catalogue-data','architecture','architecture hotel-catalogue-data'),
+        ('full','architecture','architecture'),
+        ('workspace-style','architecture','architecture'),
+        ('hotel-catalogue-data','website','website'),
+    ]:
+        probe = subprocess.run(['bash','-e','-c',pr_required['run']], capture_output=True, text=True,
+            env={**probe_env, 'BACKEND_PROFILE':profile, 'REQUIRED_CHECK_GROUP':group})
+        check(probe.returncode == 0 and probe.stdout.strip() == expected,
+              'required group command for '+profile+'/'+group)
+    for profile in ['full','hotel-catalogue-data','']:
+        probe = subprocess.run(['bash','-e','-c',production_inventory['run']], capture_output=True, text=True,
+            env={**probe_env, 'DEPLOY_CHECK_PROFILE':profile})
+        check((probe.returncode == 1 and not probe.stdout) if not profile else
+              (probe.returncode == 0 and probe.stdout.strip() == 'architecture '+profile),
+              'production architecture command for '+profile)
     for profile, lane, groups, expected in [
         ('full','application','dialogue website manager',['dialogue','website','manager']),
         ('hotel-catalogue-data','application','dialogue website manager',
@@ -436,7 +469,7 @@ with tempfile.TemporaryDirectory() as stub_dir:
         ('unknown','diagnostics','diagnostics',None),
     ]:
         probe = subprocess.run(['bash','-e','-c',production_group['run']], capture_output=True, text=True,
-            env={**os.environ,'PATH':stub_dir+os.pathsep+os.environ['PATH'],
+            env={**probe_env,
                  'DEPLOY_CHECK_PROFILE':profile,'DEPLOY_CHECK_LANE':lane,'DEPLOY_CHECK_GROUPS':groups})
         check((probe.returncode == 1 and not probe.stdout) if expected is None else
               (probe.returncode == 0 and probe.stdout.splitlines() == expected),
