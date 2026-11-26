@@ -15,7 +15,7 @@ jobs:
       github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '58f081826d1587c8e3318f64d140de137df3808e' && github.run_attempt == 1
+      github.event.before == 'e47888c2e5840ef808e0a67c03357cb488fbe50a' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -162,7 +162,7 @@ jobs:
           Path("max-commercial-evidence.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2))
           print("MAX_COMMERCIAL_EVIDENCE=" + json.dumps(summary, ensure_ascii=False, separators=(",", ":")))
           PY
-      - uses: actions/upload-artifact@ea165f8d65b75b540449e92b4886f43607fa02
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: max-commercial-photo-evidence
           path: max-commercial-evidence.json
