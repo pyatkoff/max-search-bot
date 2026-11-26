@@ -25,7 +25,7 @@ jobs:
       github.event_name == 'push' && github.repository == 'pyatkoff/max-search-bot' &&
       github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
       github.actor == 'pyatkoff' &&
-      github.event.before == 'e876999050e8b0afb748e10da5fbdbc6cabe5088' &&
+      github.event.before == 'fb53719d328b9f175f11916a3e4377be772d7bde' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
@@ -159,8 +159,27 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh prepare - \
-            < pub/approved.tar > pub/preparation.json
+          for delay in 0 15 30 45; do
+            if (( delay > 0 )); then
+              echo "MAX_PREPARE_EDITOR_BUSY_RETRY_SECONDS=$delay"
+              sleep "$delay"
+            fi
+            bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh prepare - \
+              < pub/approved.tar > pub/preparation.json
+            if ! python3 - <<'PY'
+          import json
+          import sys
+          with open('pub/preparation.json') as source:
+              receipt=json.load(source)
+          busy=(receipt.get('contract')=='anytour-max-transfer-preparation-v1'
+                and receipt.get('provider_writes')==0
+                and receipt.get('rows')==[{'hotel_id':466,'state':'stopped_before_edit','reason':'editor_busy'}])
+          sys.exit(0 if busy else 1)
+          PY
+            then
+              break
+            fi
+          done
       - name: Confirm MAX native preparation produced no writes
         run: |
           set -euo pipefail
@@ -172,6 +191,7 @@ jobs:
           assert receipt['contract']=='anytour-max-transfer-preparation-v1' and receipt['provider_writes']==0
           assert [r['hotel_id'] for r in rows]==[466]
           print('MAX_NATIVE_PREPARE_ONLY='+json.dumps(receipt,separators=(',',':')))
+          assert rows[0]['state']=='ready_read_only', rows[0].get('reason','checkpoint_unavailable')
           PY
       - name: Store only the native preparation proof
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
