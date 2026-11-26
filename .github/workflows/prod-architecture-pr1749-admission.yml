@@ -1,0 +1,24 @@
+name: Production architecture PR1749 ordinary release admission
+on:
+  push:
+    branches: [ops/admit-production-architecture-1749-20261127]
+    paths: ['.github/workflows/prod-architecture-pr1749-admission.yml']
+permissions:
+  contents: read
+  actions: read
+  issues: read
+  pull-requests: read
+jobs:
+  admission:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == 'e1511db16f24822d1271ab5e444ca859997be31e' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: e1511db16f24822d1271ab5e444ca859997be31e
+          persist-credentials: false
+      - name: Fresh ordinary release admission for PR1749
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node tools/release_priority.js --admit 1749 8ea29f987dae5f4e40f9c40114a8bad4e2a64989 e1511db16f24822d1271ab5e444ca859997be31e
