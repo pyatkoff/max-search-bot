@@ -10,7 +10,7 @@ fi
 root='/var/www/anytoour/data/www/app.anytoour.ru'
 timeout 20s ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o ConnectTimeout=10 \
     -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "$DEPLOY_USER@$DEPLOY_HOST" \
-    "cd '$root' && { test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' || exit 41; } && timeout 15s php tools/modeled_conversion_monitor.php availability" \
+    "cd '$root' && { test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' || exit 41; } && timeout 15s php tools/modeled_conversion_monitor.php release-availability" \
     > "$RUNNER_TEMP/monitor-health.json" 2>/dev/null || {
   status=$?
   reason=monitor_transport_unavailable
