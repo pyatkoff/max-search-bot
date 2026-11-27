@@ -2,7 +2,7 @@ name: "#1566 Prepare ranked Telegram transfer data"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
-    paths: ['config/anytour_ranked_reader_pairs.json']
+    paths: ['config/anytour_ranked_reader_pairs.json', '.github/workflows/read-1566-telegram-46-20261123.yml']
 permissions:
   contents: read
   actions: read
@@ -44,7 +44,7 @@ jobs:
 
           MANIFEST = 'config/anytour_ranked_reader_pairs.json'
           WORKFLOW = '.github/workflows/read-1566-telegram-46-20261123.yml'
-          WORKFLOW_UPGRADE_PARENT = '230e98c1371c9039bce1d370a9ea4b811d9d7c4c'
+          WORKFLOW_UPGRADE_PARENT = 'c6d9bcf00b66c2b5d293b5bb112158959a604413'
           FIELDS = {
               'hotel_id', 'source_mid', 'source_publication_id', 'target_mid',
               'target_published_unixtime', 'target_caption_sha256', 'target_photo_marker_sha256',
@@ -69,7 +69,7 @@ jobs:
               assert git('rev-list', '--parents', '-n', '1', head).split() == [head, before]
               changes = set(git('diff-tree', '--no-commit-id', '--no-renames', '--name-status', '-r',
                                 before, head).splitlines())
-              expected = ({'M\t' + MANIFEST, 'M\t' + WORKFLOW} if before == WORKFLOW_UPGRADE_PARENT
+              expected = ({'M\t' + WORKFLOW} if before == WORKFLOW_UPGRADE_PARENT
                           else {'M\t' + MANIFEST})
               assert changes == expected, 'unexpected commit scope'
               assert re.fullmatch(r'100644 blob [a-f0-9]{40}\t' + re.escape(MANIFEST) + r'\n',
@@ -152,6 +152,22 @@ jobs:
               throw Error('installation_not_accepted');
             }
 
+            // Retain interoperability with installed publisher workflows from before
+            // snapshot support, so an independent reader rollout does not stop writes.
+            const writerPath = release.PREFIX + 'edit-1566-ranked-46-historical-telegram.yml';
+            const writer = await api('GET', release.API_ROOT + '/contents/' + writerPath
+              + '?ref=' + resolved.application_sha);
+            if (writer?.type !== 'file' || writer.path !== writerPath || writer.encoding !== 'base64'
+                || typeof writer.content !== 'string' || !Number.isSafeInteger(writer.size)
+                || writer.size < 1 || writer.size > 64000) {
+              throw Error('installed_writer_contract_unconfirmed');
+            }
+            const writerBytes = Buffer.from(writer.content.replace(/\n/g, ''), 'base64');
+            if (writerBytes.length !== writer.size || release.gitBlob(writerBytes) !== writer.sha) {
+              throw Error('installed_writer_contract_changed');
+            }
+            const readOnlySnapshot = writerBytes.includes('--allow-read-only-snapshot');
+
             const after = await release.readRecord(api);
             if (before.blob !== after.blob || before.record_digest !== after.record_digest) {
               throw Error('accepted_record_changed');
@@ -163,6 +179,7 @@ jobs:
             fs.mkdirSync('../pub', { recursive: true });
             fs.writeFileSync('../pub/accepted-read-admission.json', JSON.stringify({
               read_only: true, current_main_sha: repositorySha, application_sha: resolved.application_sha,
+              read_only_snapshot: readOnlySnapshot,
               write_admission: false, baseline_current_for_writer: baselineCurrent, canonical: resolved,
               record_commit: before.commit, record_blob: before.blob,
               original_installation_deploy: installation.run_id,
@@ -172,7 +189,8 @@ jobs:
               installation.run_id, accepted.closure.run_id, 'current_for_writer=' + baselineCurrent);
             fs.appendFileSync(process.env.GITHUB_ENV,
               'REPOSITORY_SHA=' + repositorySha + '\nAPPLICATION_SHA=' + resolved.application_sha +
-              '\nRANKED_BASELINE_CURRENT=' + (baselineCurrent ? '1' : '0') + '\n');
+              '\nRANKED_BASELINE_CURRENT=' + (baselineCurrent ? '1' : '0') +
+              '\nRANKED_READ_ONLY_SNAPSHOT=' + (readOnlySnapshot ? '1' : '0') + '\n');
           }
           check().catch(error => {
             console.error('readonly_accepted_installation_refused', error.code || error.message);
@@ -195,15 +213,16 @@ jobs:
               assert re.fullmatch(pattern,value) and program.count('__'+name+'__') == 1
               program=program.replace('__'+name+'__',value)
           baseline = os.environ['RANKED_BASELINE_CURRENT']
-          assert baseline in ('0', '1')
+          snapshot = os.environ['RANKED_READ_ONLY_SNAPSHOT']
+          assert baseline in ('0', '1') and snapshot in ('0', '1')
           # Execute the reviewed reader helpers for the admitted candidate packet.
-          # Preserve candidate holds, read-only SQL and the shared PRICE lease.
+          # Candidate holds and SQL read-only mode remain mandatory.
           assert program.count("$out=['schema'=>1") == 1
           program=program[:program.index("$out=['schema'=>1")]
-          entry=r'''function preparedLeaseAdmissionRead(bool $shared,array $blockers,bool $baselineCurrent = true):array {
+          entry=r'''function rankedPreparationAdmission(array $blockers,bool $snapshot,bool $shared,bool $baselineCurrent):array {
            $prepared=$blockers===[];
-           if(!$shared)$blockers[]='price_shared_lease_not_acquired';
-           if(!$baselineCurrent)$blockers[]='accepted_application_not_current_for_writer';
+           if(!$snapshot&&!$shared)$blockers[]='price_shared_lease_not_acquired';
+           if(!$snapshot&&!$baselineCurrent)$blockers[]='accepted_application_not_current_for_writer';
            return ['preparation_ready'=>$prepared,'preview_ready'=>$blockers===[],'preview_blockers'=>$blockers];
           }
           function assertTelegramPriceLeaseInode($file, string $path): void {
@@ -213,22 +232,19 @@ jobs:
            requireRead(!is_link($path)&&is_array($current)&&is_array($opened)
              &&$current['dev']===$opened['dev']&&$current['ino']===$opened['ino'],'price_editor_lease_unknown');
           }
-          function acquireTelegramSharedPriceLease($file, string $path, int $waitMs): bool {
-           $deadline=hrtime(true)+$waitMs*1000000;
-           do {
+          function tryLegacyTelegramSharedPriceLease($file,string $path):bool {
+           assertTelegramPriceLeaseInode($file,$path);
+           if(flock($file,LOCK_SH|LOCK_NB,$wouldBlock)){
             assertTelegramPriceLeaseInode($file,$path);
-            if(flock($file,LOCK_SH|LOCK_NB,$wouldBlock)){
-             assertTelegramPriceLeaseInode($file,$path);
-             return true;
-            }
-            requireRead($wouldBlock===1,'price_editor_lease_unknown');
-            $remaining=$deadline-hrtime(true);
-            if($remaining<=0)return false;
-            usleep(min(500000,max(1,intdiv($remaining,1000))));
-           }while(true);
+            return true;
+           }
+           requireRead($wouldBlock===1,'price_editor_lease_unknown');
+           return false;
           }
+          $snapshot=__RANKED_READ_ONLY_SNAPSHOT__;
           $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_archive_telegram_ranked_registry','ok'=>false,
-           'repository_sha'=>REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,'native_run_id'=>NATIVE_RUN_ID,'native_run_attempt'=>1,
+           'repository_sha'=>$snapshot?APPLICATION_SHA:REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,
+           'observed_main_sha'=>REPOSITORY_SHA,'native_run_id'=>NATIVE_RUN_ID,'native_run_attempt'=>1,
            'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,
            'baseline_current_for_writer'=>__RANKED_BASELINE_CURRENT__,
            'reader_packet_sha256'=>'__RANKED_READER_PACKET_SHA__','rows'=>[]];
@@ -296,14 +312,19 @@ jobs:
            $sourceBinding=($r['http']??0)===200&&empty($r['transport_error'])&&($r['data']['ok']??null)===true&&($chat['type']??null)==='channel'&&(string)($chat['id']??'')==='-1002262666616'&&strtolower((string)($chat['username']??''))==='any_toour';
            $out['native_public_channel_binding']=['anytour'=>$username,'any_toour'=>$sourceBinding];
            $out['native_read_request_count']=(int)($out['native_channel_rights']['receipt']['request_count']??0)+1;
-           $stage='shared_price_lease';$path=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
-           requireRead(!is_link($path)&&is_file($path),'price_editor_lease_unknown');$lock=fopen($path,'rb');requireRead(is_resource($lock),'price_read_lease_unavailable');
-           $wait=hrtime(true);$waitMs=$out['baseline_current_for_writer']?60000:0;
-           $shared=acquireTelegramSharedPriceLease($lock,$path,$waitMs);$acquired=$shared?hrtime(true):null;
-           $out['price_lease_wait_budget_ms']=$waitMs;
-           $out['price_editor_shared_read_lease']=$shared;$out['preparation_during_price_hold']=!$shared;
-           $out['price_lease_wait_ms']=(int)((hrtime(true)-$wait)/1000000);runtimeRead();
-           $out['mysql_before']=mysqlResourcesRead($pdo);$pdo->beginTransaction();
+           $shared=false;
+           if(!$snapshot){
+            $stage='legacy_shared_price_probe';$path=OPERATIONS.'/monitor-price-after-collection-v1.jsonl';
+            requireRead(!is_link($path)&&is_file($path),'price_editor_lease_unknown');$lock=fopen($path,'rb');requireRead(is_resource($lock),'price_read_lease_unavailable');
+            $shared=tryLegacyTelegramSharedPriceLease($lock,$path);$acquired=$shared?hrtime(true):null;
+            $out['preparation_during_price_hold']=!$shared;
+           }
+           $out['price_lease_wait_budget_ms']=0;$out['price_lease_wait_ms']=0;
+           $out['price_editor_shared_read_lease']=$shared;
+           runtimeRead();$out['mysql_before']=mysqlResourcesRead($pdo);
+           $pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
+           $pdo->beginTransaction();
+           if($snapshot)$out['registry_read_contract']='read_only_snapshot_v1';
            foreach($pairs as $hotel=>$pair){
             $stage='pair_'.$hotel;$assessment=telegramPreparedPairNativeRead($hotel,$pair,$public[$hotel],$prior[$hotel],($out['native_channel_rights']['state']??null)==='ready',$feed,$routes,
              static fn(int $h,array $p):array=>telegramPreparedPairTargetRead($pdo,$registry,$h,$p),
@@ -322,7 +343,7 @@ jobs:
             $sm=is_array($sn)&&($assessment['prepared_checks_pass']??false)===true&&$sn['current_token_resolves']===true&&!$sn['native_claim_held_or_unknown'];
             if(!$sm)$blockers[]='source_not_confirmed';
             $directory=OPERATIONS.'/'.$operation;
-            $admission=preparedLeaseAdmissionRead($out['price_editor_shared_read_lease'],$blockers,$out['baseline_current_for_writer']);
+            $admission=rankedPreparationAdmission($blockers,$snapshot,$shared,$out['baseline_current_for_writer']);
             $out['rows'][]=['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
              'source_native'=>$sn,'target_native'=>$assessment['target_native']??null,'source_public'=>$sp,'target_public'=>$tp,
              'source_matches'=>$sm,'historical_target_matches'=>($assessment['checks']['target_preimage']??false)===true,
@@ -339,6 +360,8 @@ jobs:
           '''
           assert entry.count('__RANKED_BASELINE_CURRENT__') == 1
           entry=entry.replace('__RANKED_BASELINE_CURRENT__', 'true' if baseline == '1' else 'false')
+          assert entry.count('__RANKED_READ_ONLY_SNAPSHOT__') == 1
+          entry=entry.replace('__RANKED_READ_ONLY_SNAPSHOT__', 'true' if snapshot == '1' else 'false')
           digest = os.environ['RANKED_READER_PACKET_SHA']
           assert re.fullmatch(r'[a-f0-9]{64}', digest) and entry.count('__RANKED_READER_PACKET_SHA__') == 1
           entry=entry.replace('__RANKED_READER_PACKET_SHA__',digest)
@@ -350,21 +373,25 @@ jobs:
           python3 - <<'PY'
           import pathlib
           s=pathlib.Path('pub/read-only.php').read_text()
-          start=s.index('function preparedLeaseAdmissionRead(')
-          end=s.index("$out=['schema'=>1",start)
+          start=s.index('function rankedPreparationAdmission(')
+          end=s.index("$snapshot=",start)
           function=s[start:end]
           cases=r"""
-          $a=preparedLeaseAdmissionRead(true,[]);
+          $a=rankedPreparationAdmission([],false,true,true);
           if($a!==['preparation_ready'=>true,'preview_ready'=>true,'preview_blockers'=>[]])exit(2);
-          $a=preparedLeaseAdmissionRead(false,[]);
+          $a=rankedPreparationAdmission([],false,false,true);
           if($a!==['preparation_ready'=>true,'preview_ready'=>false,'preview_blockers'=>['price_shared_lease_not_acquired']])exit(3);
-          $a=preparedLeaseAdmissionRead(true,['occupied']);
+          $a=rankedPreparationAdmission(['occupied'],false,true,true);
           if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['occupied']])exit(4);
-          $a=preparedLeaseAdmissionRead(false,['protected_review']);
+          $a=rankedPreparationAdmission(['protected_review'],false,false,true);
           if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['protected_review','price_shared_lease_not_acquired']])exit(5);
-          $a=preparedLeaseAdmissionRead(true,[],false);
+          $a=rankedPreparationAdmission([],false,true,false);
           if($a!==['preparation_ready'=>true,'preview_ready'=>false,'preview_blockers'=>['accepted_application_not_current_for_writer']])exit(6);
-          echo "FIVE_PREPARATION_ADMISSION_CASES_PASS\\n";
+          $a=rankedPreparationAdmission([],true,false,false);
+          if($a!==['preparation_ready'=>true,'preview_ready'=>true,'preview_blockers'=>[]])exit(7);
+          $a=rankedPreparationAdmission(['source_not_confirmed'],true,false,false);
+          if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['source_not_confirmed']])exit(8);
+          echo "SEVEN_PREPARATION_ADMISSION_CASES_PASS\\n";
           """
           pathlib.Path('pub/price-preparation-test.php').write_text('<?php\n'+function+cases)
           PY
