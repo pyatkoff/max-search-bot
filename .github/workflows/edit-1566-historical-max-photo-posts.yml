@@ -113,6 +113,7 @@ jobs:
           path: packet
           persist-credentials: false
       - name: Authenticate the original reads and compile the single approved input
+        id: input
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GH_TOKEN: ${{ github.token }}
@@ -138,6 +139,27 @@ jobs:
           PYTHON
           install -m600 "packet/$MAX_PACKET_PATH" pub/manifest.json
           printf '%s  %s\n' "$MAX_PACKET_SHA" pub/manifest.json | sha256sum --check --strict
+          PYTHONPATH="$tool" python3 - "workflow-source/$MAX_ACTIVATION_PATH" <<'PYTHON'
+          import json, pathlib, sys
+          from stage_approved_scope import apply_activation
+          pub=pathlib.Path("pub")
+          manifest=pub/"manifest.json"
+          scope=json.loads(manifest.read_bytes())
+          with open(sys.argv[1], "rb") as route:
+              evidence=route.read(16_001)
+          if not 0 < len(evidence) <= 16_000:
+              raise ValueError("invalid activation evidence length")
+          changed=apply_activation(scope, json.loads(evidence))
+          manifest.write_text(json.dumps(scope, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
+          if changed:
+              (pub/"native-artifact-id").write_text(str(scope["native_source"]["artifact_id"])+"\n")
+          PYTHON
+          approved_sha="$(sha256sum pub/manifest.json | cut -d' ' -f1)"
+          if [[ -f pub/native-artifact-id ]]; then
+            export MAX_NATIVE_ID="$(<pub/native-artifact-id)"
+            export MAX_PREPARED_ARTIFACT_ID=''
+            echo 'MAX_NATIVE_PROOF_REFRESHED=1'
+          fi
           cat > pub/admit.cjs <<'NODE'
           const R=require('../tools/deployment_release')
           const P=require('../tools/release_priority')
@@ -154,36 +176,39 @@ jobs:
             const free=slot=>slot.user.id===226193297&&/^PR[1-9][0-9]*: установлено, выпуск свободен$/.test(slot.body)
             const repository=main.object?.sha
             check(typeof repository==='string'&&/^[a-f0-9]{40}$/.test(repository)
-              &&native.repository_sha===process.env.MAX_REPOSITORY_SHA&&free(hotelSlot)&&free(releaseSlot),'shared_release_changed')
+              &&free(hotelSlot)&&free(releaseSlot),'shared_release_changed')
             const record=await R.readRecord(api)
             const current=await R.resolveCurrent(api,{sha:repository},record)
             check(current.ready===true&&current.repository_sha===repository&&current.application_sha===native.application_sha
               &&(repository===native.repository_sha||current.kind==='application_unchanged'),'current_release_changed')
             await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:repository},process.env.GITHUB_TOKEN,fetch)
           }
-          async function receipt(id,head,path,jobId,artifactId,digest,name){
+          async function receipt(id,head,path,jobId,artifactId,digest,name,auditJob=null){
             const base=root+'/actions/runs/'+id
             const [r,j,a]=await Promise.all([api('GET',base),api('GET',base+'/attempts/1/jobs?per_page=100'),api('GET',base+'/artifacts?per_page=100')])
             check(r.id===id&&r.repository.id===1342493152&&r.actor.id===226193297&&r.head_sha===head&&r.path===path
               &&r.event==='push'&&r.run_attempt===1&&r.status==='completed'&&r.conclusion==='success','original_read_changed')
             check(j.total_count===1&&j.jobs[0].id===jobId&&j.jobs[0].conclusion==='success','original_job_changed')
+            if(auditJob!==null) check(r.head_branch==='audit/1566-main-hotel-registry-20261119'
+              &&j.jobs[0].name===auditJob,'original_audit_role_changed')
             const file=a.artifacts[0]
             check(a.total_count===1&&file.id===artifactId&&file.name===name&&file.expired===false
               &&file.digest==='sha256:'+digest&&file.workflow_run.id===id&&file.workflow_run.head_sha===head,'original_artifact_changed')
           }
           async function all(){
-            check(native.artifact_id===Number(process.env.MAX_NATIVE_ID)
-              &&native.attempt===1&&scope.route_readback.write_calls===0,'scope_evidence_identity_changed')
+            check(native.attempt===1&&scope.route_readback.write_calls===0
+              &&/^[a-f0-9]{40}$/.test(native.repository_sha)&&/^[a-f0-9]{40}$/.test(native.application_sha),'scope_evidence_identity_changed')
             const mode=process.argv[2]
             if(mode==='verify-originals'){
+              check(native.artifact_id===Number(process.env.MAX_NATIVE_ID),'scope_evidence_identity_changed')
               const originalReads=[
                 receipt(Number(scope.archive_run_id),'3a9195debcfbeb703a220895871f5a40a61d3010','.github/workflows/read-1566-max-archive-20261123.yml',139261677044,Number(process.env.MAX_ARCHIVE_ID),scope.archive_sha256,'issue-1566-main-max-archive-inventory'),
-                receipt(native.run_id,native.workflow_head,'.github/workflows/read-1566-old-ordinary-max-posts.yml',native.job_id,Number(process.env.MAX_NATIVE_ID),native.zip_sha256,'max-commercial-album-sources')
+                receipt(native.run_id,native.workflow_head,'.github/workflows/read-1566-old-ordinary-max-posts.yml',native.job_id,Number(process.env.MAX_NATIVE_ID),native.zip_sha256,'max-commercial-album-sources','registry')
               ]
               if(process.env.MAX_PREPARED_ARTIFACT_ID) originalReads.push(receipt(
                 Number(process.env.MAX_PREPARED_RUN_ID),process.env.MAX_PREPARED_SOURCE,
                 '.github/workflows/read-1566-old-ordinary-max-posts.yml',Number(process.env.MAX_PREPARED_JOB_ID),
-                Number(process.env.MAX_PREPARED_ARTIFACT_ID),process.env.MAX_PREPARED_ZIP_SHA,'issue-1566-max-native-prepare-proof'))
+                Number(process.env.MAX_PREPARED_ARTIFACT_ID),process.env.MAX_PREPARED_ZIP_SHA,'issue-1566-max-native-prepare-proof','prepare_only'))
               await Promise.all(originalReads)
               return
             }
@@ -202,15 +227,15 @@ jobs:
             gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_PREPARED_ARTIFACT_ID/zip" > pub/prepared.zip
             preparation=(--preparation pub/prepared.zip "$MAX_PREPARED_ZIP_SHA")
           fi
-          python3 "$tool/stage_approved_scope.py" pub/manifest.json "$MAX_PACKET_SHA" pub/old.zip pub/native.zip pub/stage \
-            --route-readback "workflow-source/$MAX_ACTIVATION_PATH" "${preparation[@]}"
+          python3 "$tool/stage_approved_scope.py" pub/manifest.json "$approved_sha" pub/old.zip pub/native.zip pub/stage "${preparation[@]}"
           install -m600 pub/stage/scope.json pub/manifest.json
           php -l pub/stage/batch_entry.php
           native_sha="$(sha256sum pub/stage/native-source.json | cut -d' ' -f1)"
           app="$(python3 -c 'import json; print(json.load(open("pub/manifest.json"))["native_source"]["application_sha"])')"
-          [[ "$app" =~ ^[a-f0-9]{40}$ ]]
+          native_repo="$(python3 -c 'import json; print(json.load(open("pub/manifest.json"))["native_source"]["repository_sha"])')"
+          [[ "$app" =~ ^[a-f0-9]{40}$ && "$native_repo" =~ ^[a-f0-9]{40}$ ]]
           php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json \
-            "$native_sha" "$MAX_REPOSITORY_SHA" "$app" > pub/batch-plan.json
+            "$native_sha" "$native_repo" "$app" > pub/batch-plan.json
           python3 - <<'PYTHON'
           import json
           plan=json.load(open('pub/batch-plan.json'))
@@ -240,16 +265,17 @@ jobs:
           if [[ -n "$MAX_PREPARED_ARTIFACT_ID" ]]; then
             tar -C pub/stage -rf pub/approved.tar preparation-scope.json
             install -m600 pub/stage/preparation.json pub/preparation.json
+            echo 'reuse_preparation=true' >> "$GITHUB_OUTPUT"
           fi
       - name: Pin established SSH host continuity and authentication identity
-        if: env.MAX_PREPARED_ARTIFACT_ID == ''
+        if: steps.input.outputs.reuse_preparation != 'true'
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
           KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         run: bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh pin-host
       - name: Prepare native checkpoints without editing posts
-        if: env.MAX_PREPARED_ARTIFACT_ID == ''
+        if: steps.input.outputs.reuse_preparation != 'true'
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}

@@ -207,12 +207,13 @@ exports.makeReadApi = () => async (_, endpoint) => {
   const head = archive ? process.env.TEST_ARCHIVE_HEAD : native.workflow_head
   const path = archive ? '.github/workflows/read-1566-max-archive-20261123.yml'
     : '.github/workflows/read-1566-old-ordinary-max-posts.yml'
-  if (endpoint.includes('/jobs')) return {total_count:1,jobs:[{id:archive?139261677044:native.job_id,conclusion:'success'}]}
+  if (endpoint.includes('/jobs')) return {total_count:1,jobs:[{id:archive?139261677044:native.job_id,conclusion:'success',
+    name:process.env.TEST_AUDIT_JOB}]}
   if (endpoint.includes('/artifacts')) return {total_count:1,artifacts:[{
     id:archive?15032515599:native.artifact_id,name:archive?'issue-1566-main-max-archive-inventory':'max-commercial-album-sources',
     expired:false,digest:'sha256:'+(archive?archiveDigest:native.zip_sha256),workflow_run:{id,head_sha:head}
   }]}
-  return {id,head_sha:head,path,repository:{id:1342493152},actor:{id:226193297},
+  return {id,head_sha:head,path,head_branch:process.env.TEST_AUDIT_BRANCH,repository:{id:1342493152},actor:{id:226193297},
     event:'push',run_attempt:1,status:'completed',conclusion:'success'}
 }
 exports.readRecord = async () => ({identity:'current-release-record'})
@@ -243,7 +244,8 @@ exports.verifyPreviousRelease = async ({repository, baseSha}) => {
         ("", "1", installed, installed, installed, "installed", "invalid_admission_mode"),
     ]:
         environment = dict(os.environ, MAX_ARCHIVE_ID="15032515599", MAX_NATIVE_ID="22", MAX_PREPARED_ARTIFACT_ID="",
-                           MAX_REPOSITORY_SHA=installed, TEST_MODE=mode, TEST_FREE=free,
+                           MAX_REPOSITORY_SHA="9" * 40, TEST_MODE=mode, TEST_FREE=free,
+                           TEST_AUDIT_BRANCH="audit/1566-main-hotel-registry-20261119", TEST_AUDIT_JOB="registry",
                            TEST_ARCHIVE_HEAD=archive_head, TEST_REPOSITORY=repository,
                            TEST_ACCEPTED_REPOSITORY=accepted_repo, TEST_APPLICATION=application, TEST_KIND=kind)
         result = subprocess.run(["node", admission, mode], cwd=stage, env=environment,
@@ -253,11 +255,17 @@ exports.verifyPreviousRelease = async ({repository, baseSha}) => {
         if mode == "authorize-write" and not expected_error:
             assert result.stdout.strip() == "current_release_admitted", result.stdout
 
-print("MAX preparation ignores the release slot; writing accepts only a confirmed unchanged application")
+    for field, value in (("TEST_AUDIT_BRANCH", "main"), ("TEST_AUDIT_JOB", "prepare_only")):
+        result = subprocess.run(["node", admission, "verify-originals"], cwd=stage,
+                                env=environment | {field: value, "TEST_MODE": "verify-originals"},
+                                capture_output=True, text=True, check=False)
+        assert result.returncode != 0 and result.stderr.strip() == "original_audit_role_changed", result.stderr
+
+print("MAX preparation ignores the release slot; writing requires the canonical accepted application")
 
 editor_tools = root / "tools/direct_demand/operations/max-existing-photo"
 sys.path.insert(0, str(editor_tools))
-from stage_approved_scope import replace_route_read, verify_activation, verify_adopted_publisher
+from stage_approved_scope import apply_activation, replace_route_read, verify_activation, verify_adopted_publisher
 
 activation_path = "tools/direct_demand/operations/max-existing-photo/max-route-readback.json"
 parent, head = "b" * 40, "c" * 40
@@ -314,4 +322,36 @@ for rejected in [
     else:
         raise AssertionError("A different target or route policy passed activation")
 
-print("MAX activation accepts one data-only commit for the approved route targets")
+base_native = {
+    "operation": "max_commercial_album_sources_read_only", "attempt": 1,
+    "run_id": 5, "job_id": 6, "artifact_id": 7,
+    "workflow_head": "a" * 40, "repository_sha": "1" * 40, "application_sha": "2" * 40,
+    "zip_sha256": "3" * 64, "json_sha256": "4" * 64,
+}
+baseline = approved_scope | {"native_source": base_native, "archive_sha256": "5" * 64,
+                             "price_review": {"mode": "caption_without_fixed_price"}}
+fresh = {"run_id": 8, "job_id": 9, "artifact_id": 10, "workflow_head": "b" * 40,
+         "repository_sha": "6" * 40, "application_sha": "7" * 40,
+         "zip_sha256": "8" * 64, "json_sha256": "9" * 64}
+selected = json.loads(json.dumps(baseline))
+assert apply_activation(selected, activation_route | {"native_source": fresh}) is True
+assert selected == (baseline | {"native_source": base_native | fresh})
+assert apply_activation(selected, activation_route | {"native_source": fresh}) is False
+assert apply_activation(selected, activation_route) is False
+for corrupt in (None, fresh | {"attempt": 2}, fresh | {"run_id": True},
+                fresh | {"operation": "arbitrary"}, fresh | {"application_sha": "main"},
+                fresh | {"zip_sha256": "0" * 63}):
+    try:
+        apply_activation(json.loads(json.dumps(baseline)), activation_route | {"native_source": corrupt})
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Unapproved native evidence passed activation")
+try:
+    apply_activation(selected, activation_route | {"rows": []})
+except ValueError:
+    pass
+else:
+    raise AssertionError("Activation changed the editorial scope")
+
+print("One data-only activation can refresh the native receipt, with post, archive and publication policy fixed")

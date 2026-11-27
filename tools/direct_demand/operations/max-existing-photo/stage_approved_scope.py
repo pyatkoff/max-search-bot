@@ -57,6 +57,31 @@ def replace_route_read(scope, route):
         readback[key] = route[key]
 
 
+def apply_activation(scope, activation):
+    """Refresh evidence for the same editorial scope. Return whether native inputs changed."""
+    require(isinstance(activation, dict), "invalid MAX activation")
+    route = {key: value for key, value in activation.items() if key != "native_source"}
+    previous = scope["native_source"]
+    selected = previous
+    if "native_source" in activation:
+        fresh = activation["native_source"]
+        ids = ("run_id", "job_id", "artifact_id")
+        heads = ("workflow_head", "repository_sha", "application_sha")
+        sums = ("zip_sha256", "json_sha256")
+        require(isinstance(fresh, dict) and set(fresh) == set(ids + heads + sums),
+                "unexpected native proof fields")
+        require(all(type(fresh[key]) is int and fresh[key] > 0 for key in ids), "invalid native proof IDs")
+        require(all(isinstance(fresh[key], str) and re.fullmatch("[a-f0-9]{40}", fresh[key]) for key in heads),
+                "invalid native proof commit")
+        require(all(isinstance(fresh[key], str) and re.fullmatch("[a-f0-9]{64}", fresh[key]) for key in sums),
+                "invalid native proof digest")
+        selected = {**previous, **fresh}
+
+    replace_route_read(scope, route)
+    scope["native_source"] = selected
+    return selected != previous
+
+
 def read_verified(file, expected, limit):
     with file.open("rb") as stream:
         data = stream.read(limit + 1)
