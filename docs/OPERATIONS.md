@@ -323,6 +323,16 @@ local notification is a control-plane failure. GitHub schedule remains best
 effort and its five-minute regularity is not established by source configuration.
 Do not claim a guaranteed external detection deadline.
 
+After an ordinary successful installation, the same monitor workflow runs a
+read-only gate for that specific deployment. It uses the canonical release
+resolver and checks the exact installed SHA and typed availability in one SSH
+call. Invalid availability, an unhealthy external heartbeat or unavailable
+transport fail the gate. The legacy fallback accepts valid healthy, off or
+degraded observations. Repository-only releases still use metadata-only proof.
+The scheduled and manual notification checks keep their shared concurrency,
+encrypted state and delivery receipts. The explicit pipeline activation marker
+keeps that notification path for the original handoff.
+
 Pipeline and external roles have disjoint business/transport flag ownership,
 separate state and receipts, and one shared notification implementation. Role
 crossloads are rejected. Configuration/clock errors retain explicit role labels.

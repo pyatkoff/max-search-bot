@@ -18,8 +18,10 @@ jobs:
   monitor:
     if: (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && (github.event_name != 'schedule' || github.event.schedule == '2-59/5 * * * *')
     concurrency:
-      group: anytour-modeled-conversion-monitor
+      group: ${{ github.event_name == 'workflow_run' && !contains(github.event.workflow_run.head_commit.message, '[modeled-pipeline-monitor-activation-v1]') && format('anytour-release-monitor-{0}', github.event.workflow_run.id) || 'anytour-modeled-conversion-monitor' }}
       cancel-in-progress: false
+    env:
+      MONITOR_MODE: ${{ github.event_name == 'workflow_run' && !contains(github.event.workflow_run.head_commit.message, '[modeled-pipeline-monitor-activation-v1]') && 'release' || 'notification' }}
     permissions:
       contents: read
       actions: read
@@ -105,8 +107,41 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
+      - name: Verify installed monitor health without notification
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (env.MONITOR_MODE == 'release')
+        env:
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+          EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
+          root='/var/www/anytoour/data/www/app.anytoour.ru'
+          timeout 20s ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 15s php tools/modeled_conversion_monitor.php availability" \
+            > "$RUNNER_TEMP/monitor-health.json" 2>/dev/null
+          PYTHONPATH=tools python3 -B - "$RUNNER_TEMP/monitor-health.json" <<'MONITOR_HEALTH'
+          import json, sys
+          from modeled_conversion_monitor import health_view
+
+          try:
+              with open(sys.argv[1], 'rb') as stream:
+                  raw = stream.read(8193)
+              health = json.loads(raw) if len(raw) <= 8192 else None
+          except (OSError, ValueError):
+              health = None
+          status, _ = health_view(health)
+          scope = health.get('monitor_scope') if isinstance(health, dict) else None
+          if not ((scope == 'external' and status == 'ok')
+                  or (scope == 'legacy' and status in {'ok', 'off', 'degraded'})):
+              raise SystemExit('release_monitor_health_unconfirmed')
+          print(f'RELEASE_MONITOR_HEALTH={scope}:{status}')
+          MONITOR_HEALTH
+
       - name: Read the installed source before opening notification state
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (env.MONITOR_MODE == 'notification')
         id: installed
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
@@ -121,7 +156,7 @@ jobs:
           printf 'sha=%s\n' "$installed_sha" >> "$GITHUB_OUTPUT"
 
       - name: Defer only an identified active installation
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (env.MONITOR_MODE == 'notification')
         id: source_ready
         uses: actions/github-script@v7
         env:
@@ -152,7 +187,7 @@ jobs:
             if(active)core.info('monitor_installation_pending');
 
       - name: Prepare existing pinned encrypted evidence runtime
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.source_ready.outputs.ready == 'true')
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (env.MONITOR_MODE == 'notification' && steps.source_ready.outputs.ready == 'true')
         env:
           MODELED_CONVERSION_ALERT_CHAT_ID: ${{ secrets.MODELED_CONVERSION_ALERT_CHAT_ID }}
         shell: bash
@@ -165,7 +200,7 @@ jobs:
           "$RUNNER_TEMP/monitor-python/bin/pip" install --disable-pip-version-check --only-binary=:all: --require-hashes -q -r tools/requirements-encrypted-evidence.txt
 
       - name: Locate latest retained encrypted monitor state
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.source_ready.outputs.ready == 'true')
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (env.MONITOR_MODE == 'notification' && steps.source_ready.outputs.ready == 'true')
         id: retained
         uses: actions/github-script@v7
         with:
@@ -255,7 +290,7 @@ jobs:
             }
 
       - name: Download retained ciphertext only
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.source_ready.outputs.ready == 'true' && steps.retained.outputs.present == 'true')
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (env.MONITOR_MODE == 'notification' && steps.source_ready.outputs.ready == 'true' && steps.retained.outputs.present == 'true')
         uses: actions/download-artifact@v4
         with:
           github-token: ${{ github.token }}
@@ -264,7 +299,7 @@ jobs:
           path: ${{ runner.temp }}/monitor-cache
 
       - name: Read fixed installed technical health and bootstrap route when required
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.source_ready.outputs.ready == 'true')
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (env.MONITOR_MODE == 'notification' && steps.source_ready.outputs.ready == 'true')
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -286,7 +321,7 @@ jobs:
           fi
 
       - name: Prepare one immutable notification intent
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.source_ready.outputs.ready == 'true')
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (env.MONITOR_MODE == 'notification' && steps.source_ready.outputs.ready == 'true')
         env:
           MODELED_CONVERSION_ALERT_CHAT_ID: ${{ secrets.MODELED_CONVERSION_ALERT_CHAT_ID }}
         id: decision
@@ -314,7 +349,7 @@ jobs:
 
       - name: Persist encrypted intent before any Telegram send
         id: durable_intent
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.decision.outputs.send == 'true')
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (env.MONITOR_MODE == 'notification' && steps.decision.outputs.send == 'true')
         uses: actions/upload-artifact@v4
         with:
           name: modeled-monitor-private-intent
@@ -323,7 +358,7 @@ jobs:
           if-no-files-found: error
 
       - name: Send only this original retained intent
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (steps.decision.outputs.send == 'true' && steps.durable_intent.outcome == 'success')
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (env.MONITOR_MODE == 'notification' && steps.decision.outputs.send == 'true' && steps.durable_intent.outcome == 'success')
         env:
           INTENT_ARTIFACT_ID: ${{ steps.durable_intent.outputs.artifact-id }}
           MODELED_CONVERSION_ALERT_CHAT_ID: ${{ secrets.MODELED_CONVERSION_ALERT_CHAT_ID }}
@@ -337,7 +372,7 @@ jobs:
             > "$RUNNER_TEMP/monitor-result.json" || true
 
       - name: Retain final encrypted state
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always() && steps.decision.outcome == 'success')
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always() && env.MONITOR_MODE == 'notification' && steps.decision.outcome == 'success')
         uses: actions/upload-artifact@v4
         with:
           name: modeled-monitor-private-final
@@ -346,7 +381,7 @@ jobs:
           if-no-files-found: error
 
       - name: Record sanitized external monitoring receipt
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always() && steps.decision.outcome == 'success')
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always() && env.MONITOR_MODE == 'notification' && steps.decision.outcome == 'success')
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -368,7 +403,7 @@ jobs:
           fi
 
       - name: Verify technical monitoring result
-        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always() && steps.decision.outcome == 'success')
+        if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (always() && env.MONITOR_MODE == 'notification' && steps.decision.outcome == 'success')
         shell: bash
         run: |
           set -euo pipefail
