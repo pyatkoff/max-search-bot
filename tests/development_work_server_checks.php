@@ -69,6 +69,15 @@ function devServerSender(?callable $mutate=null,?callable $before=null): array
     return [$provider,$log];
 }
 
+/** The parent treats the final path as a readiness signal. */
+function devPublishRaceResult(string $path, string $payload): void
+{
+    $temporary = $path.'.tmp';
+    if (file_put_contents($temporary, $payload) !== strlen($payload) || !rename($temporary, $path)) {
+        throw new RuntimeException('development_race_result_publish_failed');
+    }
+}
+
 /** Independent process joins the same real SQLite/MySQL queue; no in-process lock fake. */
 function devServerRaceChild(array $argv): void
 {
@@ -87,7 +96,8 @@ function devServerRaceChild(array $argv): void
     while(!is_file($go)&&microtime(true)<$until)usleep(1000);
     if(!is_file($go))exit(3);
     $r=devServerTestTick($q,$provider,devServerOrigin($clock));
-    file_put_contents($out,json_encode(['result'=>$r,'sends'=>count($log->sent)],JSON_THROW_ON_ERROR));exit(0);
+    devPublishRaceResult($out,json_encode(['result'=>$r,'sends'=>count($log->sent)],JSON_THROW_ON_ERROR));
+    exit(0);
 }
 
 function devServerChecks(): void
@@ -670,7 +680,8 @@ function devServerArmRaceChild(array $argv): void
     if(!is_file($go))exit(3);$armed=$winner==='winner';
     try {$r=$queue->append(1,$job['connection'],$job['args']);$state=$r['append_status'];}
     catch(DomainException|DevelopmentWorkQueueConflict $expected){$state='denied';}
-    file_put_contents($out,json_encode(['state'=>$state],JSON_THROW_ON_ERROR));exit(0);
+    devPublishRaceResult($out,json_encode(['state'=>$state],JSON_THROW_ON_ERROR));
+    exit(0);
 }
 function devServerArmRaceCheck(): void
 {
