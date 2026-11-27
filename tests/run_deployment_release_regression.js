@@ -3353,7 +3353,7 @@ async function superseded1701Cases() {
 
 async function heartbeat1751JobVisibilityCases() {
   const recovery=require('../tools/release_slot_1751_terminal');
-  const source='7'.repeat(40), parent='6a51c0b69a5e5e9c0c8d6105b29f97c3487e7178', owner={id:226193297};
+  const source='7'.repeat(40), parent='12c57a53410bd729db965bf4ef521d7707c2f37a', owner={id:226193297};
   const run={id:100,run_attempt:1,path:C.CLOSER,event:'push',head_branch:recovery.branch,head_sha:source,
     head_repository:{full_name:R.REPOSITORY},created_at:T,status:'in_progress',conclusion:null,actor:owner,triggering_actor:owner};
   const prChecks=['regression-tests.yml','retired-domain-guard.yml'].map((file,i)=>({...run,id:101+i,
@@ -3362,20 +3362,22 @@ async function heartbeat1751JobVisibilityCases() {
   const configure=job('configure',run,[],'skipped');
   const slot=job('release-slot',run,[],'skipped');
   const closer={...job('release-slot-recovery',run,[],null),status:'in_progress'};
-  let visible=[observe,configure,slot];
+  let visible=[observe,configure,slot], listed=[];
   const list=(key,values)=>({total_count:values.length,[key]:values});
   const api=async(method,url)=>{
     assert.equal(method,'GET');
     switch(url.slice(R.API_ROOT.length)) {
       case '/git/commits/'+source:return {sha:source,parents:[{sha:parent}]};
       case '/git/ref/heads/'+recovery.branch:return {object:{sha:source}};
-      case '/actions/runs?head_sha='+source+'&per_page=100':return list('workflow_runs',[run,...prChecks]);
+      case '/actions/runs?head_sha='+source+'&per_page=100':return list('workflow_runs',[...listed,...prChecks]);
       case '/actions/runs/100':return run;
       case '/actions/runs/100/attempts/1/jobs?per_page=100':return list('jobs',visible);
       default:throw new Error('Unexpected request');
     }
   };
   equal(await recovery.native(api,'100',source,'reading'),observe,'GitHub can defer the downstream closer until heartbeat finishes');
+  await refuses(()=>recovery.native(api,'100',source,'closing'),'heartbeat_continuation_ambiguous');
+  listed=[run];
   visible.push(closer);
   await refuses(()=>recovery.native(api,'100',source,'reading'),'heartbeat_job_invalid');
   visible[0]={...observe,status:'completed',conclusion:'success'};

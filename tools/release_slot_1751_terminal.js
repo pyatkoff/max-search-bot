@@ -3,11 +3,14 @@
 const R = require('./deployment_release');
 const C = require('./release_slot_close');
 const original = require('./pr1751_monitor_recovery');
-const branch = 'ops/close-pr1751-heartbeat-checked-20261127';
+const branch = 'ops/close-pr1751-heartbeat-exact-20261127';
 const kind = 'pr1751_heartbeat_v1';
 const app = '263cc9a7855bd11f3597572d08c7f463faebdbd6';
-const parent = '6a51c0b69a5e5e9c0c8d6105b29f97c3487e7178';
-const refusedRun = '46073214735';
+const parent = '12c57a53410bd729db965bf4ef521d7707c2f37a';
+const stopped = [
+  ['46073214735',140754812813,'6a51c0b69a5e5e9c0c8d6105b29f97c3487e7178','ops/close-pr1751-heartbeat-20261127'],
+  ['46074223942',140758050105,parent,'ops/close-pr1751-heartbeat-checked-20261127'],
+];
 const install = 45917012313, closer = 45918089456, monitor = 45918089407;
 const comment = 6818332618, owner = 226193297;
 const inspectStep = 'Read exact installed pipeline heartbeat for PR1751';
@@ -70,7 +73,10 @@ async function sourceProof(api, source) {
 async function native(api, id, source, state) {
   const ci = await sourceProof(api, source);
   const continuation = ci.filter(r => r.path === C.CLOSER && r.event === 'push' && r.head_branch === branch);
-  ok(continuation.length === 1 && String(continuation[0].id) === id, 'heartbeat_continuation_ambiguous');
+  // The exact active run endpoint is authoritative while the head listing
+  // catches up. Publication requires the later complete inventory as well.
+  ok((state === 'reading' && continuation.length === 0)
+    || (continuation.length === 1 && String(continuation[0].id) === id), 'heartbeat_continuation_ambiguous');
   const run = await get(api, '/actions/runs/' + id);
   R.runIdentity(run, {id, attempt:1, head:source, workflow:C.CLOSER, event:'push', branch, completed:state === 'closed'});
   ok(run.actor?.id === owner && run.triggering_actor?.id === owner, 'heartbeat_owner_changed');
@@ -95,13 +101,13 @@ async function native(api, id, source, state) {
   return observation;
 }
 
-async function proveStoppedContinuation(api) {
+async function proveStoppedContinuation(api, [refusedRun,readJob,refusedSource,refusedBranch]) {
   const [run, list, artifacts] = await Promise.all([get(api, '/actions/runs/' + refusedRun), get(api, jobPath(refusedRun)),
     get(api, '/actions/runs/' + refusedRun + '/artifacts?per_page=100')]);
-  R.runIdentity(run, {id:refusedRun, attempt:1, head:parent, workflow:C.CLOSER, event:'push',
-    branch:'ops/close-pr1751-heartbeat-20261127', conclusion:'failure'});
+  R.runIdentity(run, {id:refusedRun, attempt:1, head:refusedSource, workflow:C.CLOSER, event:'push',
+    branch:refusedBranch, conclusion:'failure'});
   const rows = R.boundedList(list, 'jobs', 'previous_heartbeat_jobs_incomplete');
-  const read = rows.find(j => j.id === 140754812813 && j.name === 'pr1751-heartbeat');
+  const read = rows.find(j => j.id === readJob && j.name === 'pr1751-heartbeat');
   ok(rows.length === 4 && rows.filter(j => j !== read).every(j => j.conclusion === 'skipped' && j.steps.length === 0)
     && read?.conclusion === 'failure'
     && C.stepResult(read, 'Admit the owner-authorized PR1751 heartbeat continuation') === 'failure'
@@ -159,7 +165,7 @@ async function authenticate(api, record, {closed}) {
 async function preflight({env,event,api}) {
   authorized(env,event,'pr1751-heartbeat');
   await native(api, env.GITHUB_RUN_ID, env.GITHUB_SHA, 'reading');
-  await Promise.all([original.proveOriginalGate(api), originalGates(api), proveStoppedContinuation(api)]);
+  await Promise.all([original.proveOriginalGate(api), originalGates(api), ...stopped.map(p => proveStoppedContinuation(api,p))]);
   await active(api);
   return {application_sha:app};
 }

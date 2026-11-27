@@ -2,7 +2,7 @@ name: Configure AnyTour modeled value goal
 run-name: "${{ github.event_name == 'workflow_run' && format('deploy-proof:v1:{0}:{1}', github.event.workflow_run.id, github.event.workflow_run.run_attempt) || 'Configure AnyTour modeled value goal' }}"
 on:
   push:
-    branches: [ops/recover-pr1505-terminal-20261112, ops/recover-pr1529-terminal-20261113, ops/recover-pr1597-terminal-20261117, ops/recover-pr1643-terminal-20261121, ops/recover-pr1701-terminal-20261125, ops/recover-pr1720-terminal-20261125, ops/close-pr1751-heartbeat-checked-20261127]
+    branches: [ops/recover-pr1505-terminal-20261112, ops/recover-pr1529-terminal-20261113, ops/recover-pr1597-terminal-20261117, ops/recover-pr1643-terminal-20261121, ops/recover-pr1701-terminal-20261125, ops/recover-pr1720-terminal-20261125, ops/close-pr1751-heartbeat-exact-20261127]
   workflow_run:
     workflows: [Deploy production]
     types: [completed]
@@ -25,7 +25,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   pr1751-heartbeat:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/ops/close-pr1751-heartbeat-checked-20261127'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/ops/close-pr1751-heartbeat-exact-20261127'
     permissions:
       contents: read
       actions: read
@@ -88,7 +88,7 @@ jobs:
         run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/pr1751-notification.json"
   release-slot-recovery:
     needs: pr1751-heartbeat
-    if: always() && ((github.ref == 'refs/heads/ops/close-pr1751-heartbeat-checked-20261127' && needs.pr1751-heartbeat.result == 'success') || (github.ref != 'refs/heads/ops/close-pr1751-heartbeat-checked-20261127' && needs.pr1751-heartbeat.result == 'skipped')) && github.event_name == 'push' && (github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112' || github.ref == 'refs/heads/ops/recover-pr1529-terminal-20261113' || github.ref == 'refs/heads/ops/recover-pr1597-terminal-20261117' || github.ref == 'refs/heads/ops/recover-pr1643-terminal-20261121' || github.ref == 'refs/heads/ops/recover-pr1701-terminal-20261125' || github.ref == 'refs/heads/ops/recover-pr1720-terminal-20261125' || github.ref == 'refs/heads/ops/close-pr1751-heartbeat-checked-20261127')
+    if: always() && ((github.ref == 'refs/heads/ops/close-pr1751-heartbeat-exact-20261127' && needs.pr1751-heartbeat.result == 'success') || (github.ref != 'refs/heads/ops/close-pr1751-heartbeat-exact-20261127' && needs.pr1751-heartbeat.result == 'skipped')) && github.event_name == 'push' && (github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112' || github.ref == 'refs/heads/ops/recover-pr1529-terminal-20261113' || github.ref == 'refs/heads/ops/recover-pr1597-terminal-20261117' || github.ref == 'refs/heads/ops/recover-pr1643-terminal-20261121' || github.ref == 'refs/heads/ops/recover-pr1701-terminal-20261125' || github.ref == 'refs/heads/ops/recover-pr1720-terminal-20261125' || github.ref == 'refs/heads/ops/close-pr1751-heartbeat-exact-20261127')
     permissions:
       contents: write
       actions: read
