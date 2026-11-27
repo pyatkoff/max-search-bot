@@ -502,6 +502,7 @@ function unpublishedTerminalRecovery(r){
       owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_unpublished_terminal_recovery');return x;
 }
 function recoveryBranch(r){
+  if(r.closure?.recovery?.kind==='pr1751_heartbeat_v1')return require('./release_slot_1751_terminal').branch;
   if(r.closure?.recovery?.kind==='publisher_body_format_v1')return PUBLISHER_BODY_RECOVERY.branch;
   if(r.closure?.recovery?.kind==='prior_failed_wave_v1')return PRIOR_WAVE_RECOVERY.branch;
   return r.closure?.recovery?.kind==='unpublished_terminal_v1'?unpublishedTerminalProfile(r).branch:TERMINAL_RECOVERY.branch;
@@ -519,6 +520,7 @@ function gateRecovery(r){
       owner_id:p.owner_id,updated_at:p.updated_at}),'invalid_gate_recovery');return x;
 }
 function terminalRecovery(r){
+  if(r.closure?.recovery?.kind==='pr1751_heartbeat_v1')return require('./release_slot_1751_terminal').validateLineage(r);
   if(r.closure?.recovery?.kind==='publisher_body_format_v1')return publisherBodyRecovery(r);
   if(r.closure?.recovery?.kind==='prior_failed_wave_v1')return priorWaveRecovery(r);
   if(r.closure?.recovery?.kind==='unpublished_terminal_v1')return unpublishedTerminalRecovery(r);
@@ -589,7 +591,8 @@ function validateRelease(record, success = true) {
       &&(g.head_sha===r.repository_sha||(c.recovery?.kind==='unstarted_tls_v1'
         &&g.path===GATE_RECOVERY.tls_workflow&&g.run_id===c.recovery.tls_run_id
         &&g.head_sha===c.recovery.source_sha&&g.run_attempt===1&&g.conclusion==='success'))
-      &&['success','skipped'].includes(g.conclusion),'invalid_gate_reference');
+      &&(['success','skipped'].includes(g.conclusion)||(c.recovery?.kind==='pr1751_heartbeat_v1'
+        &&require('./release_slot_1751_terminal').isOriginalMonitor(g))),'invalid_gate_reference');
     if(recovered)terminalRecovery(r);
   }
   return {record,installation,release:r};
@@ -774,6 +777,8 @@ async function authenticatePublication(api,location,{closed=false,diagnosticsHea
     producer_run_id:producer.run_id,producer_run_attempt:producer.run_attempt};
 }
 async function authenticateFailedTerminal(api,record,{closed=false}={}){
+  if(record.repository_release?.closure?.recovery?.kind==='pr1751_heartbeat_v1')
+    return require('./release_slot_1751_terminal').authenticate(api,record,{closed});
   if(record.repository_release?.closure?.recovery?.kind==='publisher_body_format_v1'){
     const r=validateRelease(record).release,x=publisherBodyRecovery(r),p=PUBLISHER_BODY_RECOVERY;
     const proof=await failedPublisherBodyTerminal(api),restored=clone(record),C=require('./release_slot_close');
