@@ -162,7 +162,6 @@ jobs:
           fi
           cat > pub/admit.cjs <<'NODE'
           const R=require('../tools/deployment_release')
-          const P=require('../tools/release_priority')
           const api=R.makeReadApi(process.env.GITHUB_TOKEN)
           const root=R.API_ROOT
           const scope=JSON.parse(require('node:fs').readFileSync('pub/manifest.json','utf8'))
@@ -171,17 +170,18 @@ jobs:
           async function requireWriteAdmission(){
             const fresh=Date.parse(scope.route_readback.observed_utc)
             check(Date.now()>=fresh&&Date.now()-fresh<=720000,'route_receipt_stale')
-            const [main,hotelSlot,releaseSlot]=await Promise.all([api('GET',root+'/git/ref/heads/main'),
-              api('GET',root+'/issues/comments/6818332618'),api('GET',root+'/issues/comments/6682640708')])
-            const free=slot=>slot.user.id===226193297&&/^PR[1-9][0-9]*: установлено, выпуск свободен$/.test(slot.body)
-            const repository=main.object?.sha
-            check(typeof repository==='string'&&/^[a-f0-9]{40}$/.test(repository)
-              &&free(hotelSlot)&&free(releaseSlot),'shared_release_changed')
-            const record=await R.readRecord(api)
-            const current=await R.resolveCurrent(api,{sha:repository},record)
+            // Authenticate the accepted installation, regardless of main moving.
+            // The server rechecks this application under the installer's exact lock.
+            const location=await R.readRecord(api)
+            const {release}=R.validateRelease(location.record)
+            check(release.phase==='pending_terminal','release_pending')
+            const repository=release.repository_sha
+            const current=await R.resolveCurrent(api,{sha:repository},location)
             check(current.ready===true&&current.repository_sha===repository&&current.application_sha===native.application_sha
               &&(repository===native.repository_sha||current.kind==='application_unchanged'),'current_release_changed')
-            await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:repository},process.env.GITHUB_TOKEN,fetch)
+            const latest=await R.readRecord(api)
+            check(latest.blob===location.blob&&latest.record_digest===location.record_digest,'deployment_result_changed')
+            console.log('MAX_ACCEPTED_APPLICATION='+current.application_sha)
           }
           async function receipt(id,head,path,jobId,artifactId,digest,name,auditJob=null){
             const base=root+'/actions/runs/'+id
@@ -364,7 +364,7 @@ jobs:
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
           KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
         run: bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh pin-host
-      - name: Recheck accepted release and slot immediately before the existing writer
+      - name: Authenticate the accepted installation before the server-side write lock
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: node pub/admit.cjs authorize-write

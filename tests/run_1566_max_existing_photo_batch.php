@@ -133,4 +133,24 @@ try {
     check($calls===2 && $reads===2,'mismatched readback does not replay');
     fclose($log);
 } finally {unlink($temp);}
-echo "MAX seven input and no-replay source regression passed\n";
+// The same kind of exclusive lock used by checkout sync must exclude the native writer.
+$leasePath=tempnam(sys_get_temp_dir(),'max-editor-lease-');
+$installer=fopen($leasePath,'rb');
+$writer=null;
+try {
+    check(flock($installer,LOCK_EX|LOCK_NB),'fixture installer lock');
+    check(refuses(fn()=>maxEditBatchLease($leasePath,true),'editor_busy'),'installer excludes writer');
+    check(flock($installer,LOCK_UN),'release fixture installer lock');
+    $writer=maxEditBatchLease($leasePath,true);
+    check(!flock($installer,LOCK_EX|LOCK_NB),'writer excludes checkout switch');
+    rename($leasePath,$leasePath.'.previous');
+    touch($leasePath);
+    check(refuses(fn()=>maxEditAssertLeaseIdentity($writer,$leasePath),'editor_lock_unavailable'),
+        'replaced journal cannot authorize writing');
+} finally {
+    if (is_resource($writer)) fclose($writer);
+    fclose($installer);
+    if (file_exists($leasePath.'.previous')) unlink($leasePath.'.previous');
+    if (file_exists($leasePath)) unlink($leasePath);
+}
+echo "MAX seven input, publisher lease and no-replay source regression passed\n";

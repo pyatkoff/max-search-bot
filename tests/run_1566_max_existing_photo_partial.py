@@ -198,11 +198,7 @@ exports.API_ROOT = '/repo'
 exports.REPOSITORY = 'test/max'
 exports.makeReadApi = () => async (_, endpoint) => {
   const archive = endpoint.includes('/actions/runs/45630394590')
-  if (!endpoint.includes('/actions/runs/')) {
-    if (process.env.TEST_MODE === 'verify-originals') throw Error('preparation_accessed_live_slot')
-    const slot = process.env.TEST_FREE === '1' ? 'PR1748: установлено, выпуск свободен' : 'PR1748: выпуск занят'
-    return {object:{sha:process.env.TEST_REPOSITORY},user:{id:226193297},body:slot}
-  }
+  if (!endpoint.includes('/actions/runs/')) throw Error('unexpected_main_or_shared_slot_read')
   const id = archive ? 45630394590 : native.run_id
   const head = archive ? process.env.TEST_ARCHIVE_HEAD : native.workflow_head
   const path = archive ? '.github/workflows/read-1566-max-archive-20261123.yml'
@@ -216,44 +212,45 @@ exports.makeReadApi = () => async (_, endpoint) => {
   return {id,head_sha:head,path,head_branch:process.env.TEST_AUDIT_BRANCH,repository:{id:1342493152},actor:{id:226193297},
     event:'push',run_attempt:1,status:'completed',conclusion:'success'}
 }
-exports.readRecord = async () => ({identity:'current-release-record'})
-exports.resolveCurrent = async (api, input, record) => {
-  if (input.sha !== process.env.TEST_REPOSITORY || record.identity !== 'current-release-record')
-    throw Error('unexpected_release_resolution')
+let reads=0
+exports.readRecord = async () => {
+  if (process.env.TEST_MODE === 'verify-originals') throw Error('preparation_accessed_current_release')
+  const changed=++reads===2 && process.env.TEST_CHANGED==='1'
+  return {record:{release:{repository_sha:process.env.TEST_REPOSITORY,phase:process.env.TEST_PHASE}},
+    blob:'record-blob',record_digest:changed?'changed':'original'}
+}
+exports.validateRelease = record => record
+exports.resolveCurrent = async (api, input, location) => {
+  if (input.sha !== location.record.release.repository_sha) throw Error('unexpected_release_resolution')
   return {ready:process.env.TEST_KIND !== 'pending', kind:process.env.TEST_KIND,
     repository_sha:process.env.TEST_ACCEPTED_REPOSITORY, application_sha:process.env.TEST_APPLICATION}
 }
 """)
-    (tool / "release_priority.js").write_text("""
-exports.verifyPreviousRelease = async ({repository, baseSha}) => {
-  if (repository !== 'test/max' || baseSha !== process.env.TEST_REPOSITORY) throw Error('wrong_release_priority_base')
-  console.log('current_release_admitted')
-}
-""")
     installed = "d" * 40
     later = "e" * 40
-    for mode, free, repository, accepted_repo, application, kind, expected_error in [
-        ("verify-originals", "0", later, later, installed, "pending", ""),
-        ("authorize-write", "0", installed, installed, installed, "installed", "shared_release_changed"),
-        ("authorize-write", "1", installed, installed, installed, "installed", ""),
-        ("authorize-write", "1", later, later, installed, "application_unchanged", ""),
-        ("authorize-write", "1", later, later, installed, "pending", "current_release_changed"),
-        ("authorize-write", "1", later, later, later, "installed", "current_release_changed"),
-        ("authorize-write", "1", later, later, installed, "installed", "current_release_changed"),
-        ("authorize-write", "1", later, installed, installed, "application_unchanged", "current_release_changed"),
-        ("", "1", installed, installed, installed, "installed", "invalid_admission_mode"),
+    for mode, repo, accepted, app, kind, phase, changed, error in [
+        ("verify-originals", later, later, installed, "pending", "pending_closure", "0", ""),
+        ("authorize-write", installed, installed, installed, "installed", "pending_terminal", "0", ""),
+        ("authorize-write", later, later, installed, "application_unchanged", "pending_terminal", "0", ""),
+        ("authorize-write", installed, installed, installed, "installed", "pending_closure", "0", "release_pending"),
+        ("authorize-write", installed, installed, installed, "pending", "pending_terminal", "0", "current_release_changed"),
+        ("authorize-write", later, later, later, "installed", "pending_terminal", "0", "current_release_changed"),
+        ("authorize-write", later, later, installed, "installed", "pending_terminal", "0", "current_release_changed"),
+        ("authorize-write", later, installed, installed, "application_unchanged", "pending_terminal", "0", "current_release_changed"),
+        ("authorize-write", installed, installed, installed, "installed", "pending_terminal", "1", "deployment_result_changed"),
+        ("", installed, installed, installed, "installed", "pending_terminal", "0", "invalid_admission_mode"),
     ]:
         environment = dict(os.environ, MAX_ARCHIVE_ID="15032515599", MAX_NATIVE_ID="22", MAX_PREPARED_ARTIFACT_ID="",
-                           MAX_REPOSITORY_SHA="9" * 40, TEST_MODE=mode, TEST_FREE=free,
-                           TEST_AUDIT_BRANCH="audit/1566-main-hotel-registry-20261119", TEST_AUDIT_JOB="registry",
-                           TEST_ARCHIVE_HEAD=archive_head, TEST_REPOSITORY=repository,
-                           TEST_ACCEPTED_REPOSITORY=accepted_repo, TEST_APPLICATION=application, TEST_KIND=kind)
+                           TEST_MODE=mode, TEST_AUDIT_BRANCH="audit/1566-main-hotel-registry-20261119",
+                           TEST_AUDIT_JOB="registry", TEST_ARCHIVE_HEAD=archive_head, TEST_REPOSITORY=repo,
+                           TEST_ACCEPTED_REPOSITORY=accepted, TEST_APPLICATION=app, TEST_KIND=kind,
+                           TEST_PHASE=phase, TEST_CHANGED=changed)
         result = subprocess.run(["node", admission, mode], cwd=stage, env=environment,
                                 capture_output=True, text=True, check=False)
-        assert (result.returncode == 0) == (not expected_error), result.stderr
-        assert result.stderr.strip() == expected_error, result.stderr
-        if mode == "authorize-write" and not expected_error:
-            assert result.stdout.strip() == "current_release_admitted", result.stdout
+        assert (result.returncode == 0) == (not error), result.stderr
+        assert result.stderr.strip() == error, result.stderr
+        if mode == "authorize-write" and not error:
+            assert result.stdout.strip() == f"MAX_ACCEPTED_APPLICATION={app}", result.stdout
 
     for field, value in (("TEST_AUDIT_BRANCH", "main"), ("TEST_AUDIT_JOB", "prepare_only")):
         result = subprocess.run(["node", admission, "verify-originals"], cwd=stage,
@@ -261,7 +258,7 @@ exports.verifyPreviousRelease = async ({repository, baseSha}) => {
                                 capture_output=True, text=True, check=False)
         assert result.returncode != 0 and result.stderr.strip() == "original_audit_role_changed", result.stderr
 
-print("MAX preparation ignores the release slot; writing requires the canonical accepted application")
+print("MAX writes authenticate the accepted installation without consulting main or the shared release slot")
 
 editor_tools = root / "tools/direct_demand/operations/max-existing-photo"
 sys.path.insert(0, str(editor_tools))

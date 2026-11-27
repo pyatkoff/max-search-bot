@@ -207,6 +207,25 @@ function maxEditBodyOnce($file, array $plan, array $proof, callable $send, calla
     return $observed;
 }
 
+function maxEditAssertLeaseIdentity($lease, string $path): void
+{
+    clearstatcache(true, $path);
+    $named = lstat($path);
+    $held = fstat($lease);
+    maxEditNeed(is_array($named) && is_array($held) && ($named['mode'] & 0170000) === 0100000
+        && $named['dev'] === $held['dev'] && $named['ino'] === $held['ino'], 'editor_lock_unavailable');
+}
+
+function maxEditBatchLease(string $path, bool $writing)
+{
+    maxEditNeed(is_file($path) && !is_link($path), 'editor_lock_unavailable');
+    $lease = fopen($path, 'rb');
+    $mode = $writing ? LOCK_EX : LOCK_SH;
+    maxEditNeed(is_resource($lease) && flock($lease, $mode | LOCK_NB), 'editor_busy');
+    maxEditAssertLeaseIdentity($lease, $path);
+    return $lease;
+}
+
 function maxEditRun(array $argv, ?array $batchApproval = null): int
 {
     $lease = null;
@@ -230,6 +249,12 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
             && ($checking ? count($argv) === 5 : count($argv) === 6
                 && preg_match('/\A[a-f0-9]{64}\z/D', $approved) === 1), 'exact_mode_plan_and_release_required');
         $plan = maxEditPlan($path, $planSha, $batchApproval);
+        $base = '/var/www/anytoour/data/channel-post-operations';
+        $leasePath = $base . '/monitor-price-after-collection-v1.jsonl';
+        if ($batchApproval !== null && !$preparing) {
+            // The host installer holds this same inode through the checkout switch.
+            $lease = maxEditBatchLease($leasePath, $mode === '--apply');
+        }
         maxEditInstalled($sha);
         $root = getcwd();
         ob_start();
@@ -245,18 +270,11 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
         $pdo = ConversationDb::connection();
         $registry = new ChannelPostRegistryService($pdo);
         $key = substr(hash('sha256', MAIN_MAX . '|' . $plan['target_mid']), 0, 36);
-        $base = '/var/www/anytoour/data/channel-post-operations';
         if ($preparing) {
             // This snapshot is provisional. The writer re-reads the pair under the exclusive lease.
             maxEditNeed($pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY') !== false
                 && $pdo->beginTransaction(), 'read_only_snapshot_unavailable');
             $readOnlyTransaction = true;
-        } elseif ($batchApproval !== null) {
-            $leasePath = $base . '/monitor-price-after-collection-v1.jsonl';
-            maxEditNeed(is_file($leasePath) && !is_link($leasePath), 'editor_lock_unavailable');
-            $lease = fopen($leasePath, 'rb');
-            $lockMode = $mode === '--apply' ? LOCK_EX : LOCK_SH;
-            maxEditNeed(is_resource($lease) && flock($lease, $lockMode | LOCK_NB), 'editor_busy');
         }
         $lock = 'anytour-1566-main-max-' . $key;
         $directory = $base . '/' . $lock;
@@ -291,6 +309,9 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
         maxEditNeed(hash_equals($approved, $sealed), 'approved_checkpoint_changed');
         maxEditInstalled($sha);
         maxEditNeed(maxEditTarget($pdo, $plan) === $proof['target_photo_ids'], 'original_target_changed_before_edit');
+        if (is_resource($lease)) {
+            maxEditAssertLeaseIdentity($lease, $leasePath);
+        }
         maxEditNeed(mkdir($directory, 0700), 'target_receipt_exists_no_replay');
         $file = fopen($directory . '/receipt.jsonl', 'x');
         maxEditNeed(is_resource($file), 'durable_edit_receipt_create_failed');
