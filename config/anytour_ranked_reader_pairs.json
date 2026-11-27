@@ -11,24 +11,6 @@
       "target_photo_marker_sha256": "4b47bdb4e865de8373ac9ef3d12dc067ed5facb37d76e4b4bb29d2e877018e8d"
     },
     {
-      "hotel_id": 1015,
-      "source_mid": "368",
-      "source_publication_id": 836,
-      "target_mid": "1210",
-      "target_published_unixtime": 1758983496,
-      "target_caption_sha256": "d2b4ddf749779c5e6297175b571b34b3339abcaee5e09ccef6dfc723c99fc7f6",
-      "target_photo_marker_sha256": "5689a01ffc974a89d6e2ba8e0001f54842a6df4de6809f7f221c8e442c76f145"
-    },
-    {
-      "hotel_id": 1649,
-      "source_mid": "369",
-      "source_publication_id": 837,
-      "target_mid": "1309",
-      "target_published_unixtime": 1767179863,
-      "target_caption_sha256": "29d19b5551612ca369c98e0a544710eee6b7760d1929848bfbd3e32b91c3e069",
-      "target_photo_marker_sha256": "245192a241df5e5b3ed6ee6d44e3c2d88421dd46f78e9c8c93313487a25a5d23"
-    },
-    {
       "hotel_id": 28448,
       "source_mid": "370",
       "source_publication_id": 838,

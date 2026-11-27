@@ -44,7 +44,7 @@ jobs:
 
           MANIFEST = 'config/anytour_ranked_reader_pairs.json'
           WORKFLOW = '.github/workflows/read-1566-telegram-46-20261123.yml'
-          WORKFLOW_UPGRADE_PARENT = 'c6d9bcf00b66c2b5d293b5bb112158959a604413'
+          WORKFLOW_UPGRADE_PARENT = '3de64b31d1dde645b4bd20d72d19c400fe93aedc'
           FIELDS = {
               'hotel_id', 'source_mid', 'source_publication_id', 'target_mid',
               'target_published_unixtime', 'target_caption_sha256', 'target_photo_marker_sha256',
@@ -69,7 +69,7 @@ jobs:
               assert git('rev-list', '--parents', '-n', '1', head).split() == [head, before]
               changes = set(git('diff-tree', '--no-commit-id', '--no-renames', '--name-status', '-r',
                                 before, head).splitlines())
-              expected = ({'M\t' + WORKFLOW} if before == WORKFLOW_UPGRADE_PARENT
+              expected = ({'M\t' + WORKFLOW, 'M\t' + MANIFEST} if before == WORKFLOW_UPGRADE_PARENT
                           else {'M\t' + MANIFEST})
               assert changes == expected, 'unexpected commit scope'
               assert re.fullmatch(r'100644 blob [a-f0-9]{40}\t' + re.escape(MANIFEST) + r'\n',
@@ -139,17 +139,27 @@ jobs:
 
             const before = await release.readRecord(api);
             const { release: accepted, installation } = release.validateRelease(before.record);
-            if (accepted.phase !== 'pending_terminal' ||
-                accepted.release.run_attempt !== 1 ||
-                !release.positive(accepted.closure?.run_id)) {
+            if (accepted.release.run_attempt !== 1) throw Error('unsupported_installation_attempt');
+            let resolved;
+            let observationOnly = false;
+            if (accepted.phase === 'pending_terminal' && release.positive(accepted.closure?.run_id)) {
+              await release.requireAncestry(api, accepted.repository_sha, repositorySha);
+              resolved = await release.resolveCurrent(api, { sha: accepted.repository_sha }, before);
+              if (!resolved.ready || resolved.repository_sha !== accepted.repository_sha ||
+                  resolved.application_sha !== accepted.application_sha || resolved.kind !== accepted.kind) {
+                throw Error('installation_not_accepted');
+              }
+            } else if (accepted.phase === 'pending_closure' && accepted.kind === 'installed' &&
+                       accepted.repository_sha === repositorySha && accepted.application_sha === repositorySha) {
+              // Successful exact-source install and verification permit observation.
+              // Its immutable result is never eligible for a writer packet.
+              await release.authenticatePublication(api, before);
+              await release.requireOps(api, repositorySha);
+              observationOnly = true;
+              resolved = { repository_sha: repositorySha, application_sha: repositorySha,
+                kind: accepted.kind, ready: false, perform_actions: false };
+            } else {
               throw Error('current_release_terminal_unavailable');
-            }
-
-            await release.requireAncestry(api, accepted.repository_sha, repositorySha);
-            const resolved = await release.resolveCurrent(api, { sha: accepted.repository_sha }, before);
-            if (!resolved.ready || resolved.repository_sha !== accepted.repository_sha ||
-                resolved.application_sha !== accepted.application_sha || resolved.kind !== accepted.kind) {
-              throw Error('installation_not_accepted');
             }
 
             // Retain interoperability with installed publisher workflows from before
@@ -167,6 +177,7 @@ jobs:
               throw Error('installed_writer_contract_changed');
             }
             const readOnlySnapshot = writerBytes.includes('--allow-read-only-snapshot');
+            if (observationOnly && !readOnlySnapshot) throw Error('installed_snapshot_not_supported');
 
             const after = await release.readRecord(api);
             if (before.blob !== after.blob || before.record_digest !== after.record_digest) {
@@ -174,23 +185,26 @@ jobs:
             }
             if (await currentMain(api) !== repositorySha) throw Error('main_changed');
 
-            const baselineCurrent = resolved.repository_sha === repositorySha &&
+            const baselineCurrent = !observationOnly && resolved.repository_sha === repositorySha &&
               resolved.application_sha === repositorySha;
             fs.mkdirSync('../pub', { recursive: true });
             fs.writeFileSync('../pub/accepted-read-admission.json', JSON.stringify({
               read_only: true, current_main_sha: repositorySha, application_sha: resolved.application_sha,
               read_only_snapshot: readOnlySnapshot,
+              observation_only: observationOnly,
               write_admission: false, baseline_current_for_writer: baselineCurrent, canonical: resolved,
               record_commit: before.commit, record_blob: before.blob,
               original_installation_deploy: installation.run_id,
-              original_closer: accepted.closure.run_id, checked_at_utc: new Date().toISOString()
+              original_closer: accepted.closure?.run_id ?? null, checked_at_utc: new Date().toISOString()
             }) + '\n');
             console.log('Accepted Telegram read baseline', repositorySha, resolved.application_sha,
-              installation.run_id, accepted.closure.run_id, 'current_for_writer=' + baselineCurrent);
+              installation.run_id, accepted.closure?.run_id ?? null, 'current_for_writer=' + baselineCurrent,
+              'observation_only=' + observationOnly);
             fs.appendFileSync(process.env.GITHUB_ENV,
               'REPOSITORY_SHA=' + repositorySha + '\nAPPLICATION_SHA=' + resolved.application_sha +
               '\nRANKED_BASELINE_CURRENT=' + (baselineCurrent ? '1' : '0') +
-              '\nRANKED_READ_ONLY_SNAPSHOT=' + (readOnlySnapshot ? '1' : '0') + '\n');
+              '\nRANKED_READ_ONLY_SNAPSHOT=' + (readOnlySnapshot ? '1' : '0') +
+              '\nRANKED_OBSERVATION_ONLY=' + (observationOnly ? '1' : '0') + '\n');
           }
           check().catch(error => {
             console.error('readonly_accepted_installation_refused', error.code || error.message);
@@ -214,15 +228,17 @@ jobs:
               program=program.replace('__'+name+'__',value)
           baseline = os.environ['RANKED_BASELINE_CURRENT']
           snapshot = os.environ['RANKED_READ_ONLY_SNAPSHOT']
-          assert baseline in ('0', '1') and snapshot in ('0', '1')
+          observation = os.environ['RANKED_OBSERVATION_ONLY']
+          assert all(value in ('0', '1') for value in (baseline, snapshot, observation))
+          assert observation != '1' or (baseline, snapshot) == ('0', '1')
           # Execute the reviewed reader helpers for the admitted candidate packet.
           # Candidate holds and SQL read-only mode remain mandatory.
           assert program.count("$out=['schema'=>1") == 1
           program=program[:program.index("$out=['schema'=>1")]
-          entry=r'''function rankedPreparationAdmission(array $blockers,bool $snapshot,bool $shared,bool $baselineCurrent):array {
+          entry=r'''function rankedPreparationAdmission(array $blockers,bool $snapshot,bool $shared,bool $baselineCurrent,bool $observationOnly=false):array {
            $prepared=$blockers===[];
            if(!$snapshot&&!$shared)$blockers[]='price_shared_lease_not_acquired';
-           if(!$snapshot&&!$baselineCurrent)$blockers[]='accepted_application_not_current_for_writer';
+           if($observationOnly||(!$snapshot&&!$baselineCurrent))$blockers[]='accepted_application_not_current_for_writer';
            return ['preparation_ready'=>$prepared,'preview_ready'=>$blockers===[],'preview_blockers'=>$blockers];
           }
           function assertTelegramPriceLeaseInode($file, string $path): void {
@@ -242,11 +258,13 @@ jobs:
            return false;
           }
           $snapshot=__RANKED_READ_ONLY_SNAPSHOT__;
+          $observationOnly=__RANKED_OBSERVATION_ONLY__;
           $out=['schema'=>1,'issue'=>1566,'operation'=>'hotel_archive_telegram_ranked_registry','ok'=>false,
            'repository_sha'=>$snapshot?APPLICATION_SHA:REPOSITORY_SHA,'application_sha'=>APPLICATION_SHA,
            'observed_main_sha'=>REPOSITORY_SHA,'native_run_id'=>NATIVE_RUN_ID,'native_run_attempt'=>1,
            'production_writes'=>0,'provider_writes'=>0,'bot_starts'=>0,'write_admission'=>false,
            'baseline_current_for_writer'=>__RANKED_BASELINE_CURRENT__,
+           'observation_only'=>$observationOnly,
            'reader_packet_sha256'=>'__RANKED_READER_PACKET_SHA__','rows'=>[]];
           $pdo=null;$lock=null;$acquired=null;$rates=[];$start=hrtime(true);$stage='runtime';
           $pairs=json_decode(base64_decode('__VALIDATED_RANKED_PAIRS__',true),true,16,JSON_THROW_ON_ERROR);
@@ -324,7 +342,7 @@ jobs:
            runtimeRead();$out['mysql_before']=mysqlResourcesRead($pdo);
            $pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
            $pdo->beginTransaction();
-           if($snapshot)$out['registry_read_contract']='read_only_snapshot_v1';
+           if($snapshot)$out['registry_read_contract']=$observationOnly?'read_only_observation_v1':'read_only_snapshot_v1';
            foreach($pairs as $hotel=>$pair){
             $stage='pair_'.$hotel;$assessment=telegramPreparedPairNativeRead($hotel,$pair,$public[$hotel],$prior[$hotel],($out['native_channel_rights']['state']??null)==='ready',$feed,$routes,
              static fn(int $h,array $p):array=>telegramPreparedPairTargetRead($pdo,$registry,$h,$p),
@@ -343,7 +361,7 @@ jobs:
             $sm=is_array($sn)&&($assessment['prepared_checks_pass']??false)===true&&$sn['current_token_resolves']===true&&!$sn['native_claim_held_or_unknown'];
             if(!$sm)$blockers[]='source_not_confirmed';
             $directory=OPERATIONS.'/'.$operation;
-            $admission=rankedPreparationAdmission($blockers,$snapshot,$shared,$out['baseline_current_for_writer']);
+            $admission=rankedPreparationAdmission($blockers,$snapshot,$shared,$out['baseline_current_for_writer'],$observationOnly);
             $out['rows'][]=['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
              'source_native'=>$sn,'target_native'=>$assessment['target_native']??null,'source_public'=>$sp,'target_public'=>$tp,
              'source_matches'=>$sm,'historical_target_matches'=>($assessment['checks']['target_preimage']??false)===true,
@@ -362,6 +380,8 @@ jobs:
           entry=entry.replace('__RANKED_BASELINE_CURRENT__', 'true' if baseline == '1' else 'false')
           assert entry.count('__RANKED_READ_ONLY_SNAPSHOT__') == 1
           entry=entry.replace('__RANKED_READ_ONLY_SNAPSHOT__', 'true' if snapshot == '1' else 'false')
+          assert entry.count('__RANKED_OBSERVATION_ONLY__') == 1
+          entry=entry.replace('__RANKED_OBSERVATION_ONLY__', 'true' if observation == '1' else 'false')
           digest = os.environ['RANKED_READER_PACKET_SHA']
           assert re.fullmatch(r'[a-f0-9]{64}', digest) and entry.count('__RANKED_READER_PACKET_SHA__') == 1
           entry=entry.replace('__RANKED_READER_PACKET_SHA__',digest)
@@ -391,7 +411,9 @@ jobs:
           if($a!==['preparation_ready'=>true,'preview_ready'=>true,'preview_blockers'=>[]])exit(7);
           $a=rankedPreparationAdmission(['source_not_confirmed'],true,false,false);
           if($a!==['preparation_ready'=>false,'preview_ready'=>false,'preview_blockers'=>['source_not_confirmed']])exit(8);
-          echo "SEVEN_PREPARATION_ADMISSION_CASES_PASS\\n";
+          $a=rankedPreparationAdmission([],true,false,false,true);
+          if($a!==['preparation_ready'=>true,'preview_ready'=>false,'preview_blockers'=>['accepted_application_not_current_for_writer']])exit(9);
+          echo "EIGHT_PREPARATION_ADMISSION_CASES_PASS\\n";
           """
           pathlib.Path('pub/price-preparation-test.php').write_text('<?php\n'+function+cases)
           PY
