@@ -29,7 +29,7 @@ jobs:
       - name: Checkout exact installed provenance source
         uses: actions/checkout@v4
         with:
-          ref: bdc596e797992bf50de409f9ff6e094a4ccfd623
+          ref: aad4de171966a7386e0293626f485d03003109f7
           persist-credentials: false
       - name: Verify one read request and the accepted installation before server access
         env:
@@ -38,7 +38,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = 'bdc596e797992bf50de409f9ff6e094a4ccfd623'
+          test "$(git rev-parse HEAD)" = 'aad4de171966a7386e0293626f485d03003109f7'
           node - <<'NODE'
           const R = require('./tools/deployment_release')
           const requestPath = 'tools/direct_demand/operations/max-existing-photo/max-native-read-request.json'
