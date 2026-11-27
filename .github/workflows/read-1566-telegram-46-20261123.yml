@@ -44,7 +44,7 @@ jobs:
 
           MANIFEST = 'config/anytour_ranked_reader_pairs.json'
           WORKFLOW = '.github/workflows/read-1566-telegram-46-20261123.yml'
-          WORKFLOW_UPGRADE_PARENT = '9e3b0a91dcad07d21c46a66c09e082b794d37e9f'
+          WORKFLOW_UPGRADE_PARENT = 'fc105289e5221ccaafc6eb8afb58ca0b89a88848'
           FIELDS = {
               'hotel_id', 'source_mid', 'source_publication_id', 'target_mid',
               'target_published_unixtime', 'target_caption_sha256', 'target_photo_marker_sha256',
@@ -69,7 +69,7 @@ jobs:
               assert git('rev-list', '--parents', '-n', '1', head).split() == [head, before]
               changes = set(git('diff-tree', '--no-commit-id', '--no-renames', '--name-status', '-r',
                                 before, head).splitlines())
-              expected = ({'M\t' + WORKFLOW, 'M\t' + MANIFEST} if before == WORKFLOW_UPGRADE_PARENT
+              expected = ({'M\t' + WORKFLOW} if before == WORKFLOW_UPGRADE_PARENT
                           else {'M\t' + MANIFEST})
               assert changes == expected, 'unexpected commit scope'
               assert re.fullmatch(r'100644 blob [a-f0-9]{40}\t' + re.escape(MANIFEST) + r'\n',
