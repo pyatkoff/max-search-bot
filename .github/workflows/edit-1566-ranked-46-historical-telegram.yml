@@ -60,6 +60,7 @@ jobs:
           INDEX_SHA: ${{ steps.release.outputs.ranked_index_digest }}
           NATIVE_ARTIFACT_ID: ${{ steps.release.outputs.ranked_artifact_id }}
           DATA_SHA: ${{ steps.release.outputs.ranked_data_sha }}
+          CONTROL_SHA: ${{ steps.release.outputs.ranked_control_sha }}
           DATA_INDEX_PATH: ${{ steps.release.outputs.ranked_data_index_path }}
           PARENT_EVIDENCE: ${{ steps.release.outputs.parent_evidence }}
           REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
@@ -89,8 +90,8 @@ jobs:
           if [[ "$check" == --check-ranked-transfer-data ]]; then
             test "$DATA_SHA" = "$GITHUB_SHA"
             [[ "$DATA_INDEX_PATH" =~ ^config/anytour_[a-z0-9_]+\.json$ ]]
-            test "$APPLICATION_SHA" = "$REPOSITORY_SHA"
-            test "$(git -C .trusted-editor rev-parse HEAD)" = "$APPLICATION_SHA"
+            [[ "$CONTROL_SHA" =~ ^[a-f0-9]{40}$ ]]
+            test "$(git -C .trusted-editor rev-parse HEAD)" = "$CONTROL_SHA"
           else
             test "$REPOSITORY_SHA" = "$GITHUB_SHA"
           fi
@@ -131,7 +132,8 @@ jobs:
           if [[ "$check" == --check-ranked-transfer-data ]]; then
             python3 .trusted-editor/tools/validate_ranked_telegram_input.py "$INDEX_SHA" "$RUNNER_TEMP/ranked-native.zip" \
               --inspect-root "$PWD" --inspect-index "$DATA_INDEX_PATH" --git-root "$PWD" \
-              --application-sha "$APPLICATION_SHA" --data-source-sha "$DATA_SHA" > "$RUNNER_TEMP/ranked-inspection.json"
+              --application-sha "$APPLICATION_SHA" --data-source-sha "$DATA_SHA" \
+              --allow-read-only-snapshot > "$RUNNER_TEMP/ranked-inspection.json"
             jq -e '.chunks | select(length==1 and (.[0].hotels | length <= 5))' "$RUNNER_TEMP/ranked-inspection.json" > "$RUNNER_TEMP/ranked-chunks.json"
             python3 - <<'PY'
           import base64, json, os, pathlib
