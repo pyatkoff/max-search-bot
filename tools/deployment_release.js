@@ -1871,8 +1871,11 @@ async function confirmPendingRecord(api,location) {
     const closers=runs.filter(x=>x.path===CLOSER&&x.event==='workflow_run'
       &&x.display_title==='deploy-proof:v1:'+r.release.run_id+':'+run.run_attempt);
     requireValue(closers.length===1,'pending_closer_unconfirmed');
-    runIdentity(closers[0],{id:closers[0].id,attempt:1,head:r.repository_sha,workflow:CLOSER,event:'workflow_run',completed:false});
-    requireValue(closers[0].status!=='completed','pending_terminal_unconfirmed');
+    const closer=closers[0],failed=closer.status==='completed'&&closer.conclusion==='failure';
+    runIdentity(closer,{id:closer.id,attempt:1,head:r.repository_sha,workflow:CLOSER,
+      event:'workflow_run',completed:failed,conclusion:failed?'failure':'success'});
+    requireValue(!failed,'release_closer_failed');
+    requireValue(closer.status!=='completed','pending_terminal_unconfirmed');
   }
 }
 async function resolveCurrent(api,c,location,{defer=false}={}) {
