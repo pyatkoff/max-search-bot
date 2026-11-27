@@ -34,7 +34,11 @@ def verify_adopted_publisher(comparison, reviewed, activation_path):
             and comparison.get("merge_base_commit", {}).get("sha") == reviewed,
             "activation is outside the accepted publisher history")
     files = {row["filename"] for row in comparison.get("files", [])}
-    allowed = {activation_path, ".github/workflows/read-1566-old-ordinary-max-posts.yml"}
+    allowed = {
+        activation_path,
+        ".github/workflows/read-1566-old-ordinary-max-posts.yml",
+        "tools/direct_demand/operations/max-existing-photo/max-native-read-request.json",
+    }
     require(activation_path in files and files.issubset(allowed),
             "publisher code changed since the accepted PR")
 

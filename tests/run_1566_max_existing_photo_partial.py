@@ -272,6 +272,10 @@ verify_activation(activation, parent, head, activation_path)
 for rejected in [
     {**activation, "parents": [{"sha": head}]},
     {**activation, "files": activation["files"] + [{"filename": ".github/workflows/edit.yml", "status": "modified"}]},
+    {**activation, "files": [{"filename": "tools/direct_demand/operations/max-existing-photo/max-native-read-request.json",
+                              "status": "modified"}]},
+    {**activation, "files": activation["files"] + [
+        {"filename": "tools/direct_demand/operations/max-existing-photo/max-native-read-request.json", "status": "added"}]},
     {**activation, "files": [{"filename": activation_path, "status": "removed"}]},
 ]:
     try:
@@ -283,7 +287,8 @@ for rejected in [
 
 comparison = {"status": "ahead", "behind_by": 0, "merge_base_commit": {"sha": parent},
               "files": [{"filename": activation_path},
-                        {"filename": ".github/workflows/read-1566-old-ordinary-max-posts.yml"}]}
+                        {"filename": ".github/workflows/read-1566-old-ordinary-max-posts.yml"},
+                        {"filename": "tools/direct_demand/operations/max-existing-photo/max-native-read-request.json"}]}
 verify_adopted_publisher(comparison, parent, activation_path)
 for rejected in [
     {**comparison, "merge_base_commit": {"sha": head}},
