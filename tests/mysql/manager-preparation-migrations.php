@@ -436,8 +436,10 @@ try{
 }
 
 
-// Independent prospective-stream fixture runs after all existing cleanup.
-require __DIR__.'/modeled-conversion-stream.php';
+// Standalone runs retain the independent stream and purchase-study fixtures.
+if (($argv[1] ?? '') !== '--skip-modeled-stream') {
+    require __DIR__.'/modeled-conversion-stream.php';
+}
 
 // Independent archive fixture follows the existing disposable-suite cleanup.
 require __DIR__.'/archive-research-read.php';

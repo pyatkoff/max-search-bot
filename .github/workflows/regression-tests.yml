@@ -98,7 +98,7 @@ jobs:
     if: (needs.change-scope.outputs.mode == 'full' && (needs.change-scope.outputs.backend == 'full' || needs.change-scope.outputs.backend == 'telegram-public-observer')) || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')
     # Each matrix job owns a fresh MySQL service and runner. Never run these
     # destructive fixtures concurrently against one shared database.
-    # Start all four existing jobs together and use the short regional job for development fixtures.
+    # Start all four jobs together. Queues and the modeled stream use isolated fixture schemas.
     strategy:
       fail-fast: false
       max-parallel: 4
@@ -141,7 +141,7 @@ jobs:
               php tests/run_manager_prepared_reply_regression.php
               ;;
             migrations)
-              php tests/mysql/manager-preparation-migrations.php
+              php tests/mysql/manager-preparation-migrations.php --skip-modeled-stream
               php tests/mysql/manager-reply-queue.php
               php tests/mysql/virtual-reply-sampling.php
               php tests/mysql/virtual-reply-controls.php
@@ -151,6 +151,7 @@ jobs:
             queues)
               php tests/mysql/hotel-work-queue.php
               php tests/mysql/hotel-work-events.php
+              php tests/mysql/modeled-conversion-stream.php
               ;;
             regional-access)
               php tests/mysql/manager-regional-routing.php --required-native
