@@ -222,6 +222,9 @@ exports.readRecord = async () => {
 exports.validateRelease = record => record
 exports.resolveCurrent = async (api, input, location) => {
   if (input.sha !== location.record.release.repository_sha) throw Error('unexpected_release_resolution')
+  if (location.record.release.phase === 'pending_closure' && process.env.TEST_KIND === 'pending_bound') {
+    throw Error('release_pending')
+  }
   return {ready:process.env.TEST_KIND !== 'pending', kind:process.env.TEST_KIND,
     repository_sha:process.env.TEST_ACCEPTED_REPOSITORY, application_sha:process.env.TEST_APPLICATION}
 }
@@ -232,7 +235,8 @@ exports.resolveCurrent = async (api, input, location) => {
         ("verify-originals", later, later, installed, "pending", "pending_closure", "0", ""),
         ("authorize-write", installed, installed, installed, "installed", "pending_terminal", "0", ""),
         ("authorize-write", later, later, installed, "application_unchanged", "pending_terminal", "0", ""),
-        ("authorize-write", installed, installed, installed, "installed", "pending_closure", "0", "release_pending"),
+        ("authorize-write", installed, installed, installed, "installed", "pending_closure", "0", ""),
+        ("authorize-write", installed, installed, installed, "pending_bound", "pending_closure", "0", "release_pending"),
         ("authorize-write", installed, installed, installed, "pending", "pending_terminal", "0", "current_release_changed"),
         ("authorize-write", later, later, later, "installed", "pending_terminal", "0", "current_release_changed"),
         ("authorize-write", later, later, installed, "installed", "pending_terminal", "0", "current_release_changed"),
