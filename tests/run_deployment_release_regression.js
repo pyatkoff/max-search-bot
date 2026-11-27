@@ -1421,8 +1421,23 @@ async function consumerCases(f,a,r){
   // installation, even if all hand-written stages say success.
   await refuses(()=>R.deploymentProof(f.api,receipt(r,String(f.wave.parent.id))),'installation_not_performed');
   const closeRun=f.wave.own;closeRun.status='completed';closeRun.conclusion='failure';
-  await refuses(()=>resolveSchedule(f),'producer_not_active','failed closer cannot suppress monitoring as active work');
+  await refuses(()=>resolveSchedule(f),'release_closer_failed','failed closer cannot suppress monitoring as active work');
   closeRun.status='in_progress';closeRun.conclusion=null;
+}
+
+async function pendingCloserCases(){
+  const f=fixture('a'.repeat(40)),closer=f.wave.own;
+  equal((await resolveSchedule(f)).ready,false,'installed release with an active closer stays deferred');
+  Object.assign(closer,{status:'completed',conclusion:'failure'});
+  await refuses(()=>resolveSchedule(f),'release_closer_failed','original failed closer is reported for a real installation');
+  await refuses(()=>resolveSchedule(f,'workflow_dispatch'),'release_closer_failed','manual inspection sees the same failed closer');
+  closer.run_attempt=2;
+  await refuses(()=>resolveSchedule(f),'untrusted_workflow_run','a foreign attempt cannot identify the original failure');
+  closer.run_attempt=1;closer.conclusion='cancelled';
+  await refuses(()=>resolveSchedule(f),'producer_not_active','cancelled closer is still refused');
+  closer.conclusion='success';
+  await refuses(()=>resolveSchedule(f),'pending_terminal_unconfirmed','successful closer without terminal publication is still refused');
+  equal(f.calls.every(c=>c.method==='GET'),true,'pending closer resolution stays read-only');
 }
 
 function metadataConsumer({legacy=false,event='workflow_run',parentEvent='push'}={}){
@@ -3351,7 +3366,7 @@ async function superseded1701Cases() {
   await refuses(()=>recovery.diagnosticRetry({...retry,id:1}),'diagnostic_retry_executed');
 }
 
-async function main(){await superseded1701Cases();await unstarted1704Cases();await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+async function main(){await superseded1701Cases();await unstarted1704Cases();await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await pendingCloserCases();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
   execFileSync(process.execPath,[path.join(__dirname,'run_ranked_telegram_cli_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1702_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1721_forward_regression.js')],{stdio:'inherit'});
