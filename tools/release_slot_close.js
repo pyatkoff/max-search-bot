@@ -103,6 +103,13 @@ function gateState(snapshot, c, pending = []) {
     }
     const run = candidates[0];
     validRun(run, c, path, event, name, event === 'workflow_run' ? origin(file) : null);
+    if (file === 'modeled-conversion-monitor.yml' && c.pr1751Heartbeat) {
+      requireValue(require('./release_slot_1751_terminal').isOriginalMonitor({
+        path:run.path,run_id:String(run.id),run_attempt:run.run_attempt,head_sha:run.head_sha,conclusion:run.conclusion}),
+      'original_monitor_changed');
+      requireValue(run.status === 'completed', 'original_monitor_changed');
+      continue;
+    }
     if(file==='max-tls-preflight.yml'&&c.gateRecovery){
       requireValue(String(run.id)===release.GATE_RECOVERY.tls_run_id&&run.status==='completed'
         &&run.conclusion==='failure','original_tls_gate_changed');continue;
@@ -130,7 +137,7 @@ function gateState(snapshot, c, pending = []) {
   const own = runs.filter(r => r.path === CLOSER && r.event === 'workflow_run');
   requireValue(own.length === 1 && own[0].id === c.run, 'ambiguous_closer');
   validRun(own[0], c, CLOSER, 'workflow_run', 'Configure AnyTour modeled value goal', origin('modeled-conversion-value-export.yml'));
-  if(c.terminalRecovery)requireValue(String(own[0].id)===(c.publisherBodyRecovery?release.PUBLISHER_BODY_RECOVERY.run_id:c.priorWaveRecovery?release.PRIOR_WAVE_RECOVERY.run_id:c.unpublishedRecovery?(c.unpublishedRecoveryPr===1720?release.UNPUBLISHED_TERMINAL_RECOVERY_1720:release.UNPUBLISHED_TERMINAL_RECOVERY).run_id:
+  if(c.terminalRecovery)requireValue(String(own[0].id)===(c.pr1751Heartbeat?'45918089456':c.publisherBodyRecovery?release.PUBLISHER_BODY_RECOVERY.run_id:c.priorWaveRecovery?release.PRIOR_WAVE_RECOVERY.run_id:c.unpublishedRecovery?(c.unpublishedRecoveryPr===1720?release.UNPUBLISHED_TERMINAL_RECOVERY_1720:release.UNPUBLISHED_TERMINAL_RECOVERY).run_id:
     c.gateRecovery?release.GATE_RECOVERY.run_id:release.TERMINAL_RECOVERY.run_id)
     &&own[0].status==='completed'&&own[0].conclusion==='failure','original_terminal_not_failed');
   else if (c.skippedTerminal) requireValue(own[0].status === 'completed' && own[0].conclusion === 'success', 'original_terminal_not_skipped');
@@ -950,6 +957,8 @@ function terminalReads(base,{sleep=ms=>new Promise(r=>setTimeout(r,ms))}={}){
   api.jobLog=id=>read(()=>base.jobLog(id),'job_log');api.artifact=meta=>read(()=>base.artifact(meta),'artifact');return api;
 }
 async function resumeTerminal({env,event,api,prepare=false,proofFile=null,readOptions={}}){
+  if(env.GITHUB_REF==='refs/heads/ops/close-pr1751-heartbeat-20261127')
+    return require('./release_slot_1751_terminal').resume({env,event,api,prepare,proofFile});
   if(env.GITHUB_REF==='refs/heads/ops/recover-pr1701-terminal-20261125')
     return require('./release_slot_1701_recovery').resume({env,event,api,prepare,proofFile});
   if(env.GITHUB_REF==='refs/heads/'+release.PUBLISHER_BODY_RECOVERY.branch)

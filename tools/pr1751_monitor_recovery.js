@@ -46,6 +46,10 @@ async function requireHeldRelease(api) {
   valid(main?.object?.sha === installed, 'main_changed');
   const b = C.binding(pr, installed);
   valid(b && R.same(C.bindingSnapshot(b), binding) && C.recordState(publisher, b) === 'active', 'publisher_changed');
+  return validateOriginal(current);
+}
+
+function validateOriginal(current) {
   const {release, installation} = R.validateRelease(current.record);
   valid(current.commit === diagnostics && current.blob === 'f5a443bfaecc1a67cc2fb9550b6391018900dba2'
     && current.record_digest === '43fc4c4c4053cb3b542dd60aed2f3800eafc1c6a4a255dad3fe17c6afdc19c5a'
@@ -55,13 +59,15 @@ async function requireHeldRelease(api) {
   return {current, installation};
 }
 
-async function proveOriginalGate(api) {
-  const {current, installation} = await requireHeldRelease(api);
+async function proveOriginalGate(api, historical = false) {
+  const {current, installation} = historical
+    ? validateOriginal(await R.readRecord(api, diagnostics)) : await requireHeldRelease(api);
   const [originalMonitor, originalCloser, artifacts] = await Promise.all([
     failedJob(api, monitorRun, monitor, 'monitor', 140242032998),
     failedJob(api, closerRun, C.CLOSER, 'release-slot', 140242034592),
     get(api, '/actions/runs/' + closerRun + '/artifacts?per_page=100'),
-    R.authenticatePublication(api, current), R.deploymentProof(api, installation), R.requireOps(api, installed),
+    R.authenticatePublication(api, current), R.deploymentProof(api, installation),
+    historical ? null : R.requireOps(api, installed),
   ]);
   valid(C.stepResult(originalMonitor, 'Read the installed source before opening notification state') === 'success'
     && C.stepResult(originalMonitor, 'Locate latest retained encrypted monitor state') === 'failure', 'monitor_failure_changed');
@@ -76,7 +82,8 @@ async function proveOriginalGate(api) {
     && C.stepResult(originalCloser, R.TERMINAL_BINDING_STEP) === 'skipped'
     && C.stepResult(originalCloser, R.TERMINAL_STEP) === 'skipped'
     && R.boundedList(artifacts, 'artifacts', 'incomplete_original_closer_artifacts').length === 0, 'terminal_work_already_started');
-  await requireHeldRelease(api);
+  if (!historical) await requireHeldRelease(api);
+  return current;
 }
 
 async function proveOriginalRecovery(api) {
@@ -147,4 +154,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = {admit, proveOriginalGate};
+module.exports = {admit, proveOriginalGate, requireHeldRelease};
