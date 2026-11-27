@@ -65,6 +65,17 @@ final class ModeledConversionPipelineMonitorStatus
     /** Null means the pre-cutover legacy check still owns full SQL coverage. */
     public static function availability(int $now,?string $directory=null):?array
     {
+        return self::availabilityView($now,$directory,true);
+    }
+
+    /** Release gates prove installed source and checker freshness without opening delivery state. */
+    public static function technicalAvailability(int $now,?string $directory=null):?array
+    {
+        return self::availabilityView($now,$directory,false);
+    }
+
+    private static function availabilityView(int $now,?string $directory,bool $requireNotification):?array
+    {
         $p=self::read(new ModeledConversionStatusBudget(),static function():void{},$now,$directory);
         if($p['active']===false)return null;
         $flags=[];
@@ -72,7 +83,7 @@ final class ModeledConversionPipelineMonitorStatus
             $status='ok';
         }elseif($p['available']!==true||$p['fresh']!==true){
             $status='unavailable';$flags=['pipeline_checker_stale'];
-        }elseif($p['ok']!==true||$p['notification']==='unknown'){
+        }elseif($requireNotification&&($p['ok']!==true||$p['notification']==='unknown')){
             $status='unavailable';$flags=['pipeline_checker_notification_unknown'];
         }else{
             // Business incidents belong to the local sender. This role checks its liveness.

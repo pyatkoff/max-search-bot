@@ -49,6 +49,7 @@ function pipelineMonitorStatusAssertions(callable $check):void
     $dir=$base.'/private';$activationPath=$dir.'/activation.json';$receiptPath=$dir.'/pipeline-checks.json';$now=1793700000;
     $read=static fn(int $clock):array=>ModeledConversionPipelineMonitorStatus::read(new ModeledConversionStatusBudget(),static function():void{},$clock,$dir);
     $availability=static fn(int $clock):?array=>ModeledConversionPipelineMonitorStatus::availability($clock,$dir);
+    $technicalAvailability=static fn(int $clock):?array=>ModeledConversionPipelineMonitorStatus::technicalAvailability($clock,$dir);
     try{
         $r=$read($now);
         $check('absent activation is explicitly inactive and delegates legacy coverage',$r['active']===false
@@ -102,6 +103,8 @@ function pipelineMonitorStatusAssertions(callable $check):void
         pipelineMonitorFixtureWrite($receiptPath,$unknown);
         $check('fresh uncertain local notification has its own control alert',$availability($now)['flags']===['pipeline_checker_notification_unknown']
             &&!$read($now)['scheduled']['regular']);
+        $check('release availability accepts the same fresh technical cycle without reading notification outcome',
+            $technicalAvailability($now)['status']==='ok'&&$technicalAvailability($now)['flags']===[]);
         $notPersisted=$receipt;$notPersisted['ok']=false;
         pipelineMonitorFixtureWrite($receiptPath,$notPersisted);
         $check('fresh unsuccessful local persistence does not qualify despite a healthy business status',
@@ -109,6 +112,7 @@ function pipelineMonitorStatusAssertions(callable $check):void
         pipelineMonitorFixtureWrite($receiptPath,$receipt);
         $check('freshness includes exact fifteen-minute boundary',$read($now+900)['fresh']&&$read($now+900)['scheduled']['regular']);
         $check('old local heartbeat becomes a stale control alert',$availability($now+901)['flags']===['pipeline_checker_stale']
+            &&$technicalAvailability($now+901)['flags']===['pipeline_checker_stale']
             &&!$read($now+901)['scheduled']['regular']);
         $gap=$receipt;$gap['checks'][0]['checked_at']=gmdate('Y-m-d\TH:i:s\Z',$now-1301);
         $gap['checks'][1]['checked_at']=gmdate('Y-m-d\TH:i:s\Z',$now-1000);
@@ -216,6 +220,17 @@ function pipelineMonitorStatusAssertions(callable $check):void
         $check('CLI external role leaves business alerts to the local sender',$business['code']===0
             &&($business['body']['flags']??null)===[]&&($business['body']['status']??null)==='ok'
             &&!is_file($base.'/PDO_USED'));
+        $liveReceipt['notification']='unknown';$liveReceipt['ok']=false;
+        pipelineMonitorFixtureWrite($local.'/pipeline-checks.json',$liveReceipt);
+        $notificationView=pipelineMonitorFixtureRun($command,$base);
+        $releaseView=pipelineMonitorFixtureRun([PHP_BINARY,$app.'/tools/modeled_conversion_monitor.php','release-availability'],$base);
+        $check('notification CLI preserves an uncertain-delivery control alert',
+            ($notificationView['body']['flags']??null)===['pipeline_checker_notification_unknown']);
+        $check('release CLI proves the same fresh installed cycle without notification state',
+            $releaseView['code']===0&&($releaseView['body']['status']??null)==='ok'
+            &&($releaseView['body']['flags']??null)===[]&&!is_file($base.'/PDO_USED'));
+        $liveReceipt['notification']='quiet';$liveReceipt['ok']=true;
+        pipelineMonitorFixtureWrite($local.'/pipeline-checks.json',$liveReceipt);
         $externalDir=$base.'/max-search-bot-modeled-monitor';mkdir($externalDir,0700);
         $external=['schema_version'=>1,'project'=>'anytour','counter_id'=>'98615635',
             'checked_at'=>gmdate('Y-m-d\TH:i:s\Z',$liveNow-30),'status'=>'degraded','flags'=>['monitor_transport_unavailable'],
