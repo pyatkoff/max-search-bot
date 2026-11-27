@@ -184,22 +184,30 @@ jobs:
               return remaining;
             }
             async function readArtifactPage(name, page) {
-              const request = () => ({...context.repo, name, per_page: perPage, page,
-                request: {timeout: Math.min(10000, remainingMs())}});
-              try {
-                const response = await github.rest.actions.listArtifactsForRepo(request());
-                remainingMs();
-                return response;
-              } catch (error) {
-                if (artifactReadRetried || error?.status !== 500) throw error;
-                if (remainingMs() <= 1000) throw new Error('monitor_artifact_discovery_deadline');
-                artifactReadRetried = true;
-                core.warning('GitHub artifact-list HTTP 500: retrying this read once.');
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                const response = await github.rest.actions.listArtifactsForRepo(request());
+              async function read() {
+                const response = await github.rest.actions.listArtifactsForRepo({...context.repo, name,
+                  per_page: perPage, page, request: {timeout: Math.min(10000, remainingMs())}});
                 remainingMs();
                 return response;
               }
+              let reason;
+              try {
+                const response = await read();
+                const data = response?.data;
+                // No earlier rows have been accepted for this name on page one.
+                if (artifactReadRetried || page !== 1 || !Number.isSafeInteger(data?.total_count) ||
+                    data.total_count < 1 || data.total_count > maxPerName ||
+                    !Array.isArray(data.artifacts) || data.artifacts.length !== 0) return response;
+                reason = 'GitHub artifact-list returned an empty first page with a positive total';
+              } catch (error) {
+                if (artifactReadRetried || error?.status !== 500) throw error;
+                reason = 'GitHub artifact-list HTTP 500';
+              }
+              if (remainingMs() <= 1000) throw new Error('monitor_artifact_discovery_deadline');
+              artifactReadRetried = true;
+              core.warning(`${reason}: retrying this read once.`);
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              return read();
             }
             const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
             const positive = value => Number.isSafeInteger(value) && value > 0;

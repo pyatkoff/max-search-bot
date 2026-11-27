@@ -1238,6 +1238,7 @@ const none={present:'false'}, kept=artifact(10);
 const firstBlock=block(I,1);
 const cases=[];
 const add=(name,replies,valid,retries,outputs,extra={})=>cases.push({name,replies,valid,retries,outputs,...extra});
+const emptyPageRetry='GitHub artifact-list returned an empty first page with a positive total: retrying this read once.';
 add('filtered final retained state',[read(I,1,empty()),read(F,1,result([kept]))],true,0,output(kept));
 add('filtered intent retained state',[read(I,1,result([artifact(11,I)])),read(F,1,empty())],true,0,output(artifact(11,I)));
 add('successful empty response for both exact names',[read(I,1,empty()),read(F,1,empty())],true,0,none);
@@ -1265,7 +1266,22 @@ add('only ineligible state is an explicit complete empty result',[read(I,1,resul
 add('malformed response is not empty state',[read(I,1,{data:{}})],false,0,{});
 add('null list is not empty state',[read(I,1,{data:{total_count:0,artifacts:null}})],false,0,{});
 add('missing total is not complete state',[read(I,1,{data:{artifacts:[]}})],false,0,{});
-add('empty page before its declared total is incomplete',[read(I,1,result([],1))],false,0,{});
+add('transient empty intent page recovers the newer intent',[read(I,1,result([],1)),
+  read(I,1,result([newerIntent])),read(F,1,result([kept]))],true,1,output(newerIntent),{warning:emptyPageRetry});
+add('complete fresh listing can report no retained intent',[read(I,1,result([],1)),
+  read(I,1,empty()),read(F,1,result([kept]))],true,1,output(kept),{warning:emptyPageRetry});
+add('persistent empty first page remains incomplete',[read(I,1,result([],1)),read(I,1,result([],1))],
+  false,1,{},{warning:emptyPageRetry});
+add('empty final page recovery uses the same retry allowance',[read(I,1,empty()),read(F,1,result([],1)),
+  read(F,1,result([kept]))],true,1,output(kept),{warning:emptyPageRetry});
+add('HTTP500 leaves no extra retry for an empty first page',[read(I,1,failure(500)),
+  read(I,1,result([],1))],false,1,{});
+add('empty first page consumes the HTTP500 retry allowance',[read(I,1,result([],1)),read(I,1,empty()),
+  read(F,1,failure(500))],false,1,{},{warning:emptyPageRetry});
+add('empty later page still invalidates an incomplete scan',[read(I,1,result(firstBlock,26)),
+  read(I,2,result([],26))],false,0,{});
+add('empty first page with excessive total stays invalid',[read(I,1,result([],501))],false,0,{});
+add('empty first page cannot retry past the global deadline',[read(I,1,result([],1),59500)],false,0,{});
 add('response cannot exceed requested page bound',[read(I,1,result([...firstBlock,artifact(26,I)]))],false,0,{});
 add('rows cannot exceed declared total',[read(I,1,result([artifact(1,I)],0))],false,0,{});
 add('short page cannot silently truncate a known total',[read(I,1,result(firstBlock.slice(0,24),26))],false,0,{});
@@ -1330,7 +1346,8 @@ for(const test of cases){
   equal(!error,valid,name+': terminal result');
   equal(requests.length,replies.length,name+': no missing or unbounded reads');
   equal(delays,Array(retries).fill(1000),name+': one bounded retry delay');
-  equal(warnings,Array(retries).fill('GitHub artifact-list HTTP 500: retrying this read once.'),name+': sanitized retry warning');
+  equal(warnings,Array(retries).fill(test.warning ?? 'GitHub artifact-list HTTP 500: retrying this read once.'),
+    name+': sanitized retry warning');
   equal(outputs,expectedOutputs,name+': incomplete or failed discovery exposes no partial state');
   truth(outputAt.every(count=>count===replies.length),name+': outputs follow complete discovery');
   requests.forEach((request,index)=>{
