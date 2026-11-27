@@ -357,3 +357,71 @@ else:
     raise AssertionError("Activation changed the editorial scope")
 
 print("One data-only activation can refresh the native receipt, with post, archive and publication policy fixed")
+
+# Exercise the actual observer extracted from the existing workflow.
+from collections import Counter
+from email.message import Message
+from io import BytesIO
+from unittest.mock import patch
+import urllib.error
+
+workflow = (root / ".github/workflows/edit-1566-historical-max-photo-posts.yml").read_text()
+observer = workflow.split("- name: Read each same public MAX address independently\n", 1)[1]
+observer = observer.split("python3 - <<'PY'\n", 1)[1].split("\n          PY\n", 1)[0]
+observer = compile(textwrap.dedent(observer), "public MAX observer", "exec")
+
+def observe_responses(provider_status, retry_after):
+    requests = Counter()
+
+    class Response(BytesIO):
+        status = 200
+
+        def geturl(self):
+            return self.url
+
+    def open_post(request, timeout):
+        url = request.full_url
+        requests[url] += 1
+        if url.endswith("/2") and requests[url] == 1:
+            headers = Message()
+            if retry_after is not None:
+                headers["Retry-After"] = retry_after
+            raise urllib.error.HTTPError(url, provider_status, "test response", headers, BytesIO())
+        response = Response(b'<meta property="og:image" content="photo"><div>Hotel Caption</div>')
+        response.url = url
+        return response
+
+    with tempfile.TemporaryDirectory() as directory:
+        work = pathlib.Path(directory)
+        publication = work / "pub"
+        publication.mkdir()
+        urls = [f"https://max.ru/anytour/{n}" for n in range(1, 5)]
+        rows = [{"hotel_id": n, "target_url": url, "name": "Hotel", "caption_without_price": "Hotel Caption"}
+                for n, url in enumerate(urls, 1)]
+        (publication / "manifest.json").write_text(json.dumps({"rows": rows}))
+        (publication / "native-results.txt").write_text("".join(
+            f'RESULT {n} {json.dumps({"hotel": n, "state": "existing_max_message_updated_and_verified"})}\n'
+            for n in range(1, 5)))
+        before = os.getcwd()
+        try:
+            os.chdir(work)
+            with patch("urllib.request.urlopen", side_effect=open_post), patch("time.sleep") as sleep:
+                exec(observer, {})
+            rows = json.loads((publication / "observation.json").read_text())["rows"]
+        finally:
+            os.chdir(before)
+    return urls, requests, rows, sleep
+
+for status, delay in ((429, "60"), (429, None), (503, "Fri, 27 Nov 2026 20:00:00 GMT")):
+    urls, requests, rows, sleep = observe_responses(status, delay)
+    assert [requests[url] for url in urls] == [1, 1, 1, 0]
+    assert rows[0]["verified"] and rows[2]["verified"]
+    assert rows[1]["http"] == status and rows[1]["retry_after"] == delay
+    assert rows[3]["error"] == "held_for_provider_backoff"
+    sleep.assert_not_called()
+
+urls, requests, rows, sleep = observe_responses(500, None)
+assert [requests[url] for url in urls] == [1, 2, 1, 1]
+assert all(row["verified"] for row in rows)
+sleep.assert_called_once_with(5)
+print("Public MAX observes provider backoff without losing accepted rows")

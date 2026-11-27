@@ -480,13 +480,42 @@ jobs:
                        'escaped_variant_visible': '&amp;' in visible or '&amp;' in declared}
                   out['verified']=out['named'] and out['caption_matches'] and out['photo_preview']
                   return out
-              except (OSError,ValueError,AssertionError) as e:
-                  return {'hotel_id':row['id'],'url':row['url'],'error':type(e).__name__,'verified':False}
+              except urllib.error.HTTPError as error:
+                  retry_after = error.headers.get('Retry-After')
+                  error.close()
+                  limited = error.code == 429 or retry_after is not None
+                  result = {'hotel_id':row['id'],'url':row['url'],'http':error.code,
+                            'error':'provider_backoff' if limited else 'HTTPError','verified':False}
+                  if limited:
+                      result['retry_after'] = retry_after[:128] if retry_after else None
+                  return result
+              except (OSError,ValueError,AssertionError) as error:
+                  return {'hotel_id':row['id'],'url':row['url'],'error':type(error).__name__,'verified':False}
+          def held(row, limit):
+              return {'hotel_id':row['id'],'url':row['url'],'error':'held_for_provider_backoff',
+                      'retry_after':limit['retry_after'],'verified':False}
+          results = []
+          limit = None
           with ThreadPoolExecutor(max_workers=3) as pool:
-              results=list(pool.map(read,plans))
-          if not all(r['verified'] for r in results):
+              for offset in range(0, len(plans), 3):
+                  batch = plans[offset:offset + 3]
+                  if limit is not None:
+                      results.extend(held(row, limit) for row in batch)
+                      continue
+                  observed = list(pool.map(read, batch))
+                  results.extend(observed)
+                  limit = next((row for row in observed if row.get('error') == 'provider_backoff'), None)
+          if limit is None and any(not row['verified'] for row in results):
               time.sleep(5)
-              results=[r if r['verified'] else read(p) for r,p in zip(results,plans)]
+              for index, plan in enumerate(plans):
+                  if results[index]['verified']:
+                      continue
+                  if limit is not None:
+                      results[index] = held(plan, limit)
+                      continue
+                  results[index] = read(plan)
+                  if results[index].get('error') == 'provider_backoff':
+                      limit = results[index]
           out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
           Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
           print('MAX_COMMERCIAL_ALBUM_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
