@@ -370,6 +370,18 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
     $check('a 100000 increment can be reconciled by the fake visit report and retained in the checked cache',
         $cache['available']&&$proof['events'][1]['increment_rub']===100000
         &&ModeledConversionVisitProof::forEvent($cache,$b)['linkage']==='unique_visit_reconciled');
+    $cutoff=$day+500;
+    $processed=$a;$processed['id']='4';$processed['value_processed_at_unix']=$cutoff;
+    $later=$b;$later['id']='5';$later['value_api_accepted_at_unix']=$cutoff+1;
+    $reads=[];
+    $retained=ModeledConversionVisitProof::retainedOriginalCohort([$legacy,$a,$b,$processed,$later],$cache,$cutoff,$now,
+        static function(array $row)use(&$reads,$now,$proof):array{
+            $reads[]=$row['id'];
+            return $row['id']==='2'?['at'=>$now-86400,'event'=>$proof['events'][0]]:[];
+        });
+    $check('scheduled visit proof reads archives only for the original prediction cohort and prefers the archive over cache',
+        $reads===['2','3']&&array_keys($retained)===[3]&&$retained[3]['checked_at']===$proof['checked_at']
+        &&$retained[3]['fingerprint']===ModeledConversionVisitProof::fingerprint($b));
     $over=$b;$over['value_rub']=100001;$calls=count($api->calls);$blocked=false;
     try{ModeledConversionVisitProof::verify([$over],$api,$day,$day+500,$now);}
     catch(RuntimeException $e){$blocked=$e->getMessage()==='verification_invalid_ledger';}
