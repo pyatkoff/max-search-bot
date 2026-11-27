@@ -14,9 +14,11 @@ class ConversationRecorder
     private static ?array $wizardInput = null;
     private static array $wizardReceipts = [];
     private static string $wizardReceiptReason = 'input_unavailable';
+    private static ?array $aiInvocationInput = null;
 
     public static function inbound(array $incoming): bool
     {
+        self::$aiInvocationInput = null;
         $conversationId = null;
         $duplicate = null;
         return self::recordInbound($incoming, ProjectConfig::projectId(), true, $conversationId, $duplicate);
@@ -25,6 +27,7 @@ class ConversationRecorder
     /** Explicit server-owned scope; callers must check persistence before acknowledging. */
     public static function inboundForProject(string $projectKey, array $incoming, ?int &$conversationId = null, ?bool &$duplicate = null): bool
     {
+        self::$aiInvocationInput = null;
         $conversationId = null;
         $duplicate = false;
         if (!preg_match('/\A[a-z0-9][a-z0-9_-]{0,63}\z/D', $projectKey)) return false;
@@ -57,6 +60,7 @@ class ConversationRecorder
         self::$wizardInput = null;
         self::$wizardReceipts = [];
         self::$wizardReceiptReason = 'input_unavailable';
+        self::$aiInvocationInput = null;
         try {
             if (!ConversationDb::isConfigured()) return false;
             $user = (array)($incoming['user'] ?? []);
@@ -118,9 +122,21 @@ class ConversationRecorder
             if(in_array((string)($linked['type']??''),['reply','forward'],true)) $metadata['linked_message']=$linked;
             $meta = self::json(ConversationRecordClock::stamp($metadata));
             $stmt = $pdo->prepare('INSERT INTO messages (conversation_id,direction,sender_type,sender_id,channel,external_message_id,text,metadata_json) VALUES (?,?,?,?,?,?,?,?)');
-            $stmt->execute([$conversationId,'inbound','customer',$externalUserId,$platform,$messageId !== '' ? $messageId : null,$text,$meta]);
+            $inputInserted = $stmt->execute([$conversationId,'inbound','customer',$externalUserId,$platform,$messageId !== '' ? $messageId : null,$text,$meta]);
             $inputId = (string)$pdo->lastInsertId();
             self::touch($conversationId);
+            try {
+                // A caller-owned transaction can still roll this input back.
+                // Inspecting diagnostic readiness must not affect the mirror.
+                if ($inputInserted === true && !$pdo->inTransaction() && $projectKey === 'anytour'
+                    && in_array($platform, ['max','telegram','website'], true)
+                    && in_array($type, ['message','callback'], true)
+                    && preg_match('/\A[1-9][0-9]{0,19}\z/D', $inputId)
+                    && (strlen($inputId) < 20 || strcmp($inputId, '18446744073709551615') <= 0)) {
+                    self::$aiInvocationInput = ['conversation_id'=>$conversationId, 'chat_id'=>$chatId,
+                        'input_message_id'=>$inputId, 'input_kind'=>$type, 'input_channel'=>$platform];
+                }
+            } catch (Throwable $ignored) {}
             if ($legacy && $projectKey === 'anytour' && in_array($platform, ['max','telegram'], true)
                 && in_array($type, ['message','callback'], true) && $text !== ''
                 && ($linked['type'] ?? '') !== 'forward' && ctype_digit($inputId) && (int)$inputId > 0) {
@@ -131,6 +147,29 @@ class ConversationRecorder
             return true;
         } catch (Throwable $e) {
             self::logFailure('inbound', $e);
+            return false;
+        }
+    }
+
+    /** Independent, metadata-only witness of entry into the AI service, not a provider request. */
+    public static function aiInvocationEntered($chatId, ?string $invocationId): bool
+    {
+        try {
+            $input = self::$aiInvocationInput;
+            if (!$input || ProjectConfig::projectId() !== 'anytour' || $input['chat_id'] !== (string)$chatId) return false;
+            if ($invocationId !== null && !preg_match('/\A[0-9a-f]{32}\z/D', $invocationId)) return false;
+            $payload = ConversationRecordClock::stamp([
+                'schema'=>'anytour.ai_invocation_entry.v1', 'invocation_id'=>$invocationId,
+                'input_message_id'=>$input['input_message_id'], 'input_kind'=>$input['input_kind'],
+                'input_channel'=>$input['input_channel'],
+            ]);
+            $pdo = ConversationDb::connection();
+            // Even a caught failed INSERT can abort a caller's transaction.
+            if ($pdo->inTransaction()) return false;
+            $stmt = $pdo->prepare('INSERT INTO conversation_events (conversation_id,event_type,actor_type,payload_json) VALUES (?,?,?,?)');
+            return $stmt->execute([$input['conversation_id'],'ai_invocation_entered','system',self::json($payload)]) === true;
+        } catch (Throwable $ignored) {
+            // A diagnostic write must not change a reply or disclose native input.
             return false;
         }
     }

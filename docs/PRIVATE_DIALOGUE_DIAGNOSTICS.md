@@ -42,11 +42,11 @@ not necessarily the original sent text; recorded equality is not a quality score
 ### AI invocation metadata
 
 The existing private `production_snapshot.json` can also contain
-`ai_invocation_metadata_private`, schema `anytour.ai_invocation_metadata.v2`.
+`ai_invocation_metadata_private`, schema `anytour.ai_invocation_metadata.v3`.
 `AiInvocationMetadataSnapshot` reads the existing external debug and error
 logs locally, checks complete `anytour.ai_invocation.v1` frames using their
 declared byte lengths and SHA256, and emits metadata only. It never copies the
-payload, payload digest, customer/chat/message identifiers, error text, file
+payload, payload digest, customer/chat/message identifiers from these logs, error text, file
 path, prompt or model name. Raw log bytes are used transiently in the collector;
 no additional plaintext log copy or log transport is created.
 
@@ -78,7 +78,8 @@ malformed/truncated frame, hash mismatch or known truncation marker, admission
 stops for the rest of that source; the reader never resynchronizes through an
 unknown tail. Header-looking text inside a valid frame is consumed as payload.
 
-The existing `--production` encryption input carries this separate projection.
+The existing `--production` encryption input carries this separate projection,
+including the independently collected service-entry subsection described below.
 The runner strictly validates its schema, bounds and fixed reason codes, and
 replaces the random invocation identifier with an independent, domain-separated
 per-capture alias. It neither transfers native conversation/message IDs nor
@@ -125,14 +126,15 @@ Malformed structured JSON retains the existing `forChat()` behavior. The
 outcome describes the content actually returned by that code; it does not
 assert that a malformed stored value contained no useful information.
 Only the website-page read is covered. Source-post/recent-dialogue reads,
-incoming-message identity, state application and provider metadata remain
-separate unresolved evidence. The outcome has no separate read timestamp; the
+state application and provider metadata remain separate unresolved evidence.
+The bounded D1b subsection below observes a retained input link separately.
+The context outcome has no separate read timestamp; the
 existing frame time is a recording time, not a new measurement of retrieval
 duration or a reconstruction of historical event times.
 
-Each v2 source record has `website_context_read`: a fixed outcome on input,
-and null on terminal records. The encrypted consumer accepts source v1 and v2;
-it emits `anytour.ai_invocation_metadata_evidence.v2` and retains `source_schema`.
+Each v2/v3 source log record has `website_context_read`: a fixed outcome on input,
+and null on terminal records. The encrypted consumer accepts source v1, v2 and v3;
+it emits `anytour.ai_invocation_metadata_evidence.v3` and retains `source_schema`.
 Old v1 inputs and inputs without the typed first line become `not_recorded`,
 never an invented absent row or error. Input/terminal grouping keeps its existing
 meaning: `candidate_correlated` does not prove that context retrieval succeeded
@@ -141,11 +143,95 @@ after a natural delivery acceptance.
 
 The frozen D5 v1 collector can still validate new input frames and ignores the
 typed payload line. Its original encrypted consumer rejects a v2 projection,
-so the v2 collector and consumer must be released together through the existing
-exact-SHA capture. A forward revert of D2 restores both to D5; existing logs do
-not need to be rewritten. No new service, dependency, workflow, schedule, query
-or public diagnostic field is introduced. The bounded extra input line and one
+so changed collector and consumer versions must be released together through the
+existing exact-SHA capture. A forward revert of D2 restores both to D5; existing
+logs do not need to be rewritten. The website-context observation itself adds
+no query or public diagnostic field. The bounded extra input line and one
 fixed metadata value use the existing log/capture retention and size limits.
+
+### Independent service-entry witness (D1b)
+
+`ConversationRecorder` retains a separate request-local reference only after
+the current input's successful autocommit `messages` INSERT. It records the exact internal
+message/conversation pair, channel and input kind; it never searches for the
+latest dialogue or borrows the deterministic wizard receipt. Every new inbound
+attempt, including invalid input/project, duplicate or failed persistence,
+clears this reference. An input written inside a caller-owned transaction does
+not establish this reference, even if that transaction later commits; a rollback
+must never leave an apparently retained input. Supported scope is the `anytour` project, message/callback
+inputs on MAX, Telegram and website. An absent reference remains unavailable.
+
+When the canonical `AiInvocationService::invoke` boundary is actually entered,
+the already loaded recorder attempts one `ai_invocation_entered` event in the
+existing `conversation_events` store, before website/source/dialogue context
+reads. The event contains only schema `anytour.ai_invocation_entry.v1`, the
+random invocation ID (or null if entropy failed), exact retained input ID,
+finite input kind/channel and `ConversationRecordClock` recording receipt.
+There is no copied input text, text hash, raw external identity, source label,
+model or prompt. The event uses the original conversation ID without touching
+business state or message chronology. It skips the diagnostic INSERT while the
+shared connection is in a caller-owned transaction, preserving that caller's
+rollback boundary. Readiness-observation failure also leaves provenance unknown
+without changing the existing mirror or wizard result. Diagnostic failure is swallowed and
+cannot replace the model result. Standalone callers with no loaded recorder or
+exact retained input produce no event; absence therefore never proves that
+the service was not called. Deterministic returns before `invoke` emit no entry.
+
+This is an independent storage observation from the debug/error frames, not
+provider-call evidence. A successful event can survive a missing AI log or a
+later context failure. Both stores may still fail; no failure is repaired or
+probed by the reader. One additional small event INSERT is attempted for an
+eligible invocation. There is no new table, migration, ledger, workflow or
+schedule, and existing event retention applies.
+
+`AiInvocationEntrySnapshot` performs one read-only, bounded database query in
+the existing private capture. It selects at most 129 latest events for this
+project, retaining at most 128; the extra row sets `has_more` and is not counted
+as inspected evidence. Each transferred event payload is limited to 1,024
+bytes. A left join checks the exact input row and its original conversation,
+inbound/customer direction, channel and finite message/callback kind. It
+selects neither input text nor complete input metadata. The raw native message
+ID is reduced in SQL to a presence boolean, never transferred. `created_at`
+orders the bounded query only; accepted event age comes exclusively from the
+strict Unix recording receipt, within the same one-hour/+60-second bounds.
+The query and log reads are sequential, with no cross-store atomicity claim.
+
+The nested `service_entries` source uses `anytour.ai_invocation_entries.v1`.
+Database not configured and read failure are explicit unavailable outcomes;
+a successful empty read is distinct. Invalid, old and future rows are counted
+separately. A missing or inconsistent retained input leaves the entry visible
+as `input_row_unavailable` or `input_provenance_mismatch`, with no input ID or
+native-presence claim. A valid exact join is `retained_inbound`; its
+`native_id_present=false` still cannot establish a native identity. No lookup
+of another input repairs a broken link. The outer `ok` keeps its original
+log-read meaning; database availability and omissions are reported separately.
+
+Before encryption, the runner strictly validates this bounded schema and
+replaces the internal input ID with a domain-separated per-capture `input_ref`.
+It drops raw event IDs and emits local `E001` references. The invocation ID
+uses the existing `ai-invocation:` alias domain, so a database entry and an
+input/result frame can be compared within that capture. An entry with no
+frames remains visible as an incomplete group; multiple entries for one
+invocation are ambiguous. Entry observation does not fill a missing input or
+terminal frame, and missing entry evidence does not upgrade or invalidate an
+otherwise candidate-correlated log pair. The group reports its separate
+`entry_status` and `entry_record_refs`. Null invocation IDs remain unlinked.
+
+The encrypted subsection is `anytour.ai_invocation_entries_evidence.v1`.
+Old v1/v2 metadata has `source_not_supplied` entry evidence, never an invented
+empty store. A v3 producer and consumer ship together; old consumers reject
+v3 instead of silently dropping its meaning. The whole subsection remains
+inside `ai_invocation_metadata_private`, removed by public composition and
+sanitization, including nested inputs. Existing message-selection permissions
+and the 2 MiB encrypted-plaintext cap are unchanged.
+
+Entry trust is explicitly `source_reported_database_event`. A database row and
+native-ID presence do not independently authenticate natural customer origin,
+the provider request, the producer's code version or causality. Every view
+retains `natural_origin_proven=false`, `provider_request_proven=false` and
+`runtime_trace_proven=false`; the outer causal flag remains false. Source-post,
+campaign and session-alias mapping remain unobserved. The recording age and
+aliases support a bounded comparison, not reconstruction of historical gaps.
 
 The capture's `production_sha` identifies the collector deployment. It does not
 prove the code, prompt or model version that produced each retained frame.
@@ -163,7 +249,7 @@ metadata field reports `source_not_supplied`, allowing older captures to remain
 readable without inventing zero events. This source preparation alone does not
 prove deployed collection; activation still requires the ordinary exact-SHA
 release and encrypted-capture acceptance below. There is no new workflow,
-schedule, service, model call or public output.
+schedule, model call or public output.
 
 Maintain the PHP producer and runner schema/bounds together. Focused coverage
 is included in the existing AI invocation, AI log boundary, encrypted evidence and public

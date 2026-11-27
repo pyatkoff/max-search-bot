@@ -67,11 +67,23 @@ def invocation_fixture(version=1, outcome="available"):
                      "age_seconds": 101 - index, "payload_bytes": 100, "frame_bytes": 450,
                      "payload_sha256_verified": True, "shape_confirmed": True, "embedded_prefix_lines": 0}
                     for index, stage in ((1, "input"), (2, "result"))]}
-    if version == 2:
+    if version in (2, 3):
         source = production["ai_invocation_metadata_private"]
-        source["schema"] = "anytour.ai_invocation_metadata.v2"
+        source["schema"] = f"anytour.ai_invocation_metadata.v{version}"
         for record in source["records"]:
             record["website_context_read"] = outcome if record["stage"] == "input" else None
+    if version == 3:
+        production["ai_invocation_metadata_private"]["service_entries"] = {
+            "schema": "anytour.ai_invocation_entries.v1", "available": True, "reason": None,
+            "trust": "source_reported_database_event", "source_history_complete": False,
+            "runtime_trace_proven": False, "provider_request_proven": False, "natural_origin_proven": False,
+            "limits": {"rows": 128, "payload_bytes": 1024, "age_seconds": 3600, "future_seconds": 60},
+            "rows_read": 1, "retained_rows": 1, "invalid_rows": 0, "omitted_old_rows": 0,
+            "omitted_future_rows": 0, "has_more": False,
+            "records": [{"event_id": "18446744073709551615", "invocation_id": "c" * 32,
+                         "age_seconds": 100, "input_message_id": "18446744073709551614",
+                         "input_link": "retained_inbound", "input_kind": "message", "input_channel": "max",
+                         "native_id_present": True}]}
     return production
 
 
@@ -105,7 +117,7 @@ class EvidenceTests(unittest.TestCase):
 
     def test_legacy_invocation_metadata_does_not_invent_a_website_read_outcome(self):
         view = json.loads(self.build(production=invocation_fixture()))["ai_invocation_metadata"]
-        self.assertEqual(view["schema"], "anytour.ai_invocation_metadata_evidence.v2")
+        self.assertEqual(view["schema"], "anytour.ai_invocation_metadata_evidence.v3")
         self.assertEqual(view["source_schema"], "anytour.ai_invocation_metadata.v1")
         self.assertEqual(view["records"][0]["website_context_read"], "not_recorded")
         self.assertIsNone(view["records"][1]["website_context_read"])
@@ -256,6 +268,212 @@ class EvidenceTests(unittest.TestCase):
         self.assertNotIn(("c" * 32).encode(), decoded)
         with self.assertRaises(Exception):
             pyrage.decrypt(encrypted, [pyrage.x25519.Identity.generate()])
+
+    def test_service_entry_roundtrip_links_frames_without_exporting_native_ids(self):
+        production = invocation_fixture(version=3)
+        source = production["ai_invocation_metadata_private"]["service_entries"]
+        source["records"].append({**source["records"][0], "event_id": "1234567891011121314", "invocation_id": "d" * 32})
+        source.update(rows_read=2, retained_rows=2)
+        data = self.build(production=production)
+        ciphertext = pyrage.encrypt(data, [self.identity.to_public()])
+        decoded = pyrage.decrypt(ciphertext, [self.identity])
+        self.assertEqual(data, decoded)
+        report = json.loads(decoded)
+        view = report["ai_invocation_metadata"]
+        entries = view["service_entries"]["records"]
+        self.assertEqual(view["schema"], "anytour.ai_invocation_metadata_evidence.v3")
+        self.assertEqual(view["service_entries"]["schema"], "anytour.ai_invocation_entries_evidence.v1")
+        self.assertEqual([entry["entry_ref"] for entry in entries], ["E001", "E002"])
+        self.assertEqual(entries[0]["invocation_ref"], view["records"][0]["invocation_ref"])
+        self.assertEqual(entries[0]["input_ref"], entries[1]["input_ref"])
+        self.assertNotEqual(entries[0]["input_ref"], entries[0]["invocation_ref"])
+        self.assertNotEqual(entries[0]["input_ref"], report["sessions"][0]["session_ref"])
+        again = json.loads(self.build(production=production))["ai_invocation_metadata"]["service_entries"]["records"][0]
+        self.assertNotEqual(entries[0]["input_ref"], again["input_ref"])
+        self.assertNotEqual(entries[0]["invocation_ref"], again["invocation_ref"])
+        self.assertEqual(view["groups"][0]["status"], "candidate_correlated")
+        self.assertEqual(view["groups"][0]["entry_status"], "observed")
+        self.assertEqual(view["groups"][0]["entry_record_refs"], ["E001"])
+        self.assertEqual(view["groups"][1]["status"], "incomplete")
+        for section in (view, view["service_entries"]):
+            for flag in ("runtime_trace_proven", "provider_request_proven", "natural_origin_proven"):
+                self.assertIs(section[flag], False)
+        self.assertIs(view["causal_diagnosis_performed"], False)
+        self.assertEqual(view["service_entries"]["trust"], "source_reported_database_event")
+        self.assertEqual(view["trust"], "unauthenticated_text_log")
+        for forbidden in ("18446744073709551615", "18446744073709551614", "1234567891011121314",
+                          '"event_id"', '"input_message_id"', "c" * 32, "d" * 32):
+            self.assertNotIn(forbidden.encode(), decoded)
+
+    def test_service_entry_without_frames_stays_visible_and_incomplete(self):
+        production = invocation_fixture(version=3)
+        source = production["ai_invocation_metadata_private"]
+        source["records"] = []
+        for stream in source["streams"]:
+            stream.update(bytes_read=0, valid_frames=0, retained_frames=0)
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertEqual(view["records"], [])
+        self.assertTrue(view["ok"])
+        self.assertEqual(len(view["groups"]), 1)
+        group = view["groups"][0]
+        self.assertEqual(group["status"], "incomplete")
+        self.assertEqual(group["entry_status"], "observed")
+        self.assertEqual(group["entry_records"], 1)
+        self.assertEqual(group["reason_codes"], ["input_record_missing", "terminal_record_missing"])
+        source["streams"][1].update(read_status="unavailable", reason="file_missing")
+        source["ok"] = False
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertIn("source_stream_unavailable", view["groups"][0]["reason_codes"])
+        self.assertEqual(view["groups"][0]["entry_status"], "observed")
+
+    def test_missing_entry_store_does_not_reclassify_a_valid_log_pair(self):
+        for reason in ("database_not_configured", "read_failed"):
+            with self.subTest(reason=reason):
+                production = invocation_fixture(version=3)
+                source = production["ai_invocation_metadata_private"]["service_entries"]
+                source.update(available=False, reason=reason, rows_read=0, retained_rows=0, records=[])
+                view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+                self.assertEqual(view["service_entries"]["reason"], reason)
+                self.assertFalse(view["service_entries"]["available"])
+                self.assertEqual(view["groups"][0]["status"], "candidate_correlated")
+                self.assertEqual(view["groups"][0]["entry_status"], "not_observed")
+                self.assertEqual(view["groups"][0]["entry_record_refs"], [])
+        production = invocation_fixture(version=3)
+        production["ai_invocation_metadata_private"]["service_entries"].update(rows_read=0, retained_rows=0, records=[])
+        empty = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertTrue(empty["service_entries"]["available"])
+        self.assertIsNone(empty["service_entries"]["reason"])
+        self.assertEqual(empty["groups"][0]["entry_status"], "not_observed")
+        for version in (1, 2):
+            with self.subTest(legacy_version=version):
+                view = json.loads(self.build(production=invocation_fixture(version=version)))["ai_invocation_metadata"]
+                self.assertEqual(view["service_entries"]["reason"], "source_not_supplied")
+                self.assertIsNone(view["service_entries"]["source_schema"])
+                self.assertEqual(view["groups"][0]["entry_status"], "not_observed")
+                self.assertEqual(view["groups"][0]["status"], "candidate_correlated")
+        view = json.loads(self.build(production=production_fixture()))["ai_invocation_metadata"]
+        self.assertFalse(view["available"])
+        self.assertEqual(view["service_entries"]["reason"], "source_not_supplied")
+
+    def test_service_entry_unknown_input_native_identity_and_null_link_are_preserved(self):
+        for link in ("retained_inbound", "input_row_unavailable", "input_provenance_mismatch"):
+            production = invocation_fixture(version=3)
+            record = production["ai_invocation_metadata_private"]["service_entries"]["records"][0]
+            record.update(input_link=link, input_kind="callback", input_channel="telegram",
+                          native_id_present=False if link == "retained_inbound" else None)
+            if link != "retained_inbound":
+                record["input_message_id"] = None
+            view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+            entry = view["service_entries"]["records"][0]
+            self.assertEqual(entry["input_link"], link)
+            self.assertEqual(view["groups"][0]["entry_status"], "observed")
+            self.assertEqual(entry["input_kind"], "callback")
+            self.assertEqual(entry["input_channel"], "telegram")
+            if link == "retained_inbound":
+                self.assertIsNotNone(entry["input_ref"])
+                self.assertIs(entry["native_id_present"], False)
+            else:
+                self.assertIsNone(entry["input_ref"])
+                self.assertIsNone(entry["native_id_present"])
+            record["invocation_id"] = None
+            view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+            self.assertIsNone(view["service_entries"]["records"][0]["invocation_ref"])
+            self.assertEqual(view["service_entries"]["unlinked_null_id_records"], 1)
+            self.assertEqual(view["groups"][0]["entry_status"], "not_observed")
+            self.assertEqual(view["groups"][0]["status"], "candidate_correlated")
+
+    def test_duplicate_event_ids_fail_and_duplicate_invocation_entries_are_ambiguous(self):
+        production = invocation_fixture(version=3)
+        source = production["ai_invocation_metadata_private"]["service_entries"]
+        source["records"].append(dict(source["records"][0]))
+        source.update(rows_read=2, retained_rows=2)
+        with self.assertRaises(ValueError):
+            self.build(production=production)
+        source["records"][1]["event_id"] = "2"
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertEqual(view["groups"][0]["status"], "ambiguous")
+        self.assertEqual(view["groups"][0]["entry_status"], "ambiguous")
+        self.assertEqual(view["groups"][0]["entry_records"], 2)
+        self.assertIn("multiple_entry_records", view["groups"][0]["reason_codes"])
+
+    def test_service_entry_strict_shapes_bounds_and_identity_reject_private_or_forged_data(self):
+        mutations = [
+            lambda s: s.update(text="PRIVATE_ENTRY_TEXT"),
+            lambda s: s.update(schema="unsupported"),
+            lambda s: s.update(available=1),
+            lambda s: s.update(reason="read_failed"),
+            lambda s: s.update(trust="authenticated"),
+            lambda s: s.update(runtime_trace_proven=True),
+            lambda s: s.update(provider_request_proven=True),
+            lambda s: s.update(natural_origin_proven=True),
+            lambda s: s.update(source_history_complete=True),
+            lambda s: s.update(limits={}),
+            lambda s: s["limits"].update(payload_bytes=1025),
+            lambda s: s.update(rows_read=True),
+            lambda s: s.update(rows_read=129),
+            lambda s: s.update(rows_read=2),
+            lambda s: s.update(retained_rows=0),
+            lambda s: s.update(invalid_rows=-1),
+            lambda s: s.update(has_more=1),
+            lambda s: s.update(has_more=True),
+            lambda s: s.update(records={}),
+            lambda s: s.update(records=s["records"] * 129),
+            lambda s: s.update(available=False, reason="read_failed"),
+            lambda s: s.update(available=False, reason="source_not_supplied", rows_read=0, retained_rows=0, records=[]),
+            lambda s: s["records"][0].update(event_id="18446744073709551616"),
+            lambda s: s["records"][0].update(event_id=1),
+            lambda s: s["records"][0].update(event_id="01"),
+            lambda s: s["records"][0].update(event_id="0"),
+            lambda s: s["records"][0].update(input_message_id="18446744073709551616"),
+            lambda s: s["records"][0].update(input_message_id=None),
+            lambda s: s["records"][0].update(invocation_id="c" * 33),
+            lambda s: s["records"][0].update(invocation_id=True),
+            lambda s: s["records"][0].update(age_seconds=3601),
+            lambda s: s["records"][0].update(age_seconds=-61),
+            lambda s: s["records"][0].update(age_seconds=True),
+            lambda s: s["records"][0].update(input_kind="bot_started"),
+            lambda s: s["records"][0].update(input_channel="other"),
+            lambda s: s["records"][0].update(input_link="unknown"),
+            lambda s: s["records"][0].update(native_id_present=1),
+            lambda s: s["records"][0].update(native_id_present=None),
+            lambda s: s["records"][0].update(input_link="input_row_unavailable"),
+            lambda s: s["records"][0].update(input_link="input_provenance_mismatch", input_message_id=None),
+            lambda s: s["records"][0].update(raw_native_id="PRIVATE_NATIVE_ID"),
+        ]
+        for index, mutate in enumerate(mutations):
+            with self.subTest(mutation=index):
+                production = invocation_fixture(version=3)
+                mutate(production["ai_invocation_metadata_private"]["service_entries"])
+                with self.assertRaises(ValueError):
+                    self.build(production=production)
+        production = invocation_fixture(version=3)
+        production["ai_invocation_metadata_private"].pop("service_entries")
+        with self.assertRaises(ValueError):
+            self.build(production=production)
+        for version in (1, 2):
+            production = invocation_fixture(version=version)
+            production["ai_invocation_metadata_private"]["service_entries"] = {}
+            with self.assertRaises(ValueError):
+                self.build(production=production)
+
+    def test_entry_retention_and_omissions_are_bounded_without_fabricating_completeness(self):
+        production = invocation_fixture(version=3)
+        source = production["ai_invocation_metadata_private"]["service_entries"]
+        source.update(rows_read=7, invalid_rows=1, omitted_old_rows=2, omitted_future_rows=3)
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        for key in ("rows_read", "invalid_rows", "omitted_old_rows", "omitted_future_rows"):
+            self.assertEqual(view["service_entries"][key], source[key])
+        self.assertEqual(view["groups"][0]["status"], "candidate_correlated")
+        record = dict(source["records"][0])
+        source.update(rows_read=128, retained_rows=128, invalid_rows=0, omitted_old_rows=0,
+                      omitted_future_rows=0, has_more=True,
+                      records=[{**record, "event_id": str(index + 1), "invocation_id": f"{index:032x}",
+                                "age_seconds": -60 if index % 2 else 3600} for index in range(128)])
+        view = json.loads(self.build(production=production))["ai_invocation_metadata"]
+        self.assertEqual(len(view["service_entries"]["records"]), 128)
+        self.assertTrue(view["service_entries"]["has_more"])
+        self.assertFalse(view["service_entries"]["source_history_complete"])
+        self.assertEqual(len(view["groups"]), 129)
 
     def test_optional_feedback_projection_redacts_and_allowlists_private_fields(self):
         self.assertNotIn("manager_ai_feedback", json.loads(self.build()))
@@ -522,23 +740,29 @@ class EvidenceTests(unittest.TestCase):
                 path.write_text(json.dumps(report))
                 paths.extend(["--" + name, str(path)])
             production = parent / "production.json"
-            production.write_text(json.dumps(production_fixture()))
+            production.write_text(json.dumps(invocation_fixture(version=3)))
             output = parent / "result.age"
             command = [sys.executable, str(TOOL), "encrypt", "--recipient", str(recipient),
                        "--sha", SHA, "--output", str(output), "--production", str(production)] + paths
             result = subprocess.run(command, capture_output=True)
             self.assertEqual(result.returncode, 0)
-            private_markers = (b"SYNTHETIC_PRIVATE_MESSAGE", b"SYNTHETIC_PRIVATE_PROPOSAL", b"SYNTHETIC_PRIVATE_SENT")
+            private_markers = (b"SYNTHETIC_PRIVATE_MESSAGE", b"SYNTHETIC_PRIVATE_PROPOSAL", b"SYNTHETIC_PRIVATE_SENT", b"PRIVATE_NATIVE_ID")
             for marker in private_markers:
                 self.assertNotIn(marker, result.stdout + result.stderr + output.read_bytes())
             decoded = json.loads(pyrage.decrypt(output.read_bytes(), [self.identity]))
             self.assertEqual(len(decoded["manager_ai_feedback"]["samples"]), 1)
+            self.assertEqual(decoded["ai_invocation_metadata"]["groups"][0]["entry_status"], "observed")
+            self.assertEqual(decoded["ai_invocation_metadata"]["service_entries"]["records"][0]["entry_ref"], "E001")
+            for raw_id in ("18446744073709551615", "18446744073709551614", "c" * 32):
+                self.assertNotIn(raw_id, json.dumps(decoded))
             self.assertEqual(output.stat().st_mode & 0o777, 0o600)
             output.unlink()
             wrong_sha, stale = production_fixture(), production_fixture()
             wrong_sha["production"]["sha"] = "b" * 40
             stale["generated_at"] = "2020-01-01T00:00:00Z"
-            for invalid in (None, [], wrong_sha, stale, {"raw": "SYNTHETIC_PRIVATE_PROPOSAL"}):
+            invalid_entry = invocation_fixture(version=3)
+            invalid_entry["ai_invocation_metadata_private"]["service_entries"]["records"][0]["raw_native_id"] = "PRIVATE_NATIVE_ID"
+            for invalid in (None, [], wrong_sha, stale, invalid_entry, {"raw": "SYNTHETIC_PRIVATE_PROPOSAL"}):
                 production.write_text(json.dumps(invalid))
                 failed = subprocess.run(command, capture_output=True)
                 self.assertNotEqual(failed.returncode, 0)

@@ -57,8 +57,8 @@ try {
     aiLogCheck('projection leaves original log bytes and modes unchanged', file_get_contents($debug) === $inputFrame . $resultFrame && file_get_contents($error) === '' && (fileperms($debug) & 0777) === 0600);
     aiLogCheck('metadata explicitly declines authenticated trace, session link and cross-file atomicity', $projection['trust'] === 'unauthenticated_text_log' && $projection['runtime_trace_proven'] === false && $projection['cross_stream_atomic'] === false && $projection['session_link_available'] === false && $projection['source_history_complete'] === false);
 
-    aiLogCheck('v2 projection keeps uninstrumented input distinct from an observed missing row',
-        $projection['schema'] === 'anytour.ai_invocation_metadata.v2'
+    aiLogCheck('v3 projection keeps uninstrumented input distinct from an observed missing row',
+        $projection['schema'] === 'anytour.ai_invocation_metadata.v3'
         && $projection['records'][0]['website_context_read'] === 'not_recorded'
         && $projection['records'][1]['website_context_read'] === null);
     $contextHeader = static fn(string $outcome): string => 'AI CONTEXT READ: ' . json_encode([
@@ -221,6 +221,120 @@ try {
     }
     if (is_dir($tmp)) @rmdir($tmp);
 }
+
+// The independent store is exercised through real, isolated PDO queries.
+// These fixtures are not natural customer invocations or provider executions.
+$entryNow = new DateTimeImmutable('2026-11-24T00:00:00Z');
+$entryPdo = new PDO('sqlite::memory:');
+$entryPdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+$entryPdo->exec("CREATE TABLE conversations(id INTEGER PRIMARY KEY, project_key TEXT);
+    INSERT INTO conversations VALUES(1,'anytour'),(2,'another-project');
+    CREATE TABLE messages(id INTEGER PRIMARY KEY, conversation_id INTEGER, direction TEXT, sender_type TEXT,
+        channel TEXT, external_message_id TEXT, text TEXT, metadata_json TEXT);
+    CREATE TABLE conversation_events(id INTEGER PRIMARY KEY AUTOINCREMENT, conversation_id INTEGER,
+        event_type TEXT, actor_type TEXT, payload_json TEXT, created_at TEXT DEFAULT '2026-11-24 03:00:00');");
+$entryPdo->prepare('INSERT INTO messages VALUES(?,?,?,?,?,?,?,?)')->execute([
+    7, 1, 'inbound', 'customer', 'max', 'PRIVATE_NATIVE_MESSAGE', 'PRIVATE_MESSAGE_TEXT',
+    json_encode(['type'=>'message','source_key'=>'PRIVATE_SOURCE','arbitrary'=>'PRIVATE_METADATA']),
+]);
+$entryPayload = static function (?string $invocation = null, ?int $unix = null) use ($entryNow): array {
+    return ConversationRecordClock::stamp([
+        'schema'=>'anytour.ai_invocation_entry.v1', 'invocation_id'=>$invocation ?? str_repeat('a',32),
+        'input_message_id'=>'7', 'input_kind'=>'message', 'input_channel'=>'max',
+    ], $unix ?? $entryNow->getTimestamp());
+};
+$insertEntry = static function ($payload, int $conversation = 1, string $actor = 'system', string $type = 'ai_invocation_entered') use ($entryPdo): void {
+    $entryPdo->prepare('INSERT INTO conversation_events(conversation_id,event_type,actor_type,payload_json) VALUES(?,?,?,?)')
+        ->execute([$conversation,$type,$actor,is_string($payload) ? $payload : json_encode($payload)]);
+};
+$emptyEntries = AiInvocationEntrySnapshot::collect($entryNow, $entryPdo);
+aiLogCheck('available empty entry store differs from unavailable database',
+    $emptyEntries['available'] === true && $emptyEntries['reason'] === null && $emptyEntries['records'] === []
+    && AiInvocationEntrySnapshot::collect($entryNow)['reason'] === 'database_not_configured');
+$insertEntry($entryPayload());
+$entries = AiInvocationEntrySnapshot::collect($entryNow, $entryPdo);
+$entry = $entries['records'][0] ?? [];
+aiLogCheck('actual PDO collector links exact persisted inbound row and finite native provenance',
+    $entries['available'] === true && $entries['retained_rows'] === 1 && $entry['input_message_id'] === '7'
+    && $entry['input_link'] === 'retained_inbound' && $entry['input_channel'] === 'max'
+    && $entry['input_kind'] === 'message' && $entry['native_id_present'] === true);
+aiLogCheck('entry timing uses explicit Unix receipt instead of bare database clock', $entry['age_seconds'] === 0);
+aiLogCheck('entry projection reads no text, raw external identity, source key or arbitrary metadata',
+    !str_contains(json_encode($entries), 'PRIVATE_'));
+aiLogCheck('independent entry witness explicitly declines natural, provider and complete trace proof',
+    $entries['trust'] === 'source_reported_database_event' && $entries['natural_origin_proven'] === false
+    && $entries['provider_request_proven'] === false && $entries['runtime_trace_proven'] === false
+    && $entries['source_history_complete'] === false);
+$entryPdo->exec("UPDATE messages SET external_message_id = NULL WHERE id=7");
+aiLogCheck('mirrored input with missing native ID is not promoted to native identity',
+    AiInvocationEntrySnapshot::collect($entryNow, $entryPdo)['records'][0]['native_id_present'] === false);
+$entryPdo->exec("UPDATE messages SET conversation_id = 2 WHERE id=7");
+$broken = AiInvocationEntrySnapshot::collect($entryNow, $entryPdo)['records'][0];
+aiLogCheck('wrong conversation keeps the entry witness but exposes no borrowed input link',
+    $broken['input_link'] === 'input_row_unavailable' && $broken['input_message_id'] === null && $broken['native_id_present'] === null);
+$entryPdo->exec("UPDATE messages SET conversation_id=1, direction='outbound' WHERE id=7");
+$broken = AiInvocationEntrySnapshot::collect($entryNow, $entryPdo)['records'][0];
+aiLogCheck('outbound row cannot masquerade as retained customer input',
+    $broken['input_link'] === 'input_provenance_mismatch' && $broken['input_message_id'] === null);
+$entryPdo->exec("UPDATE messages SET direction='inbound', sender_type='manager' WHERE id=7");
+aiLogCheck('manager row is not a customer input',
+    AiInvocationEntrySnapshot::collect($entryNow, $entryPdo)['records'][0]['input_link'] === 'input_provenance_mismatch');
+$entryPdo->exec("UPDATE messages SET sender_type='customer', channel='telegram' WHERE id=7");
+aiLogCheck('mismatching source channel cannot retain the input join',
+    AiInvocationEntrySnapshot::collect($entryNow, $entryPdo)['records'][0]['input_link'] === 'input_provenance_mismatch');
+$entryPdo->exec("UPDATE messages SET channel='max', metadata_json='not-json' WHERE id=7");
+aiLogCheck('invalid retained input metadata cannot assert the original input kind',
+    AiInvocationEntrySnapshot::collect($entryNow, $entryPdo)['records'][0]['input_link'] === 'input_provenance_mismatch');
+$entryPdo->prepare('UPDATE messages SET metadata_json=? WHERE id=7')->execute([json_encode(['type'=>str_repeat('PRIVATE_',2000)])]);
+aiLogCheck('unbounded unexpected input kind never crosses the finite projection',
+    !str_contains(json_encode(AiInvocationEntrySnapshot::collect($entryNow,$entryPdo)), 'PRIVATE_'));
+$entryPdo->exec('DELETE FROM conversation_events');
+$insertEntry($entryPayload(), 2);
+$insertEntry($entryPayload(), 1, 'system', 'ai_text');
+aiLogCheck('other projects and pre-service ai_text events are outside entry evidence',
+    AiInvocationEntrySnapshot::collect($entryNow,$entryPdo)['rows_read'] === 0);
+$entryPdo->exec('DELETE FROM conversation_events');
+$badPayloads = [];
+$bad = $entryPayload(); $bad['text'] = 'PRIVATE_PAYLOAD'; $badPayloads[] = $bad;
+$bad = $entryPayload(); $bad['input_message_id'] = '18446744073709551616'; $badPayloads[] = $bad;
+$bad = $entryPayload(); $bad['input_message_id'] = '007'; $badPayloads[] = $bad;
+$bad = $entryPayload(); $bad['input_kind'] = 'contact'; $badPayloads[] = $bad;
+$bad = $entryPayload(); $bad['input_channel'] = 'PRIVATE_CHANNEL'; $badPayloads[] = $bad;
+$bad = $entryPayload(); $bad['invocation_id'] = 'PRIVATE_INVOCATION'; $badPayloads[] = $bad;
+$bad = $entryPayload(); $bad['_recorded_clock']['unix'] = (string)$entryNow->getTimestamp(); $badPayloads[] = $bad;
+$bad = $entryPayload(); unset($bad['_recorded_clock']); $badPayloads[] = $bad;
+$badPayloads[] = '{"schema":"anytour.ai_invocation_entry.v1",' . substr(json_encode($entryPayload()),1);
+$badPayloads[] = '{"PRIVATE_oversized":"' . str_repeat('x',1024) . '"}';
+$badPayloads[] = '{invalid';
+foreach ($badPayloads as $bad) $insertEntry($bad);
+$insertEntry($entryPayload(),1,'customer');
+$badEntries = AiInvocationEntrySnapshot::collect($entryNow,$entryPdo);
+aiLogCheck('invalid, duplicate-key, oversized, unclocked and foreign-actor events are counted without export',
+    $badEntries['invalid_rows'] === count($badPayloads)+1 && $badEntries['records'] === []
+    && !str_contains(json_encode($badEntries), 'PRIVATE_'));
+$entryPdo->exec('DELETE FROM conversation_events');
+$insertEntry($entryPayload(null, $entryNow->getTimestamp()-3601));
+$insertEntry($entryPayload(null, $entryNow->getTimestamp()+61));
+$insertEntry($entryPayload(null, $entryNow->getTimestamp()-3600));
+$insertEntry($entryPayload(null, $entryNow->getTimestamp()+60));
+$unlinked = $entryPayload(); $unlinked['invocation_id'] = null; $insertEntry($unlinked);
+$ages = AiInvocationEntrySnapshot::collect($entryNow,$entryPdo);
+aiLogCheck('age limits include boundary instants and count omissions separately',
+    $ages['rows_read'] === 5 && $ages['retained_rows'] === 3
+    && $ages['omitted_old_rows'] === 1 && $ages['omitted_future_rows'] === 1);
+aiLogCheck('entropy failure preserves an explicitly unlinked entry', $ages['records'][0]['invocation_id'] === null);
+$entryPdo->exec('DELETE FROM conversation_events');
+for ($i=0;$i<130;$i++) $insertEntry($entryPayload());
+$bounded = AiInvocationEntrySnapshot::collect($entryNow,$entryPdo);
+$latestId = (string)$entryPdo->query('SELECT MAX(id) FROM conversation_events')->fetchColumn();
+aiLogCheck('event query retains at most latest128 rows with one explicit has-more probe',
+    $bounded['rows_read'] === 128 && $bounded['retained_rows'] === 128 && $bounded['has_more'] === true
+    && $bounded['records'][0]['event_id'] === $latestId);
+$entryPdo->exec('DROP TABLE conversation_events');
+$failure = AiInvocationEntrySnapshot::collect($entryNow,$entryPdo);
+aiLogCheck('failed database read is unavailable with no partial success or exception details',
+    $failure['available'] === false && $failure['reason'] === 'read_failed' && $failure['rows_read'] === 0
+    && $failure['records'] === [] && !str_contains(json_encode($failure), 'SQL'));
 
 $runtimeFiles = [
     $root . '/services/AiInvocationService.php',

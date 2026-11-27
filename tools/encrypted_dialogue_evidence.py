@@ -28,6 +28,8 @@ MAX_AI_TEXT = 2000
 AI_INVOCATION_LIMITS = {"file_bytes": 1048576, "frame_bytes": 65536, "header_bytes": 4096,
                         "retained_per_stream": 128, "parsed_per_stream": 4096,
                         "age_seconds": 3600, "future_seconds": 60}
+AI_INVOCATION_ENTRY_LIMITS = {"rows": 128, "payload_bytes": 1024, "age_seconds": 3600,
+                              "future_seconds": 60}
 AI_INVOCATION_READ_REASONS = {
     "log_directory_unavailable", "file_missing", "unsafe_file_type", "unsafe_permissions",
     "file_size_limit", "file_unreadable", "file_changed", "file_busy", "read_failed",
@@ -173,6 +175,93 @@ def manager_ai_feedback_evidence(production, sha, salt, now):
     return result
 
 
+def ai_invocation_entry_evidence(source, salt):
+    """Minimize the separately recorded service-entry witness; never certify origin."""
+    result = {"schema": "anytour.ai_invocation_entries_evidence.v1", "source_schema": None,
+              "available": False, "reason": "source_not_supplied", "trust": "source_reported_database_event",
+              "source_history_complete": False, "runtime_trace_proven": False,
+              "provider_request_proven": False, "natural_origin_proven": False,
+              "limits": dict(AI_INVOCATION_ENTRY_LIMITS), "rows_read": 0, "retained_rows": 0,
+              "invalid_rows": 0, "omitted_old_rows": 0, "omitted_future_rows": 0,
+              "has_more": False, "records": [], "unlinked_null_id_records": 0}
+    if source is None:
+        return result
+
+    def exact_keys(value, expected):
+        if not isinstance(value, dict) or set(value) != set(expected):
+            raise ValueError("invalid service entry projection fields")
+
+    def integer(value, minimum, maximum):
+        if type(value) is not int or not minimum <= value <= maximum:
+            raise ValueError("invalid service entry projection count")
+
+    def decimal_id(value):
+        # Database BIGINT UNSIGNED identities remain strings, including values
+        # outside the collector's native signed-integer range.
+        if (not isinstance(value, str) or re.fullmatch(r"[1-9][0-9]{0,19}", value) is None
+                or (len(value) == 20 and value > "18446744073709551615")):
+            raise ValueError("invalid service entry identity")
+
+    counts = ("rows_read", "retained_rows", "invalid_rows", "omitted_old_rows", "omitted_future_rows")
+    exact_keys(source, {"schema", "available", "reason", "trust", "source_history_complete",
+                        "runtime_trace_proven", "provider_request_proven", "natural_origin_proven",
+                        "limits", *counts, "has_more", "records"})
+    if (source["schema"] != "anytour.ai_invocation_entries.v1"
+            or type(source["available"]) is not bool or type(source["has_more"]) is not bool
+            or source["trust"] != "source_reported_database_event"
+            or any(source[key] is not False for key in ("source_history_complete", "runtime_trace_proven",
+                                                       "provider_request_proven", "natural_origin_proven"))
+            or not isinstance(source["limits"], dict) or source["limits"] != AI_INVOCATION_ENTRY_LIMITS
+            or any(type(value) is not int for value in source["limits"].values())):
+        raise ValueError("invalid service entry projection contract")
+    if source["available"]:
+        if source["reason"] is not None:
+            raise ValueError("invalid service entry available reason")
+    elif not isinstance(source["reason"], str) or source["reason"] not in {"database_not_configured", "read_failed"}:
+        raise ValueError("invalid service entry unavailable reason")
+    for key in counts:
+        integer(source[key], 0, AI_INVOCATION_ENTRY_LIMITS["rows"])
+    if (not isinstance(source["records"], list) or len(source["records"]) != source["retained_rows"]
+            or source["rows_read"] != sum(source[key] for key in counts[1:])
+            or (source["has_more"] and source["rows_read"] != AI_INVOCATION_ENTRY_LIMITS["rows"])
+            or (not source["available"] and (source["has_more"] or any(source[key] != 0 for key in counts)))):
+        raise ValueError("inconsistent service entry counts")
+    seen = set()
+    for record in source["records"]:
+        exact_keys(record, {"event_id", "invocation_id", "age_seconds", "input_message_id", "input_link",
+                            "input_kind", "input_channel", "native_id_present"})
+        decimal_id(record["event_id"])
+        if record["event_id"] in seen:
+            raise ValueError("duplicate service entry identity")
+        seen.add(record["event_id"])
+        identifier = record["invocation_id"]
+        if identifier is not None and (not isinstance(identifier, str) or re.fullmatch(r"[0-9a-f]{32}", identifier) is None):
+            raise ValueError("invalid service entry invocation identity")
+        integer(record["age_seconds"], -AI_INVOCATION_ENTRY_LIMITS["future_seconds"], AI_INVOCATION_ENTRY_LIMITS["age_seconds"])
+        if (not isinstance(record["input_kind"], str) or record["input_kind"] not in {"message", "callback"}
+                or not isinstance(record["input_channel"], str) or record["input_channel"] not in {"max", "telegram", "website"}
+                or not isinstance(record["input_link"], str) or record["input_link"] not in
+                   {"retained_inbound", "input_row_unavailable", "input_provenance_mismatch"}):
+            raise ValueError("invalid service entry input provenance")
+        if record["input_link"] == "retained_inbound":
+            decimal_id(record["input_message_id"])
+            if type(record["native_id_present"]) is not bool:
+                raise ValueError("invalid service entry native identity status")
+        elif record["input_message_id"] is not None or record["native_id_present"] is not None:
+            raise ValueError("unavailable service entry input has identity")
+        result["records"].append({
+            "entry_ref": f"E{len(result['records']) + 1:03d}",
+            "invocation_ref": None if identifier is None else hmac.new(salt, ("ai-invocation:" + identifier).encode(), hashlib.sha256).hexdigest()[:16],
+            "age_seconds_at_source_snapshot": record["age_seconds"],
+            "input_ref": None if record["input_message_id"] is None else hmac.new(salt, ("ai-input:" + record["input_message_id"]).encode(), hashlib.sha256).hexdigest()[:16],
+            **{key: record[key] for key in ("input_link", "input_kind", "input_channel", "native_id_present")},
+        })
+    result.update(source_schema=source["schema"], available=source["available"], reason=source["reason"],
+                  has_more=source["has_more"], **{key: source[key] for key in counts})
+    result["unlinked_null_id_records"] = sum(record["invocation_ref"] is None for record in result["records"])
+    return result
+
+
 def ai_invocation_metadata_evidence(production, sha, salt, now):
     """Consume a distinct metadata projection, never reconstitute source frames.
 
@@ -187,10 +276,12 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
     fresh(production.get("generated_at"), now)
     source = production.get("ai_invocation_metadata_private")
     if source is None:
-        return {"schema": "anytour.ai_invocation_metadata_evidence.v2", "available": False,
+        return {"schema": "anytour.ai_invocation_metadata_evidence.v3", "available": False,
                 "source_schema": None,
                 "reason": "source_not_supplied", "runtime_trace_proven": False,
-                "causal_diagnosis_performed": False, "session_link_available": False}
+                "provider_request_proven": False, "natural_origin_proven": False,
+                "causal_diagnosis_performed": False, "session_link_available": False,
+                "service_entries": ai_invocation_entry_evidence(None, salt)}
 
     def exact_keys(value, expected):
         if not isinstance(value, dict) or set(value) != set(expected):
@@ -200,10 +291,14 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
         if type(value) is not int or not minimum <= value <= maximum:
             raise ValueError("invalid invocation projection count")
 
-    exact_keys(source, {"schema", "generated_at", "ok", "projection", "trust", "runtime_trace_proven",
-                        "causal_diagnosis_performed", "cross_stream_atomic", "source_history_complete",
-                        "session_link_available", "limits", "streams", "records"})
-    if (source["schema"] not in ("anytour.ai_invocation_metadata.v1", "anytour.ai_invocation_metadata.v2")
+    source_v3 = isinstance(source, dict) and source.get("schema") == "anytour.ai_invocation_metadata.v3"
+    source_fields = {"schema", "generated_at", "ok", "projection", "trust", "runtime_trace_proven",
+                     "causal_diagnosis_performed", "cross_stream_atomic", "source_history_complete",
+                     "session_link_available", "limits", "streams", "records"}
+    if source_v3:
+        source_fields.add("service_entries")
+    exact_keys(source, source_fields)
+    if (source["schema"] not in ("anytour.ai_invocation_metadata.v1", "anytour.ai_invocation_metadata.v2", "anytour.ai_invocation_metadata.v3")
             or source["projection"] != "metadata_only" or source["trust"] != "unauthenticated_text_log"
             or type(source["ok"]) is not bool
             or any(source[key] is not False for key in ("runtime_trace_proven", "causal_diagnosis_performed",
@@ -211,7 +306,10 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
             or not isinstance(source["limits"], dict) or source["limits"] != AI_INVOCATION_LIMITS
             or any(type(value) is not int for value in source["limits"].values())):
         raise ValueError("invalid invocation projection contract")
-    source_v2 = source["schema"] == "anytour.ai_invocation_metadata.v2"
+    source_v2 = source["schema"] != "anytour.ai_invocation_metadata.v1"
+    if source_v3 and not isinstance(source["service_entries"], dict):
+        raise ValueError("invalid service entry source")
+    service_entries = ai_invocation_entry_evidence(source["service_entries"] if source_v3 else None, salt)
     fresh(source["generated_at"], now)
     if not isinstance(source["streams"], list) or len(source["streams"]) != 2:
         raise ValueError("invalid invocation streams")
@@ -291,12 +389,18 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
             groups.setdefault(alias, []).append(item)
     if any(len(seen[name]) != stream["retained_frames"] for name, stream in streams.items()):
         raise ValueError("inconsistent invocation retained records")
+    entries_by_invocation = {}
+    for entry in service_entries["records"]:
+        if entry["invocation_ref"] is not None:
+            entries_by_invocation.setdefault(entry["invocation_ref"], []).append(entry)
+            groups.setdefault(entry["invocation_ref"], [])
     source_gaps = []
     if any(s["read_status"] != "available" for s in streams.values()): source_gaps.append("source_stream_unavailable")
     if any(s["cutoff_reason"] is not None for s in streams.values()): source_gaps.append("source_admission_stopped")
     if any(s["omitted_by_limit"] > 0 for s in streams.values()): source_gaps.append("record_retention_limit")
     projected_groups = []
     for alias, members in groups.items():
+        entries = entries_by_invocation.get(alias, [])
         inputs = [r for r in members if r["stage"] == "input"]
         terminals = [r for r in members if r["stage"] in {"result", "exception"}]
         reasons = list(source_gaps)
@@ -304,26 +408,30 @@ def ai_invocation_metadata_evidence(production, sha, salt, now):
         if not terminals: reasons.append("terminal_record_missing")
         if len(inputs) > 1: reasons.append("multiple_input_records")
         if len(terminals) > 1: reasons.append("multiple_terminal_records")
+        if len(entries) > 1: reasons.append("multiple_entry_records")
         if any(not r["shape_confirmed"] for r in members): reasons.append("payload_shape_unconfirmed")
         if any(r["stream"] != ("error" if r["stage"] == "exception" else "debug") for r in members): reasons.append("stage_in_unexpected_stream")
         if len(inputs) == len(terminals) == 1:
             before, after = inputs[0], terminals[0]
             if after["age_seconds_at_source_snapshot"] > before["age_seconds_at_source_snapshot"]: reasons.append("terminal_recording_precedes_input")
             if before["stream"] == after["stream"] and after["frame_index"] < before["frame_index"]: reasons.append("terminal_precedes_input_in_stream")
-        status = "ambiguous" if len(inputs) > 1 or len(terminals) > 1 else "incomplete" if reasons else "candidate_correlated"
+        status = "ambiguous" if len(inputs) > 1 or len(terminals) > 1 or len(entries) > 1 else "incomplete" if reasons else "candidate_correlated"
         projected_groups.append({"invocation_ref": alias, "status": status, "reason_codes": sorted(set(reasons)),
                                  "input_records": len(inputs), "terminal_records": len(terminals),
-                                 "record_refs": [r["record_ref"] for r in members]})
-    return {"schema": "anytour.ai_invocation_metadata_evidence.v2", "available": True, "ok": source["ok"],
+                                 "record_refs": [r["record_ref"] for r in members],
+                                 "entry_records": len(entries), "entry_record_refs": [e["entry_ref"] for e in entries],
+                                 "entry_status": "ambiguous" if len(entries) > 1 else "observed" if entries else "not_observed"})
+    return {"schema": "anytour.ai_invocation_metadata_evidence.v3", "available": True, "ok": source["ok"],
             "source_schema": source["schema"],
             "source_generated_at": timestamp(source["generated_at"]).isoformat(), "projection": "metadata_only",
             "trust": "unauthenticated_text_log", "integrity_check_origin": "source_reported",
             "cross_stream_atomic": False, "source_history_complete": False, "session_link_available": False,
             "runtime_trace_proven": False, "causal_diagnosis_performed": False,
+            "provider_request_proven": False, "natural_origin_proven": False,
             "limits": dict(AI_INVOCATION_LIMITS), "streams": list(streams.values()),
-            "records": records, "groups": projected_groups,
+            "records": records, "groups": projected_groups, "service_entries": service_entries,
             "unlinked_null_id_records": sum(r["invocation_ref"] is None for r in records),
-            "coverage": "bounded recent metadata from two sequential private log snapshots; rotation and omissions can hide events",
+            "coverage": "bounded recent metadata from two sequential private logs and separate database entry events; no atomic snapshot or complete history",
             "context_read_scope": "website page only; source-post and recent-dialogue retrieval outcomes are not recorded here",
             "version_scope": "production_sha identifies the capture code; individual frame code, prompt and model versions are unavailable"}
 
