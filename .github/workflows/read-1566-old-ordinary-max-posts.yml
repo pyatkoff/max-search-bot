@@ -67,7 +67,7 @@ jobs:
 
             const record = await R.readRecord(api)
             const {release} = R.validateRelease(record.record)
-            check(release.phase==='pending_terminal' && release.repository_sha===request.repository_sha,
+            check(release.repository_sha===request.repository_sha,
               'requested_release_not_accepted')
             const actual = await R.resolveCurrent(api,{sha:request.repository_sha},record)
             check(actual.ready===true && actual.repository_sha===request.repository_sha && R.sha(actual.application_sha),
