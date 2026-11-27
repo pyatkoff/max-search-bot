@@ -355,35 +355,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Download original part 0 evidence
+      - name: Download original evidence for all four parts
         if: always()
         uses: actions/download-artifact@v4
         with:
-          name: workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-0
-          path: parts/${{ matrix.browser }}/part-0
-      - name: Download original part 1 evidence
-        if: always()
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-1
-          path: parts/${{ matrix.browser }}/part-1
-      - name: Download original part 2 evidence
-        if: always()
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-2
-          path: parts/${{ matrix.browser }}/part-2
-      - name: Download original part 3 evidence
-        if: always()
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-3
-          path: parts/${{ matrix.browser }}/part-3
+          pattern: workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-[0-3]
+          path: parts/${{ matrix.browser }}
+          merge-multiple: false
       - name: Require every child and assemble exact full engine proof
         if: always()
+        env:
+          QA_BROWSER: ${{ matrix.browser }}
         run: |
+          set -euo pipefail
           test "$QA_PARTS_RESULT" = success
-          node tools/manager2_visual_shards.js assemble "${{ matrix.browser }}" parts "engine-evidence/${{ matrix.browser }}"
+          for part in 0 1 2 3; do
+            mv -T -- "parts/$QA_BROWSER/workspace-v2-part-$GITHUB_SHA-$QA_BROWSER-$part" "parts/$QA_BROWSER/part-$part"
+          done
+          node tools/manager2_visual_shards.js assemble "$QA_BROWSER" parts "engine-evidence/$QA_BROWSER"
       - name: Upload verified engine evidence
         uses: actions/upload-artifact@v4
         with:
@@ -509,16 +498,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - name: Download Chromium evidence
+      - name: Download both verified engine archives
         uses: actions/download-artifact@v4
         with:
-          name: workspace-v2-visual-${{ github.sha }}-chromium
-          path: evidence/chromium
-      - name: Download WebKit evidence
-        uses: actions/download-artifact@v4
-        with:
-          name: workspace-v2-visual-${{ github.sha }}-webkit
-          path: evidence/webkit
+          pattern: workspace-v2-visual-${{ github.sha }}-{chromium,webkit}
+          path: evidence
+          merge-multiple: false
       - name: Validate full evidence and all required browser jobs
         id: verify
         if: always()
@@ -531,7 +516,12 @@ jobs:
           QA_RUN_ID: ${{ github.run_id }}
           QA_RUN_ATTEMPT: ${{ github.run_attempt }}
           QA_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
-        run: node tools/verify_manager2_visual_evidence.js evidence "$QA_TESTED_SHA" "$QA_HEAD_SHA" "$QA_BROWSER_RESULT" "$QA_FIREFOX_HISTORY_RESULT" "$QA_FIREFOX_NOTIFICATIONS_RESULT" "$QA_RUN_ID" "$QA_RUN_ATTEMPT"
+        run: |
+          set -euo pipefail
+          for browser in chromium webkit; do
+            mv -T -- "evidence/workspace-v2-visual-$GITHUB_SHA-$browser" "evidence/$browser"
+          done
+          node tools/verify_manager2_visual_evidence.js evidence "$QA_TESTED_SHA" "$QA_HEAD_SHA" "$QA_BROWSER_RESULT" "$QA_FIREFOX_HISTORY_RESULT" "$QA_FIREFOX_NOTIFICATIONS_RESULT" "$QA_RUN_ID" "$QA_RUN_ATTEMPT"
       # The canonical artifact now contains chromium/ and webkit/ directories;
       # original per-engine evidence directories remain intact below each one.
       - name: Upload complete visual evidence
