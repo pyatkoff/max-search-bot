@@ -3,9 +3,12 @@
 const R = require('./deployment_release');
 const C = require('./release_slot_close');
 
-const branch = 'ops/recover-pr1751-monitor-20261127';
+const branch = 'ops/read-pr1751-notification-20261127';
+const originalRecoveryBranch = 'ops/recover-pr1751-monitor-20261127';
+const originalRecoverySource = 'f04aa3c98ce7329eeac7f33e3a76e79852e5940e';
+const originalRecoveryRun = '46062743465';
 const monitor = R.PREFIX + 'modeled-conversion-monitor.yml';
-const jobName = 'recover-pr1751-health';
+const jobName = 'read-pr1751-notification';
 const installed = '263cc9a7855bd11f3597572d08c7f463faebdbd6';
 const diagnostics = '0faa77d91e8508ccacaa3a5d0e6984d917096bf3';
 const binding = {
@@ -76,6 +79,24 @@ async function proveOriginalGate(api) {
   await requireHeldRelease(api);
 }
 
+async function proveOriginalRecovery(api) {
+  const [run, result] = await Promise.all([
+    get(api, '/actions/runs/' + originalRecoveryRun), jobs(api, originalRecoveryRun),
+  ]);
+  R.runIdentity(run, {id: originalRecoveryRun, attempt: 1, head: originalRecoverySource, workflow: monitor,
+    event: 'push', branch: originalRecoveryBranch, conclusion: 'failure'});
+  const priorJobs = R.boundedList(result, 'jobs', 'incomplete_original_recovery_jobs');
+  const health = priorJobs.find(job => job.id === 140720671460);
+  const sender = priorJobs.find(job => job.id === 140720673523);
+  valid(run.actor?.id === binding.owner_id && run.triggering_actor?.id === binding.owner_id
+    && priorJobs.length === 2 && health?.name === 'recover-pr1751-health' && health.run_id === run.id
+    && health.run_attempt === 1 && health.head_sha === originalRecoverySource && health.conclusion === 'failure'
+    && C.stepResult(health, 'Verify installed monitor health without notification') === 'failure'
+    && sender?.name === 'monitor' && sender.run_id === run.id && sender.run_attempt === 1
+    && sender.head_sha === originalRecoverySource && sender.conclusion === 'skipped' && sender.steps.length === 0,
+  'original_recovery_changed');
+}
+
 async function admit(env, event, api) {
   const ref = 'refs/heads/' + branch;
   const source = env.GITHUB_SHA;
@@ -98,7 +119,7 @@ async function admit(env, event, api) {
   R.runIdentity(run, {id, attempt: 1, head: source, workflow: monitor, event: 'push', branch, completed: false});
   valid(run.status === 'in_progress' && run.actor?.id === binding.owner_id && run.triggering_actor?.id === binding.owner_id,
     'monitor_recovery_owner_changed');
-  valid(commit?.sha === source && commit.parents?.length === 1 && commit.parents[0].sha === installed
+  valid(commit?.sha === source && commit.parents?.length === 1 && commit.parents[0].sha === originalRecoverySource
     && recoveryRef?.object?.sha === source, 'monitor_recovery_source_changed');
   const running = R.boundedList(ownJobs, 'jobs', 'incomplete_monitor_recovery_jobs').filter(job => job.name === jobName);
   valid(running.length === 1 && running[0].run_id === run.id && running[0].head_sha === source
@@ -113,6 +134,7 @@ async function admit(env, event, api) {
       && checks[0].head_repository?.full_name === R.REPOSITORY && checks[0].run_attempt === 1
       && checks[0].status === 'completed' && checks[0].conclusion === 'success', 'monitor_recovery_ci_unconfirmed');
   }
+  await proveOriginalRecovery(api);
   await proveOriginalGate(api);
   return {application_sha: installed};
 }

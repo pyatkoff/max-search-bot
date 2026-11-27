@@ -3,7 +3,7 @@ run-name: "${{ github.event_name == 'workflow_run' && format('deploy-proof:v1:{0
 
 on:
   push:
-    branches: [ops/recover-pr1751-monitor-20261127]
+    branches: [ops/read-pr1751-notification-20261127]
   workflow_run:
     workflows: [Deploy production]
     types: [completed]
@@ -380,8 +380,8 @@ jobs:
           rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/monitor-route.json" "$RUNNER_TEMP/monitor-health.json" "$RUNNER_TEMP/monitor-decision.json" "$RUNNER_TEMP/monitor-result.json"
           rm -rf "$RUNNER_TEMP/monitor-python" "$RUNNER_TEMP/monitor-cache" "$RUNNER_TEMP/monitor-intent" "$RUNNER_TEMP/monitor-final"
 
-  recover-pr1751-health:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/ops/recover-pr1751-monitor-20261127'
+  read-pr1751-notification:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/ops/read-pr1751-notification-20261127'
     concurrency:
       group: anytour-modeled-conversion-monitor
       cancel-in-progress: false
@@ -422,7 +422,7 @@ jobs:
           chmod 600 "$key_file"
           ssh-keygen -y -f "$key_file" >/dev/null
 
-      - name: Verify installed monitor health without notification
+      - name: Read the original pending notification metadata
         env:
           DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -434,27 +434,11 @@ jobs:
           [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
           root='/var/www/anytoour/data/www/app.anytoour.ru'
           timeout 20s ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 15s php tools/modeled_conversion_monitor.php availability" \
-            > "$RUNNER_TEMP/monitor-health.json" 2>/dev/null
-          PYTHONPATH=tools python3 -B - "$RUNNER_TEMP/monitor-health.json" <<'MONITOR_HEALTH'
-          import json, sys
-          from modeled_conversion_monitor import health_view
-
-          try:
-              with open(sys.argv[1], 'rb') as stream:
-                  raw = stream.read(8193)
-              health = json.loads(raw) if len(raw) <= 8192 else None
-          except (OSError, ValueError):
-              health = None
-          status, _ = health_view(health)
-          scope = health.get('monitor_scope') if isinstance(health, dict) else None
-          if not ((scope == 'external' and status == 'ok')
-                  or (scope == 'legacy' and status in {'ok', 'off', 'degraded'})):
-              raise SystemExit('release_monitor_health_unconfirmed')
-          print(f'RELEASE_MONITOR_HEALTH={scope}:{status}')
-          MONITOR_HEALTH
+            "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 12s /usr/bin/python3 -I -B - read '$EXPECTED_SHA'" \
+            < tools/pr1751_notification_audit.py > "$RUNNER_TEMP/pr1751-notification.json"
+          python3 -I -B tools/pr1751_notification_audit.py verify "$EXPECTED_SHA" < "$RUNNER_TEMP/pr1751-notification.json"
 
       - name: Remove ephemeral read-only recovery files
         if: always()
         shell: bash
-        run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/monitor-health.json"
+        run: rm -f "$RUNNER_TEMP/deploy_key" "$RUNNER_TEMP/pr1751-notification.json"

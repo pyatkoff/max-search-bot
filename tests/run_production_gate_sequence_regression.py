@@ -26,8 +26,8 @@ TIMED_WORKFLOWS = {
     'modeled-conversion-monitor.yml': ('monitor', '2-59/5 * * * *'),
 }
 CANONICAL_REPOSITORY = 'pyatkoff/max-search-bot'
-MONITOR_RECOVERY_BRANCH = 'ops/recover-pr1751-monitor-20261127'
-MONITOR_RECOVERY_JOB = 'recover-pr1751-health'
+MONITOR_RECOVERY_BRANCH = 'ops/read-pr1751-notification-20261127'
+MONITOR_RECOVERY_JOB = 'read-pr1751-notification'
 SHA_EXPRESSION = '${{ steps.source.outputs.sha }}'
 APPLICATION_SHA_EXPRESSION = '${{ steps.release.outputs.application_sha }}'
 REPOSITORY_SHA_EXPRESSION = '${{ steps.release.outputs.repository_sha }}'
@@ -890,12 +890,13 @@ def monitor_recovery_cases(source):
     check(len(steps) == 5 and 'persist-credentials: false' in steps[0]
           and field(steps[1], 'run') == 'node tools/pr1751_monitor_recovery.js >> "$GITHUB_OUTPUT"'
           and all('secrets.' not in step for step in steps[:2]), 'monitor recovery: admit completed evidence before credentials')
-    health = run_block(steps[3])
-    check(health.count(' ssh ') == 1 and 'git rev-parse HEAD' in health
-          and 'php tools/modeled_conversion_monitor.php availability' in health
+    reader = run_block(steps[3])
+    check(reader.count(' ssh ') == 1 and 'git rev-parse HEAD' in reader
+          and "/usr/bin/python3 -I -B - read" in reader
+          and "tools/pr1751_notification_audit.py verify" in reader
           and 'steps.admitted.outputs.application_sha' in steps[3]
           and '--phase send' not in recovery and 'upload-artifact' not in recovery,
-          'monitor recovery: only one read of the admitted application and no notification state')
+          'monitor recovery: only one read of the admitted application and no notification writes')
     for step in steps[2:4]:
         check(field(step, 'if') is None and field(step, 'continue-on-error') is None,
               'monitor recovery: source admission and health failure cannot be suppressed')
