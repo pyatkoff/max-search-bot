@@ -153,6 +153,9 @@ def source_step(source, filename, job_name=None):
     provenance = [i for i, step in enumerate(steps) if field(step, 'id') == 'provenance']
     check(len(checkout) == len(provenance) == 1 and 0 < checkout[0] < provenance[0], label + 'checkout then provenance follow source resolution')
     check('          ref: ' + SHA_EXPRESSION in steps[checkout[0]].splitlines(), label + 'checkout uses the exact resolved SHA')
+    if filename == 'modeled-conversion-monitor.yml':
+        check('          fetch-depth: 1' in steps[checkout[0]].splitlines(),
+              label + 'the monitor checks the exact source without fetching repository history')
     secret_steps = [i for i, step in enumerate(steps) if '${{ secrets.' in step]
     check(secret_steps and min(secret_steps) > provenance[0]
           and '${{ secrets.' not in source[:source.index('    steps:')], label + 'provenance must finish before credentials are introduced')
@@ -878,26 +881,43 @@ def monitor_release_health_cases(root, source):
     """Execute the actual technical gate against one fixed read-only SSH command."""
     step = next(step for step in step_blocks(source)
                 if step.startswith('      - name: ' + MONITOR_RELEASE_HEALTH_STEP + '\n'))
-    gate = run_block(step)
+    gate = 'bash tools/verify_modeled_monitor_health.sh'
+    check(field(step, 'run') == gate and field(step, 'continue-on-error') is None,
+          'release monitor: the shared read-only probe is mandatory')
     healthy = {'schema_version': 1, 'project': 'anytour', 'counter_id': '98615635',
                'monitor_scope': 'external', 'status': 'ok', 'flags': []}
     cases = [
-        ('external heartbeat', healthy, DEPLOY_SHA, 0, 'external:ok'),
+        ('external heartbeat', healthy, DEPLOY_SHA, 0, 'external:ok', None),
         ('legacy metadata before cutover', dict(healthy, monitor_scope='legacy', status='off'),
-         DEPLOY_SHA, 0, 'legacy:off'),
+         DEPLOY_SHA, 0, 'legacy:off', None),
         ('legacy product incident has a valid technical observation',
          dict(healthy, monitor_scope='legacy', status='degraded', flags=['ready_queue_stale']),
-         DEPLOY_SHA, 0, 'legacy:degraded'),
+         DEPLOY_SHA, 0, 'legacy:degraded', None),
         ('stale heartbeat', dict(healthy, status='unavailable', flags=['pipeline_checker_stale']),
-         DEPLOY_SHA, 0, None),
-        ('declared healthy with a flag', dict(healthy, flags=['pipeline_checker_stale']), DEPLOY_SHA, 0, None),
-        ('foreign counter', dict(healthy, counter_id='000'), DEPLOY_SHA, 0, None),
-        ('foreign project', dict(healthy, project='other'), DEPLOY_SHA, 0, None),
-        ('unknown scope', dict(healthy, monitor_scope='pipeline'), DEPLOY_SHA, 0, None),
-        ('transport failure', healthy, DEPLOY_SHA, 1, None),
-        ('invalid expected SHA', healthy, 'not-a-sha', 0, None),
-        ('malformed metadata', 'not json', DEPLOY_SHA, 0, None),
-        ('oversized metadata', dict(healthy, padding='x' * 8192), DEPLOY_SHA, 0, None),
+         DEPLOY_SHA, 0, None, 'pipeline_checker_stale'),
+        ('uncertain notification on the local pipeline',
+         dict(healthy, status='unavailable', flags=['pipeline_checker_notification_unknown']),
+         DEPLOY_SHA, 0, None, 'pipeline_checker_notification_unknown'),
+        ('external role cannot report product flag',
+         dict(healthy, status='unavailable', flags=['visit_proof_stale']),
+         DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
+        ('unrecognized flag cannot be printed',
+         dict(healthy, status='unavailable', flags=['fixture-private-payload']),
+         DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
+        ('declared healthy with a flag', dict(healthy, flags=['pipeline_checker_stale']),
+         DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
+        ('foreign counter', dict(healthy, counter_id='000'), DEPLOY_SHA, 0, None, 'monitor_source_mismatch'),
+        ('foreign project', dict(healthy, project='other'), DEPLOY_SHA, 0, None, 'monitor_source_mismatch'),
+        ('invalid schema type', dict(healthy, schema_version=True),
+         DEPLOY_SHA, 0, None, 'monitor_source_mismatch'),
+        ('unknown scope', dict(healthy, monitor_scope='pipeline'),
+         DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
+        ('transport failure', healthy, DEPLOY_SHA, 1, None, 'monitor_transport_unavailable'),
+        ('installed source differs', healthy, DEPLOY_SHA, 41, None, 'monitor_source_mismatch'),
+        ('invalid expected SHA', healthy, 'not-a-sha', 0, None, 'monitor_source_mismatch'),
+        ('malformed metadata', 'not json', DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
+        ('oversized metadata', dict(healthy, padding='x' * 8192),
+         DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
     ]
     with tempfile.TemporaryDirectory(prefix='release-monitor-health-') as temporary:
         work = Path(temporary)
@@ -910,7 +930,7 @@ def monitor_release_health_cases(root, source):
                        'raise SystemExit(int(os.environ["SSH_EXIT"]))\n', encoding='utf-8')
         ssh.chmod(0o700)
         trace = work / 'ssh-trace'
-        for name, health, expected, ssh_exit, success in cases:
+        for name, health, expected, ssh_exit, success, refusal in cases:
             trace.unlink(missing_ok=True)
             env = dict(os.environ, PATH=str(work) + os.pathsep + os.environ['PATH'],
                        RUNNER_TEMP=str(work), TRACE=str(trace), EXPECTED_SHA=expected,
@@ -922,6 +942,8 @@ def monitor_release_health_cases(root, source):
             check((result.returncode == 0) == (success is not None), 'release monitor: ' + name)
             check(result.stdout.strip() == ('RELEASE_MONITOR_HEALTH=' + success if success else ''),
                   'release monitor: only a sanitized result is emitted: ' + name)
+            check(result.stderr.strip() == ('RELEASE_MONITOR_HEALTH_REFUSED=' + refusal if refusal else ''),
+                  'release monitor: only a whitelisted failure reason is emitted: ' + name)
             if expected != DEPLOY_SHA:
                 check(not trace.exists(), 'release monitor: invalid source never reaches SSH')
                 continue

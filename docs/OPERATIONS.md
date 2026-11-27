@@ -327,7 +327,10 @@ After an ordinary successful installation, the same monitor workflow runs a
 read-only gate for that specific deployment. It uses the canonical release
 resolver and checks the exact installed SHA and typed availability in one SSH
 call. Invalid availability, an unhealthy external heartbeat or unavailable
-transport fail the gate. The legacy fallback accepts valid healthy, off or
+transport fail the gate. The shared probe prints only whitelisted refusal
+codes, including stale heartbeat and uncertain pipeline notification, so a
+failed run preserves its reason without exposing the observed document.
+The legacy fallback accepts valid healthy, off or
 degraded observations. Repository-only releases still use metadata-only proof.
 The scheduled and manual notification checks keep their shared concurrency,
 encrypted state and delivery receipts. The explicit pipeline activation marker

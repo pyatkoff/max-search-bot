@@ -71,7 +71,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.source.outputs.sha }}
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: Verify exact source is current main
         id: provenance
@@ -114,31 +114,7 @@ jobs:
           DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
           EXPECTED_SHA: ${{ steps.release.outputs.application_sha }}
         shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          [[ "$EXPECTED_SHA" =~ ^[0-9a-f]{40}$ ]]
-          root='/var/www/anytoour/data/www/app.anytoour.ru'
-          timeout 20s ssh -i "$RUNNER_TEMP/deploy_key" -o BatchMode=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            "$DEPLOY_USER@$DEPLOY_HOST" "cd '$root' && test \"\$(git rev-parse HEAD)\" = '$EXPECTED_SHA' && timeout 15s php tools/modeled_conversion_monitor.php availability" \
-            > "$RUNNER_TEMP/monitor-health.json" 2>/dev/null
-          PYTHONPATH=tools python3 -B - "$RUNNER_TEMP/monitor-health.json" <<'MONITOR_HEALTH'
-          import json, sys
-          from modeled_conversion_monitor import health_view
-
-          try:
-              with open(sys.argv[1], 'rb') as stream:
-                  raw = stream.read(8193)
-              health = json.loads(raw) if len(raw) <= 8192 else None
-          except (OSError, ValueError):
-              health = None
-          status, _ = health_view(health)
-          scope = health.get('monitor_scope') if isinstance(health, dict) else None
-          if not ((scope == 'external' and status == 'ok')
-                  or (scope == 'legacy' and status in {'ok', 'off', 'degraded'})):
-              raise SystemExit('release_monitor_health_unconfirmed')
-          print(f'RELEASE_MONITOR_HEALTH={scope}:{status}')
-          MONITOR_HEALTH
+        run: bash tools/verify_modeled_monitor_health.sh
 
       - name: Read the installed source before opening notification state
         if: steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true' && (env.MONITOR_MODE == 'notification')
