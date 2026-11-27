@@ -11,6 +11,32 @@ const OWNER_ID = 226193297;
 const REPOSITORY_ID = 1342493152;
 const OWNER = 'pyatkoff';
 
+// These independently managed catalogue surfaces do not control the Telegram
+// writer, its routes, credentials, database contract, or installation locks.
+const INDEPENDENT_CATALOGUE_FILES = new Set([
+  'docs/APPLESERVICE39_PILOT.md',
+  'services/AppleService39PilotCatalog.php',
+  'tests/run_repair_max_webhook_regression.php',
+  'tests/support/appleservice39_catalogue_switch.php',
+  'tools/appleservice39_catalogue_release.js',
+  'tools/catalogue_release_transaction.js',
+  'tools/check_appleservice39_catalogue_package.php',
+  'tools/deploy_hotel_catalogue_guard.sh',
+  'tools/hotel_catalogue_package.js',
+  'tools/hotel_catalogue_release.js',
+]);
+
+async function requireCompatibleRankedMain(api, application, main) {
+  if (application === main) return;
+  const diff = await api('GET', API_ROOT + '/compare/' + application + '...' + main);
+  requireValue(diff?.status === 'ahead' && diff.merge_base_commit?.sha === application
+    && Number.isSafeInteger(diff.total_commits) && diff.total_commits > 0 && diff.total_commits <= 250
+    && Array.isArray(diff.commits) && diff.commits.length === diff.total_commits
+    && diff.commits.at(-1)?.sha === main && Array.isArray(diff.files) && diff.files.length < 300
+    && diff.files.every(file => ['added','modified','removed'].includes(file.status)
+      && INDEPENDENT_CATALOGUE_FILES.has(file.filename)), 'ranked_data_release_affects_editor');
+}
+
 function owned(run) {
   return run.repository?.id === REPOSITORY_ID && run.repository.full_name === REPOSITORY
     && run.head_repository?.id === REPOSITORY_ID && run.head_repository.full_name === REPOSITORY
@@ -93,31 +119,37 @@ async function resolveRankedPacket({env, event, api}) {
     && planPath !== packet.plan_path && planPath !== APPROVAL_LIST && packet.plan_path !== APPROVAL_LIST,
     'ranked_data_plan_invalid');
 
+  const location = await R.readRecord(api);
+  const installedRepository = location.record.repository_release?.repository_sha ?? location.record.sha;
+  requireValue(R.sha(installedRepository), 'ranked_data_application_not_installed');
+  const application = await R.resolveCurrent(api, {sha:installedRepository,id:env.GITHUB_RUN_ID,attempt:1,
+    event:'push',workflow:WORKFLOW,job:'transfer'}, location);
+  const base = application.application_sha;
+  requireValue(application.ready === true && application.perform_actions === true && R.sha(base)
+    && application.repository_sha === installedRepository, 'ranked_data_application_not_installed');
+  requireValue(index.native_preflight.application_sha === base && index.native_preflight.repository_sha === base,
+    'ranked_data_native_base_changed');
+  if (installedRepository !== base) await R.requireAncestry(api, installedRepository, main);
+  await requireCompatibleRankedMain(api, base, main);
+
   const commit = await api('GET', API_ROOT + '/git/commits/' + head);
   requireValue(commit?.sha === head && Array.isArray(commit.parents) && commit.parents.length === 1
-    && commit.parents[0].sha === main, 'ranked_data_parent_changed');
-  const comparison = await api('GET', API_ROOT + '/compare/' + main + '...' + head);
+    && commit.parents[0].sha === base, 'ranked_data_parent_changed');
+  const comparison = await api('GET', API_ROOT + '/compare/' + base + '...' + head);
   const expected = new Map([[packet.plan_path,'added'],[planPath,'added'],[APPROVAL_LIST,'modified']]);
   requireValue(comparison?.status === 'ahead' && comparison.total_commits === 1
-    && comparison.merge_base_commit?.sha === main && Array.isArray(comparison.files)
+    && comparison.merge_base_commit?.sha === base && Array.isArray(comparison.files)
     && comparison.files.length === expected.size && new Set(comparison.files.map(file=>file.filename)).size === expected.size
     && comparison.files.every(file=>expected.get(file.filename) === file.status), 'ranked_data_scope_changed');
-  requireValue(index.native_preflight.application_sha === main && index.native_preflight.repository_sha === main,
-    'ranked_data_native_base_changed');
   await authenticateReader(api, packet);
 
-  const location = await R.readRecord(api);
-  const application = await R.resolveCurrent(api, {sha:main,id:env.GITHUB_RUN_ID,attempt:1,
-    event:'push',workflow:WORKFLOW,job:'transfer'}, location);
-  requireValue(application.ready === true && application.perform_actions === true && application.application_sha === main
-    && application.repository_sha === main, 'ranked_data_application_not_installed');
   const current = await R.readRecord(api);
   requireValue(current.blob === location.blob && current.record_digest === location.record_digest,
     'deployment_result_changed');
   requireValue((await api('GET', mainPath))?.object?.sha === main
     && (await api('GET', branchPath))?.object?.sha === head, 'ranked_data_ref_changed');
   return {...application,write_operation:packet.operation,ranked_data_sha:head,ranked_data_index_path:packet.plan_path,
-    ranked_index_digest:indexDigest,ranked_artifact_id:String(packet.native_artifact)};
+    ranked_index_digest:indexDigest,ranked_artifact_id:String(packet.native_artifact),ranked_control_sha:main};
 }
 
 if (require.main === module) {
