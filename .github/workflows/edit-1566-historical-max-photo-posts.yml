@@ -335,7 +335,8 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ env.MAX_REPOSITORY_SHA }}
+          # Authenticates the terminal receipt issued by the original PR1751 recovery.
+          ref: aad4de171966a7386e0293626f485d03003109f7
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
