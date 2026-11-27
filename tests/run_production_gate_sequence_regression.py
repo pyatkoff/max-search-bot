@@ -26,6 +26,8 @@ TIMED_WORKFLOWS = {
     'modeled-conversion-monitor.yml': ('monitor', '2-59/5 * * * *'),
 }
 CANONICAL_REPOSITORY = 'pyatkoff/max-search-bot'
+MONITOR_RECOVERY_BRANCH = 'ops/recover-pr1751-monitor-20261127'
+MONITOR_RECOVERY_JOB = 'recover-pr1751-health'
 SHA_EXPRESSION = '${{ steps.source.outputs.sha }}'
 APPLICATION_SHA_EXPRESSION = '${{ steps.release.outputs.application_sha }}'
 REPOSITORY_SHA_EXPRESSION = '${{ steps.release.outputs.repository_sha }}'
@@ -96,10 +98,12 @@ def script_block(step):
     return '\n'.join(body) + '\n'
 
 def source_step(source, filename, job_name=None):
+    monitor = filename == 'modeled-conversion-monitor.yml'
     if filename in TIMED_WORKFLOWS:
         wanted = job_name or TIMED_WORKFLOWS[filename][0]
         job_keys = re.findall(r'^  ([A-Za-z_][A-Za-z0-9_-]*):', top_section(source, 'jobs'), re.MULTILINE)
-        check(job_keys == [wanted] and wanted == TIMED_WORKFLOWS[filename][0],
+        expected_jobs = [wanted, MONITOR_RECOVERY_JOB] if monitor else [wanted]
+        check(job_keys == expected_jobs and wanted == TIMED_WORKFLOWS[filename][0],
               filename + ': one canonical independent production job')
         match = re.search(r'^  ' + re.escape(wanted) + r':\n(.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:\n|\Z)', source, re.MULTILINE | re.DOTALL)
         check(match is not None, filename + ': required independent job ' + wanted)
@@ -114,6 +118,10 @@ def source_step(source, filename, job_name=None):
         expected.add('push')
         check('  push:\n    branches: [ops/recover-pr1505-terminal-20261112]' in events,
               label + 'only the fixed source-checked unstarted TLS continuation may push')
+    if monitor:
+        expected.add('push')
+        check('  push:\n    branches: [' + MONITOR_RECOVERY_BRANCH + ']' in events,
+              label + 'only the fixed source-checked PR1751 recovery may push')
     if timed:
         expected.add('schedule')
     check(set(keys) == expected and len(keys) == len(expected), label + 'only deploy-completion and retained explicit triggers')
@@ -121,7 +129,8 @@ def source_step(source, filename, job_name=None):
         check('    ' + declaration in events.splitlines(), label + 'missing upstream trigger ' + declaration)
     if timed:
         timer = TIMED_WORKFLOWS[filename][1]
-        expected_if = "    if: (github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && (github.event_name != 'schedule' || github.event.schedule == '" + timer + "')"
+        push_guard = "github.event_name != 'push' && " if monitor else ''
+        expected_if = "    if: " + push_guard + "(github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success') && (github.event_name != 'schedule' || github.event.schedule == '" + timer + "')"
         check(expected_if in source.splitlines(), label + 'success and exact hourly/check-only timer guard')
     else:
         check("    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'" in source.splitlines(),
@@ -223,6 +232,8 @@ def release_wiring_cases(root, sources):
     additional = ('publish-conversation-diagnostics.yml', 'repair-lead-receiver-config.yml',
                   'restore-live-runtime.yml', 'sync-legacy-lead-receiver.yml', 'telegram-webhook-status.yml')
     all_sources = dict(sources)
+    monitor_source = sources['modeled-conversion-monitor.yml'].split('\n  ' + MONITOR_RECOVERY_JOB + ':\n', 1)[0]
+    all_sources['modeled-conversion-monitor.yml'] = monitor_source
     all_sources.update({name: (root / '.github/workflows' / name).read_text(encoding='utf-8')
                         for name in additional})
     ordinary = {'steps.release.outputs.ready': 'true', 'steps.release.outputs.perform_actions': 'true',
@@ -302,7 +313,7 @@ def release_wiring_cases(root, sources):
                   and source.count('name: metrika-delivery-diagnostic-${{ steps.release.outputs.application_sha }}') == 1,
                   label + 'new artifacts cannot mislabel unchanged application data as repository R')
 
-    monitor = step_blocks(sources['modeled-conversion-monitor.yml'])
+    monitor = step_blocks(monitor_source)
     send = next(step for step in monitor if step.startswith('      - name: Send only this original retained intent\n'))
     for overrides, allowed in [({}, True), ({'steps.decision.outputs.send': 'false'}, False),
                                ({'steps.durable_intent.outcome': 'failure'}, False),
@@ -866,6 +877,32 @@ def monitor_schedule_cases(root, sources):
           'monitor: retained intent has one canonical send command')
 
 
+def monitor_recovery_cases(source):
+    _, marker, recovery = source.partition('\n  ' + MONITOR_RECOVERY_JOB + ':\n')
+    check(bool(marker) and not re.search(r'^  [\w-]+:', recovery, re.MULTILINE),
+          'monitor recovery: fixed job is separate from the scheduled sender')
+    check("    if: github.event_name == 'push' && github.ref == 'refs/heads/" + MONITOR_RECOVERY_BRANCH + "'"
+          in recovery.splitlines(), 'monitor recovery: exact branch push only')
+    check('      group: anytour-modeled-conversion-monitor' in recovery.splitlines()
+          and '      cancel-in-progress: false' in recovery.splitlines()
+          and ': write' not in recovery, 'monitor recovery: existing lock and read-only GitHub permissions')
+    steps = step_blocks(recovery)
+    check(len(steps) == 5 and 'persist-credentials: false' in steps[0]
+          and field(steps[1], 'run') == 'node tools/pr1751_monitor_recovery.js >> "$GITHUB_OUTPUT"'
+          and all('secrets.' not in step for step in steps[:2]), 'monitor recovery: admit completed evidence before credentials')
+    health = run_block(steps[3])
+    check(health.count(' ssh ') == 1 and 'git rev-parse HEAD' in health
+          and 'php tools/modeled_conversion_monitor.php availability' in health
+          and 'steps.admitted.outputs.application_sha' in steps[3]
+          and '--phase send' not in recovery and 'upload-artifact' not in recovery,
+          'monitor recovery: only one read of the admitted application and no notification state')
+    for step in steps[2:4]:
+        check(field(step, 'if') is None and field(step, 'continue-on-error') is None,
+              'monitor recovery: source admission and health failure cannot be suppressed')
+    check(field(steps[4], 'if') == 'always()' and '${{ secrets.' not in steps[4],
+          'monitor recovery: ephemeral cleanup has no credential')
+
+
 def pipeline_activation_cases(root):
     """Execute the original activation resolver and retain its handoff boundaries."""
     filename = 'modeled-pipeline-monitor-activation.yml'
@@ -1368,6 +1405,7 @@ def main():
     for filename, source in sources.items():
         behavior_cases(source_step(source, filename), filename)
         if filename == 'modeled-conversion-monitor.yml':
+            monitor_recovery_cases(source)
             monitor_source_ready_cases(source)
             monitor_retained_read_cases(source)
             monitor_record_cases(source)
