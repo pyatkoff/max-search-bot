@@ -30,6 +30,12 @@ SHA_EXPRESSION = '${{ steps.source.outputs.sha }}'
 APPLICATION_SHA_EXPRESSION = '${{ steps.release.outputs.application_sha }}'
 REPOSITORY_SHA_EXPRESSION = '${{ steps.release.outputs.repository_sha }}'
 RELEASE_ACTIONS = "steps.release.outputs.ready == 'true' && steps.release.outputs.perform_actions == 'true'"
+MONITOR_RELEASE_SELECTOR = (
+    "github.event_name == 'workflow_run' && "
+    "!contains(github.event.workflow_run.head_commit.message, '[modeled-pipeline-monitor-activation-v1]')"
+)
+MONITOR_NOTIFICATION = "env.MONITOR_MODE == 'notification'"
+MONITOR_RELEASE_HEALTH_STEP = 'Verify installed monitor health without notification'
 DEPLOY_SHA = 'a' * 40
 DOWNSTREAM_SHA = 'b' * 40
 CHECKS = 0
@@ -130,6 +136,13 @@ def source_step(source, filename, job_name=None):
         crons = re.findall(r"^    - cron: '([^']+)'$", events, re.MULTILINE)
         check(crons == [timer], label + 'exactly one independent canonical timer')
         group = 'production-live-session-diagnostics' if filename == 'live-session-diagnostics.yml' else 'anytour-modeled-conversion-monitor'
+        if filename == 'modeled-conversion-monitor.yml':
+            group = ("${{ " + MONITOR_RELEASE_SELECTOR
+                     + " && format('anytour-release-monitor-{0}', github.event.workflow_run.id) || '"
+                     + group + "' }}")
+            check(("      MONITOR_MODE: ${{ " + MONITOR_RELEASE_SELECTOR
+                   + " && 'release' || 'notification' }}") in source.splitlines(),
+                  label + 'only original ordinary deploy observations leave the notification group')
         check('      group: ' + group in source.splitlines()
               and '      cancel-in-progress: false' in source.splitlines(), label + 'independent active jobs must not cancel each other')
 
@@ -140,6 +153,9 @@ def source_step(source, filename, job_name=None):
     provenance = [i for i, step in enumerate(steps) if field(step, 'id') == 'provenance']
     check(len(checkout) == len(provenance) == 1 and 0 < checkout[0] < provenance[0], label + 'checkout then provenance follow source resolution')
     check('          ref: ' + SHA_EXPRESSION in steps[checkout[0]].splitlines(), label + 'checkout uses the exact resolved SHA')
+    if filename == 'modeled-conversion-monitor.yml':
+        check('          fetch-depth: 1' in steps[checkout[0]].splitlines(),
+              label + 'the monitor checks the exact source without fetching repository history')
     secret_steps = [i for i, step in enumerate(steps) if '${{ secrets.' in step]
     check(secret_steps and min(secret_steps) > provenance[0]
           and '${{ secrets.' not in source[:source.index('    steps:')], label + 'provenance must finish before credentials are introduced')
@@ -178,7 +194,7 @@ def source_step(source, filename, job_name=None):
 
 def workflow_condition(expression, values):
     """Evaluate the actual finite step predicates, with no workflow commands or IO."""
-    expression = re.sub(r'steps\.[A-Za-z_][A-Za-z0-9_]*\.(?:outputs\.[A-Za-z_][A-Za-z0-9_]*|outcome)',
+    expression = re.sub(r'steps\.[A-Za-z_][A-Za-z0-9_]*\.(?:outputs\.[A-Za-z_][A-Za-z0-9_]*|outcome)|env\.MONITOR_MODE',
                         lambda match: repr(values.get(match[0], '')), expression)
     tree = ast.parse(expression.replace('&&', ' and ').replace('||', ' or ')
                      .replace('always()', 'True'), mode='eval')
@@ -226,6 +242,7 @@ def release_wiring_cases(root, sources):
     all_sources.update({name: (root / '.github/workflows' / name).read_text(encoding='utf-8')
                         for name in additional})
     ordinary = {'steps.release.outputs.ready': 'true', 'steps.release.outputs.perform_actions': 'true',
+                'env.MONITOR_MODE': 'notification',
                 'steps.source_ready.outputs.ready': 'true', 'steps.retained.outputs.present': 'true',
                 'steps.decision.outputs.send': 'true', 'steps.decision.outcome': 'success',
                 'steps.durable_intent.outcome': 'success', 'steps.health.outputs.ok': 'true'}
@@ -306,10 +323,26 @@ def release_wiring_cases(root, sources):
     send = next(step for step in monitor if step.startswith('      - name: Send only this original retained intent\n'))
     for overrides, allowed in [({}, True), ({'steps.decision.outputs.send': 'false'}, False),
                                ({'steps.durable_intent.outcome': 'failure'}, False),
+                               ({'env.MONITOR_MODE': 'release'}, False),
                                ({'steps.source_ready.outputs.ready': 'false',
                                  'steps.decision.outputs.send': '', 'steps.durable_intent.outcome': ''}, False)]:
         check(workflow_condition(field(send, 'if'), dict(ordinary, **overrides)) is allowed,
               'monitor: release admission preserves original durable-intent and no-send decisions')
+    verify = next(step for step in monitor if step.startswith('      - name: ' + MONITOR_RELEASE_HEALTH_STEP + '\n'))
+    check(not workflow_condition(field(verify, 'if'), ordinary),
+          'monitor: schedule, manual checks and explicit activation keep the notification path')
+    release_mode = dict(ordinary, **{'env.MONITOR_MODE': 'release'})
+    check(workflow_condition(field(verify, 'if'), release_mode),
+          'monitor: ordinary deployed source must execute its technical health proof')
+    for step in monitor:
+        name = step.splitlines()[0].removeprefix('      - name: ')
+        if name in ('Resolve exact production source', 'Checkout exact production source',
+                    'Verify exact source is current main', 'Resolve accepted repository and application',
+                    'Prepare SSH private key', MONITOR_RELEASE_HEALTH_STEP,
+                    'Remove private ephemeral monitor data'):
+            continue
+        check(not workflow_condition(field(step, 'if'), release_mode),
+              'monitor: sole read-only release path cannot enter existing notification step: ' + name)
 
 
 def operation_trigger_cases(root):
@@ -615,21 +648,22 @@ def monitor_source_ready_cases(source):
     check('timeout 15s ssh ' in run_block(installed_step),
           'monitor: installed-source transport probe has a finite outer timeout')
     check(field(ready_step, 'uses') == 'actions/github-script@v7'
-          and field(ready_step, 'if') == RELEASE_ACTIONS and field(ready_step, 'continue-on-error') is None
+          and field(ready_step, 'if') == RELEASE_ACTIONS + ' && (' + MONITOR_NOTIFICATION + ')'
+          and field(ready_step, 'continue-on-error') is None
           and '          retries: 0' in ready_step.splitlines(),
           'monitor: source-ready gate is mandatory with no retries or error suppression')
-    ready_if = "steps.source_ready.outputs.ready == 'true'"
+    ready_if = MONITOR_NOTIFICATION + " && steps.source_ready.outputs.ready == 'true'"
     guards = {
         'Prepare existing pinned encrypted evidence runtime': ready_if,
         'Locate latest retained encrypted monitor state': ready_if,
         'Download retained ciphertext only': ready_if + " && steps.retained.outputs.present == 'true'",
         'Read fixed installed technical health and bootstrap route when required': ready_if,
         'Prepare one immutable notification intent': ready_if,
-        'Persist encrypted intent before any Telegram send': "steps.decision.outputs.send == 'true'",
-        'Send only this original retained intent': "steps.decision.outputs.send == 'true' && steps.durable_intent.outcome == 'success'",
-        'Retain final encrypted state': "always() && steps.decision.outcome == 'success'",
-        'Record sanitized external monitoring receipt': "always() && steps.decision.outcome == 'success'",
-        'Verify technical monitoring result': "always() && steps.decision.outcome == 'success'",
+        'Persist encrypted intent before any Telegram send': MONITOR_NOTIFICATION + " && steps.decision.outputs.send == 'true'",
+        'Send only this original retained intent': MONITOR_NOTIFICATION + " && steps.decision.outputs.send == 'true' && steps.durable_intent.outcome == 'success'",
+        'Retain final encrypted state': "always() && " + MONITOR_NOTIFICATION + " && steps.decision.outcome == 'success'",
+        'Record sanitized external monitoring receipt': "always() && " + MONITOR_NOTIFICATION + " && steps.decision.outcome == 'success'",
+        'Verify technical monitoring result': "always() && " + MONITOR_NOTIFICATION + " && steps.decision.outcome == 'success'",
     }
     for name, expected_if in guards.items():
         matches = [(i, step) for i, step in enumerate(steps) if step.startswith('      - name: ' + name + '\n')]
@@ -841,6 +875,86 @@ def monitor_record_cases(source):
                 '--run-attempt=' + env['MONITOR_RUN_ATTEMPT'], '--source-sha=' + env['EXPECTED_SHA']],
                 'monitor: exact validated provenance remains quoted through remote command')
 
+
+
+def monitor_release_health_cases(root, source):
+    """Execute the actual technical gate against one fixed read-only SSH command."""
+    step = next(step for step in step_blocks(source)
+                if step.startswith('      - name: ' + MONITOR_RELEASE_HEALTH_STEP + '\n'))
+    gate = 'bash tools/verify_modeled_monitor_health.sh'
+    check(field(step, 'run') == gate and field(step, 'continue-on-error') is None,
+          'release monitor: the shared read-only probe is mandatory')
+    healthy = {'schema_version': 1, 'project': 'anytour', 'counter_id': '98615635',
+               'monitor_scope': 'external', 'status': 'ok', 'flags': []}
+    cases = [
+        ('external heartbeat', healthy, DEPLOY_SHA, 0, 'external:ok', None),
+        ('legacy metadata before cutover', dict(healthy, monitor_scope='legacy', status='off'),
+         DEPLOY_SHA, 0, 'legacy:off', None),
+        ('legacy product incident has a valid technical observation',
+         dict(healthy, monitor_scope='legacy', status='degraded', flags=['ready_queue_stale']),
+         DEPLOY_SHA, 0, 'legacy:degraded', None),
+        ('stale heartbeat', dict(healthy, status='unavailable', flags=['pipeline_checker_stale']),
+         DEPLOY_SHA, 0, None, 'pipeline_checker_stale'),
+        ('uncertain notification on the local pipeline',
+         dict(healthy, status='unavailable', flags=['pipeline_checker_notification_unknown']),
+         DEPLOY_SHA, 0, None, 'pipeline_checker_notification_unknown'),
+        ('external role cannot report product flag',
+         dict(healthy, status='unavailable', flags=['visit_proof_stale']),
+         DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
+        ('unrecognized flag cannot be printed',
+         dict(healthy, status='unavailable', flags=['fixture-private-payload']),
+         DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
+        ('declared healthy with a flag', dict(healthy, flags=['pipeline_checker_stale']),
+         DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
+        ('foreign counter', dict(healthy, counter_id='000'), DEPLOY_SHA, 0, None, 'monitor_source_mismatch'),
+        ('foreign project', dict(healthy, project='other'), DEPLOY_SHA, 0, None, 'monitor_source_mismatch'),
+        ('invalid schema type', dict(healthy, schema_version=True),
+         DEPLOY_SHA, 0, None, 'monitor_source_mismatch'),
+        ('unknown scope', dict(healthy, monitor_scope='pipeline'),
+         DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
+        ('transport failure', healthy, DEPLOY_SHA, 1, None, 'monitor_transport_unavailable'),
+        ('installed source differs', healthy, DEPLOY_SHA, 41, None, 'monitor_source_mismatch'),
+        ('invalid expected SHA', healthy, 'not-a-sha', 0, None, 'monitor_source_mismatch'),
+        ('malformed metadata', 'not json', DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
+        ('oversized metadata', dict(healthy, padding='x' * 8192),
+         DEPLOY_SHA, 0, None, 'health_metadata_unavailable'),
+    ]
+    with tempfile.TemporaryDirectory(prefix='release-monitor-health-') as temporary:
+        work = Path(temporary)
+        ssh = work / 'ssh'
+        ssh.write_text('#!/usr/bin/env python3\n'
+                       'import json, os, sys\n'
+                       'with open(os.environ["TRACE"], "a") as trace:\n'
+                       '    print(json.dumps(sys.argv[1:]), file=trace)\n'
+                       'print(os.environ["HEALTH"])\n'
+                       'raise SystemExit(int(os.environ["SSH_EXIT"]))\n', encoding='utf-8')
+        ssh.chmod(0o700)
+        trace = work / 'ssh-trace'
+        for name, health, expected, ssh_exit, success, refusal in cases:
+            trace.unlink(missing_ok=True)
+            env = dict(os.environ, PATH=str(work) + os.pathsep + os.environ['PATH'],
+                       RUNNER_TEMP=str(work), TRACE=str(trace), EXPECTED_SHA=expected,
+                       DEPLOY_USER='fixture', DEPLOY_HOST='fixture.example',
+                       HEALTH=health if isinstance(health, str) else json.dumps(health),
+                       SSH_EXIT=str(ssh_exit))
+            result = subprocess.run(['bash', '-c', gate], cwd=root, env=env, text=True,
+                                    capture_output=True, timeout=5)
+            check((result.returncode == 0) == (success is not None), 'release monitor: ' + name)
+            check(result.stdout.strip() == ('RELEASE_MONITOR_HEALTH=' + success if success else ''),
+                  'release monitor: only a sanitized result is emitted: ' + name)
+            check(result.stderr.strip() == ('RELEASE_MONITOR_HEALTH_REFUSED=' + refusal if refusal else ''),
+                  'release monitor: only a whitelisted failure reason is emitted: ' + name)
+            if expected != DEPLOY_SHA:
+                check(not trace.exists(), 'release monitor: invalid source never reaches SSH')
+                continue
+            attempts = trace.read_text(encoding='utf-8').splitlines()
+            check(len(attempts) == 1, 'release monitor: one SSH read: ' + name)
+            args = json.loads(attempts[0])
+            remote = args[-1]
+            check(args[-2] == 'fixture@fixture.example'
+                  and 'test "$(git rev-parse HEAD)" = ' + repr(DEPLOY_SHA) in remote
+                  and remote.endswith('timeout 15s php tools/modeled_conversion_monitor.php availability'),
+                  'release monitor: server command pins the installed source and only reads availability')
 
 
 def monitor_schedule_cases(root, sources):
@@ -1202,7 +1316,8 @@ def monitor_retained_read_cases(source):
     check(len(steps) == 1, 'monitor: one retained encrypted-state lookup')
     step = steps[0]
     check(field(step, 'uses') == 'actions/github-script@v7'
-          and field(step, 'if') == RELEASE_ACTIONS + " && (steps.source_ready.outputs.ready == 'true')"
+          and field(step, 'if') == RELEASE_ACTIONS
+          + " && (" + MONITOR_NOTIFICATION + " && steps.source_ready.outputs.ready == 'true')"
           and field(step, 'continue-on-error') is None,
           'monitor: retained-state lookup keeps its admission and failure boundary')
     node = shutil.which('node')
@@ -1238,6 +1353,7 @@ const none={present:'false'}, kept=artifact(10);
 const firstBlock=block(I,1);
 const cases=[];
 const add=(name,replies,valid,retries,outputs,extra={})=>cases.push({name,replies,valid,retries,outputs,...extra});
+const emptyPageRetry='GitHub artifact-list returned an empty first page with a positive total: retrying this read once.';
 add('filtered final retained state',[read(I,1,empty()),read(F,1,result([kept]))],true,0,output(kept));
 add('filtered intent retained state',[read(I,1,result([artifact(11,I)])),read(F,1,empty())],true,0,output(artifact(11,I)));
 add('successful empty response for both exact names',[read(I,1,empty()),read(F,1,empty())],true,0,none);
@@ -1265,7 +1381,22 @@ add('only ineligible state is an explicit complete empty result',[read(I,1,resul
 add('malformed response is not empty state',[read(I,1,{data:{}})],false,0,{});
 add('null list is not empty state',[read(I,1,{data:{total_count:0,artifacts:null}})],false,0,{});
 add('missing total is not complete state',[read(I,1,{data:{artifacts:[]}})],false,0,{});
-add('empty page before its declared total is incomplete',[read(I,1,result([],1))],false,0,{});
+add('transient empty intent page recovers the newer intent',[read(I,1,result([],1)),
+  read(I,1,result([newerIntent])),read(F,1,result([kept]))],true,1,output(newerIntent),{warning:emptyPageRetry});
+add('complete fresh listing can report no retained intent',[read(I,1,result([],1)),
+  read(I,1,empty()),read(F,1,result([kept]))],true,1,output(kept),{warning:emptyPageRetry});
+add('persistent empty first page remains incomplete',[read(I,1,result([],1)),read(I,1,result([],1))],
+  false,1,{},{warning:emptyPageRetry});
+add('empty final page recovery uses the same retry allowance',[read(I,1,empty()),read(F,1,result([],1)),
+  read(F,1,result([kept]))],true,1,output(kept),{warning:emptyPageRetry});
+add('HTTP500 leaves no extra retry for an empty first page',[read(I,1,failure(500)),
+  read(I,1,result([],1))],false,1,{});
+add('empty first page consumes the HTTP500 retry allowance',[read(I,1,result([],1)),read(I,1,empty()),
+  read(F,1,failure(500))],false,1,{},{warning:emptyPageRetry});
+add('empty later page still invalidates an incomplete scan',[read(I,1,result(firstBlock,26)),
+  read(I,2,result([],26))],false,0,{});
+add('empty first page with excessive total stays invalid',[read(I,1,result([],501))],false,0,{});
+add('empty first page cannot retry past the global deadline',[read(I,1,result([],1),59500)],false,0,{});
 add('response cannot exceed requested page bound',[read(I,1,result([...firstBlock,artifact(26,I)]))],false,0,{});
 add('rows cannot exceed declared total',[read(I,1,result([artifact(1,I)],0))],false,0,{});
 add('short page cannot silently truncate a known total',[read(I,1,result(firstBlock.slice(0,24),26))],false,0,{});
@@ -1330,7 +1461,8 @@ for(const test of cases){
   equal(!error,valid,name+': terminal result');
   equal(requests.length,replies.length,name+': no missing or unbounded reads');
   equal(delays,Array(retries).fill(1000),name+': one bounded retry delay');
-  equal(warnings,Array(retries).fill('GitHub artifact-list HTTP 500: retrying this read once.'),name+': sanitized retry warning');
+  equal(warnings,Array(retries).fill(test.warning ?? 'GitHub artifact-list HTTP 500: retrying this read once.'),
+    name+': sanitized retry warning');
   equal(outputs,expectedOutputs,name+': incomplete or failed discovery exposes no partial state');
   truth(outputAt.every(count=>count===replies.length),name+': outputs follow complete discovery');
   requests.forEach((request,index)=>{
@@ -1369,6 +1501,7 @@ def main():
         behavior_cases(source_step(source, filename), filename)
         if filename == 'modeled-conversion-monitor.yml':
             monitor_source_ready_cases(source)
+            monitor_release_health_cases(args.root, source)
             monitor_retained_read_cases(source)
             monitor_record_cases(source)
     pipeline_activation_cases(args.root)
