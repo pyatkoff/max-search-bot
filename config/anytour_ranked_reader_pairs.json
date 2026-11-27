@@ -2,13 +2,13 @@
   "schema": 1,
   "pairs": [
     {
-      "hotel_id": 1716,
-      "source_mid": "371",
-      "source_publication_id": 839,
-      "target_mid": "1250",
-      "target_published_unixtime": 1762244218,
-      "target_caption_sha256": "3fab4e288b8d26966435c214406d3619dc9b7fdf0a794f41f2650d817430bfe4",
-      "target_photo_marker_sha256": "4d73af5c0ca67f695963b751a78ffdebb2e6a93db520a365482516f3bb95d4eb"
+      "hotel_id": 1026,
+      "source_mid": "263",
+      "source_publication_id": 624,
+      "target_mid": "676",
+      "target_published_unixtime": 1718182308,
+      "target_caption_sha256": "72e317e5c56cf5a16ae7eec9abe857f780938604666c83cd7e3a4db55a9e4b96",
+      "target_photo_marker_sha256": "1f5a907714bd4c2ef50c06ba4d9880e412646b14b7818b5f50d9c52180e2af9d"
     }
   ]
 }
