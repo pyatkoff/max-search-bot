@@ -362,9 +362,9 @@ for mode,proof,full,oauth,tour_result in [('tour-selection','false','skipped','s
 tail_workflow = load('modeled-conversion-value-export.yml')
 tail_events = tail_workflow.get('on', tail_workflow.get(True))
 check(set(tail_events) == {'workflow_run', 'workflow_dispatch', 'push'}, 'only the bounded native terminal continuation adds a trigger')
-check(tail_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112', 'ops/recover-pr1529-terminal-20261113', 'ops/recover-pr1597-terminal-20261117', 'ops/recover-pr1643-terminal-20261121', 'ops/recover-pr1701-terminal-20261125', 'ops/recover-pr1720-terminal-20261125', 'ops/close-pr1751-heartbeat-20261127']}, 'terminal continuations use only the seven fixed owner branches, no timer')
+check(tail_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112', 'ops/recover-pr1529-terminal-20261113', 'ops/recover-pr1597-terminal-20261117', 'ops/recover-pr1643-terminal-20261121', 'ops/recover-pr1701-terminal-20261125', 'ops/recover-pr1720-terminal-20261125', 'ops/close-pr1751-heartbeat-checked-20261127']}, 'terminal continuations use only the seven fixed owner branches, no timer')
 recovery = tail_workflow['jobs']['release-slot-recovery']
-pr1751_ref = "'refs/heads/ops/close-pr1751-heartbeat-20261127'"
+pr1751_ref = "'refs/heads/ops/close-pr1751-heartbeat-checked-20261127'"
 branch_checks = ' || '.join(f"github.ref == 'refs/heads/{b}'" for b in tail_events['push']['branches'])
 heartbeat_gate = (f"((github.ref == {pr1751_ref} && needs.pr1751-heartbeat.result == 'success') || "
                   f"(github.ref != {pr1751_ref} && needs.pr1751-heartbeat.result == 'skipped'))")

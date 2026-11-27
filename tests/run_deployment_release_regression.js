@@ -3351,7 +3351,40 @@ async function superseded1701Cases() {
   await refuses(()=>recovery.diagnosticRetry({...retry,id:1}),'diagnostic_retry_executed');
 }
 
-async function main(){await superseded1701Cases();await unstarted1704Cases();await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
+async function heartbeat1751JobVisibilityCases() {
+  const recovery=require('../tools/release_slot_1751_terminal');
+  const source='7'.repeat(40), parent='6a51c0b69a5e5e9c0c8d6105b29f97c3487e7178', owner={id:226193297};
+  const run={id:100,run_attempt:1,path:C.CLOSER,event:'push',head_branch:recovery.branch,head_sha:source,
+    head_repository:{full_name:R.REPOSITORY},created_at:T,status:'in_progress',conclusion:null,actor:owner,triggering_actor:owner};
+  const prChecks=['regression-tests.yml','retired-domain-guard.yml'].map((file,i)=>({...run,id:101+i,
+    path:R.PREFIX+file,event:'pull_request',head_branch:'ops/prepare-pr1751-monitor-20261127',status:'completed',conclusion:'success'}));
+  const observe={...job('pr1751-heartbeat',run,[],null),status:'in_progress'};
+  const configure=job('configure',run,[],'skipped');
+  const slot=job('release-slot',run,[],'skipped');
+  const closer={...job('release-slot-recovery',run,[],null),status:'in_progress'};
+  let visible=[observe,configure,slot];
+  const list=(key,values)=>({total_count:values.length,[key]:values});
+  const api=async(method,url)=>{
+    assert.equal(method,'GET');
+    switch(url.slice(R.API_ROOT.length)) {
+      case '/git/commits/'+source:return {sha:source,parents:[{sha:parent}]};
+      case '/git/ref/heads/'+recovery.branch:return {object:{sha:source}};
+      case '/actions/runs?head_sha='+source+'&per_page=100':return list('workflow_runs',[run,...prChecks]);
+      case '/actions/runs/100':return run;
+      case '/actions/runs/100/attempts/1/jobs?per_page=100':return list('jobs',visible);
+      default:throw new Error('Unexpected request');
+    }
+  };
+  equal(await recovery.native(api,'100',source,'reading'),observe,'GitHub can defer the downstream closer until heartbeat finishes');
+  visible.push(closer);
+  await refuses(()=>recovery.native(api,'100',source,'reading'),'heartbeat_job_invalid');
+  visible[0]={...observe,status:'completed',conclusion:'success'};
+  equal(await recovery.native(api,'100',source,'closing'),visible[0],'terminal preparation requires both real jobs and their ordered results');
+  visible=visible.slice(0,3);
+  await refuses(()=>recovery.native(api,'100',source,'closing'),'heartbeat_job_invalid');
+}
+
+async function main(){await heartbeat1751JobVisibilityCases();await superseded1701Cases();await unstarted1704Cases();await closedPrewriteOriginCases();await rankedApprovedInputCases();await rankedParentCases();await rankedResumeOriginCases();hotelRegistryReadWorkflow();await pureValidation();await gitBridge();await metadataWaitCases();await failureBoundaries();await scheduledActivationCases();await publishedStatusReadbackCases();await transportBoundaries();await transientReadCases();await terminalContinuationCases();await terminalReadCases();await gateContinuationCases();await unpublishedTerminalCases();await priorWaveCases();await publisherBodyRecoveryCases();await unstartedForwardCases();
   execFileSync(process.execPath,[path.join(__dirname,'run_ranked_telegram_cli_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1702_forward_regression.js')],{stdio:'inherit'});
   execFileSync(process.execPath,['--test',path.join(__dirname,'run_partial_install_1721_forward_regression.js')],{stdio:'inherit'});

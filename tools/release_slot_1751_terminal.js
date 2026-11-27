@@ -3,10 +3,11 @@
 const R = require('./deployment_release');
 const C = require('./release_slot_close');
 const original = require('./pr1751_monitor_recovery');
-const branch = 'ops/close-pr1751-heartbeat-20261127';
+const branch = 'ops/close-pr1751-heartbeat-checked-20261127';
 const kind = 'pr1751_heartbeat_v1';
 const app = '263cc9a7855bd11f3597572d08c7f463faebdbd6';
-const parent = '65a1996e2bdbd6fbea1ab5cb42ab5e339440148a';
+const parent = '6a51c0b69a5e5e9c0c8d6105b29f97c3487e7178';
+const refusedRun = '46073214735';
 const install = 45917012313, closer = 45918089456, monitor = 45918089407;
 const comment = 6818332618, owner = 226193297;
 const inspectStep = 'Read exact installed pipeline heartbeat for PR1751';
@@ -74,19 +75,40 @@ async function native(api, id, source, state) {
   R.runIdentity(run, {id, attempt:1, head:source, workflow:C.CLOSER, event:'push', branch, completed:state === 'closed'});
   ok(run.actor?.id === owner && run.triggering_actor?.id === owner, 'heartbeat_owner_changed');
   const rows = R.boundedList(await get(api, jobPath(id)), 'jobs', 'heartbeat_jobs_incomplete');
-  ok(rows.length === 4 && rows.every(j => j.run_id === run.id && j.head_sha === source && j.run_attempt === 1)
-    && ['configure','release-slot'].every(name => rows.some(j => j.name === name && j.status === 'completed'
-      && j.conclusion === 'skipped' && j.steps.length === 0)), 'heartbeat_unexpected_jobs');
+  const names = rows.map(j => j.name);
+  const skipped = j => j.status === 'completed' && j.conclusion === 'skipped' && j.steps.length === 0;
+  ok(rows.every(j => j.run_id === run.id && j.head_sha === source && j.run_attempt === 1)
+    && new Set(names).size === rows.length && names.every(name =>
+      ['configure','release-slot','release-slot-recovery','pr1751-heartbeat'].includes(name))
+    && rows.filter(j => ['configure','release-slot'].includes(j.name)).every(skipped), 'heartbeat_unexpected_jobs');
   const job = rows.find(j => j.name === 'release-slot-recovery');
   const observation = rows.find(j => j.name === 'pr1751-heartbeat');
   if (state === 'reading') {
-    ok(observation?.status === 'in_progress' && observation.conclusion === null, 'heartbeat_job_invalid');
+    ok(observation?.status === 'in_progress' && observation.conclusion === null
+      && (!job || (['pending','queued','waiting','requested'].includes(job.status) && job.conclusion === null
+        && job.steps.length === 0)), 'heartbeat_job_invalid');
   } else {
-    ok(observation?.status === 'completed' && observation.conclusion === 'success' && job
+    ok(rows.length === 4 && observation?.status === 'completed' && observation.conclusion === 'success' && job
       && (state === 'closed' ? job.status === 'completed' && job.conclusion === 'success'
         : job.status === 'in_progress' && job.conclusion === null), 'heartbeat_job_invalid');
   }
   return observation;
+}
+
+async function proveStoppedContinuation(api) {
+  const [run, list, artifacts] = await Promise.all([get(api, '/actions/runs/' + refusedRun), get(api, jobPath(refusedRun)),
+    get(api, '/actions/runs/' + refusedRun + '/artifacts?per_page=100')]);
+  R.runIdentity(run, {id:refusedRun, attempt:1, head:parent, workflow:C.CLOSER, event:'push',
+    branch:'ops/close-pr1751-heartbeat-20261127', conclusion:'failure'});
+  const rows = R.boundedList(list, 'jobs', 'previous_heartbeat_jobs_incomplete');
+  const read = rows.find(j => j.id === 140754812813 && j.name === 'pr1751-heartbeat');
+  ok(rows.length === 4 && rows.filter(j => j !== read).every(j => j.conclusion === 'skipped' && j.steps.length === 0)
+    && read?.conclusion === 'failure'
+    && C.stepResult(read, 'Admit the owner-authorized PR1751 heartbeat continuation') === 'failure'
+    && C.stepResult(read, 'Prepare standby key for read-only recovery') === 'skipped'
+    && C.stepResult(read, inspectStep) === 'skipped'
+    && R.boundedList(artifacts,'artifacts','previous_heartbeat_artifacts_incomplete').length === 0,
+  'previous_heartbeat_executed');
 }
 
 async function originalGates(api) {
@@ -137,7 +159,7 @@ async function authenticate(api, record, {closed}) {
 async function preflight({env,event,api}) {
   authorized(env,event,'pr1751-heartbeat');
   await native(api, env.GITHUB_RUN_ID, env.GITHUB_SHA, 'reading');
-  await Promise.all([original.proveOriginalGate(api), originalGates(api)]);
+  await Promise.all([original.proveOriginalGate(api), originalGates(api), proveStoppedContinuation(api)]);
   await active(api);
   return {application_sha:app};
 }
@@ -193,4 +215,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = {branch,kind,isOriginalMonitor,validateLineage,authenticate,resume,validateHeartbeat};
+module.exports = {branch,kind,isOriginalMonitor,validateLineage,authenticate,resume,validateHeartbeat,native};
