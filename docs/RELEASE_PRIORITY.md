@@ -284,6 +284,25 @@ ordered as before; failed/UNKNOWN writes hold without replay. After actual FREE,
 the protocol source is installed through ordinary fresh admission.
 
 
+## PR1751 one-time heartbeat continuation
+
+The owner approved closure of the already installed PR1751 after a fresh
+server-cron heartbeat on the exact application revision. The retained alert
+attempt from November 20 stays UNKNOWN. This exception is limited to that
+same audited attempt and the recorded visit-proof flags. It cannot send,
+change notification state, deploy, or recognize a different release.
+
+The checked branch admits one native read-only job before credentials. It
+authenticates the installed revision, the held publisher, all original gates
+and both failed original jobs. The read accepts only a fresh, validated
+server-cron receipt and the exact retained unknown alert on the installed
+revision. The existing serialized closer records both the failed original
+monitor and the new technical observation in typed pr1751_heartbeat_v1 lineage.
+It requires digest-bound publication before its single publisher update.
+Ambiguous or changed evidence stops without replay. Other releases continue
+using the normal admission contract. A successor must carry a reader that
+authenticates this lineage before it acquires the shared publisher.
+
 ## Automatic terminal update
 
 PR1529 has a separately owner-authorised, fixed metadata-only continuation after

@@ -362,9 +362,23 @@ for mode,proof,full,oauth,tour_result in [('tour-selection','false','skipped','s
 tail_workflow = load('modeled-conversion-value-export.yml')
 tail_events = tail_workflow.get('on', tail_workflow.get(True))
 check(set(tail_events) == {'workflow_run', 'workflow_dispatch', 'push'}, 'only the bounded native terminal continuation adds a trigger')
-check(tail_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112', 'ops/recover-pr1529-terminal-20261113', 'ops/recover-pr1597-terminal-20261117', 'ops/recover-pr1643-terminal-20261121', 'ops/recover-pr1701-terminal-20261125', 'ops/recover-pr1720-terminal-20261125']}, 'terminal continuations use only the six fixed owner branches, no timer')
+check(tail_events['push'] == {'branches':['ops/recover-pr1505-terminal-20261112', 'ops/recover-pr1529-terminal-20261113', 'ops/recover-pr1597-terminal-20261117', 'ops/recover-pr1643-terminal-20261121', 'ops/recover-pr1701-terminal-20261125', 'ops/recover-pr1720-terminal-20261125', 'ops/close-pr1751-heartbeat-exact-20261127']}, 'terminal continuations use only the seven fixed owner branches, no timer')
 recovery = tail_workflow['jobs']['release-slot-recovery']
-check(recovery['if'] == "github.event_name == 'push' && (github.ref == 'refs/heads/ops/recover-pr1505-terminal-20261112' || github.ref == 'refs/heads/ops/recover-pr1529-terminal-20261113' || github.ref == 'refs/heads/ops/recover-pr1597-terminal-20261117' || github.ref == 'refs/heads/ops/recover-pr1643-terminal-20261121' || github.ref == 'refs/heads/ops/recover-pr1701-terminal-20261125' || github.ref == 'refs/heads/ops/recover-pr1720-terminal-20261125')", 'terminal continuation cannot run as a normal deploy tail or manual dispatch')
+pr1751_ref = "'refs/heads/ops/close-pr1751-heartbeat-exact-20261127'"
+branch_checks = ' || '.join(f"github.ref == 'refs/heads/{b}'" for b in tail_events['push']['branches'])
+heartbeat_gate = (f"((github.ref == {pr1751_ref} && needs.pr1751-heartbeat.result == 'success') || "
+                  f"(github.ref != {pr1751_ref} && needs.pr1751-heartbeat.result == 'skipped'))")
+check(recovery['needs'] == 'pr1751-heartbeat'
+      and recovery['if'] == f"always() && {heartbeat_gate} && github.event_name == 'push' && ({branch_checks})",
+      'terminal continuation requires the PR1751 read on its exact branch and has no manual entry')
+heartbeat = tail_workflow['jobs']['pr1751-heartbeat']
+check(heartbeat['if'] == f"github.event_name == 'push' && github.ref == {pr1751_ref}"
+      and heartbeat['permissions'] == {'contents':'read','actions':'read','pull-requests':'read','issues':'read'},
+      'one exact heartbeat read has no GitHub write authority')
+check('secrets.' not in str(heartbeat['steps'][:2]) and heartbeat['steps'][1]['id'] == 'heartbeat_admission'
+      and len(heartbeat['steps']) == 5 and heartbeat['steps'][3]['run'].count(' ssh ') == 1
+      and 'liveness' in heartbeat['steps'][3]['run'] and 'verify-liveness' in heartbeat['steps'][3]['run'],
+      'credentials follow admission and the sole remote operation reads typed heartbeat')
 check(recovery['permissions'] == {'contents':'write','actions':'read','pull-requests':'read','issues':'write'}, 'continuation keeps metadata-only authority')
 check(recovery['timeout-minutes'] == 8, 'continuation has a finite metadata deadline')
 check(recovery['steps'][0]['with'] == {'ref':'${{ github.sha }}','persist-credentials':False}, 'continuation loads its genuine source')
