@@ -3,99 +3,16 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
-const {execFileSync, spawnSync} = require('node:child_process');
+const {spawnSync} = require('node:child_process');
 const {isDeepStrictEqual} = require('node:util');
-const {CONTRACT, INDEX, MAX_PACKAGE, digest, readFile, readSnapshot, snapshotSeal,
+const {CONTRACT, INDEX, MAX_PACKAGE, digest, readSnapshot, snapshotSeal,
   verifyPackage, stageVersion} = require('./hotel_catalogue_package');
 
+const {VERSION, OPERATION, readFile, requireThat, currentVersion, privateDirectory, checkApplication,
+  syncPath, transact} = require('./catalogue_release_transaction');
+
 const SHA256 = /^[a-f0-9]{64}$/;
-const VERSION = /^[a-f0-9]{64}-[a-f0-9]{64}$/;
-const OPERATION = /^[a-zA-Z0-9][a-zA-Z0-9_-]{7,95}$/;
 const RECEIPT = 'anytour-hotel-catalogue-operation-v1';
-
-function requireThat(condition, error) {
-  if (!condition) throw new Error(error);
-}
-
-function privateDirectory(directory) {
-  const stat = fs.lstatSync(directory);
-  requireThat(stat.isDirectory() && fs.realpathSync(directory) === directory &&
-    (stat.mode & 0o022) === 0, 'invalid_catalogue_release_directory');
-}
-
-function withLock(releases, run) {
-  privateDirectory(releases);
-  const lock = path.join(releases, 'operation.lock');
-  const fd = fs.openSync(lock, fs.constants.O_RDONLY | fs.constants.O_CREAT |
-    fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK, 0o600);
-  try {
-    const opened = fs.fstatSync(fd);
-    requireThat(opened.isFile(), 'invalid_catalogue_lock');
-    // flock on this inherited file description remains held by the parent fd.
-    const result = spawnSync('flock', ['--exclusive', '--nonblock', '--conflict-exit-code', '75', '3'],
-      {stdio:['ignore', 'ignore', 'pipe', fd]});
-    requireThat(result.status === 0, result.status === 75 ? 'catalogue_operation_busy' : 'catalogue_lock_failed');
-    const named = fs.lstatSync(lock);
-    requireThat(named.isFile() && named.dev === opened.dev && named.ino === opened.ino,
-      'catalogue_lock_replaced');
-    return run();
-  } finally {
-    fs.closeSync(fd);
-  }
-}
-
-function syncPath(target) {
-  const fd = fs.openSync(target, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW);
-  try { fs.fsyncSync(fd); }
-  finally { fs.closeSync(fd); }
-}
-
-function writeNew(file, value) {
-  const directory = path.dirname(file);
-  const temp = fs.mkdtempSync(path.join(directory, '.operation-'));
-  try {
-    const body = path.join(temp, 'receipt.json');
-    fs.writeFileSync(body, JSON.stringify(value) + '\n', {flag:'wx', mode:0o600});
-    syncPath(body);
-    fs.linkSync(body, file);
-    syncPath(directory);
-  } finally {
-    fs.rmSync(temp, {recursive:true, force:true});
-  }
-}
-
-function optionalReceipt(file) {
-  if (!fs.lstatSync(file, {throwIfNoEntry:false})) return null;
-  const value = JSON.parse(readFile(file, 8192));
-  requireThat(value?.contract === RECEIPT, 'invalid_catalogue_operation_receipt');
-  return value;
-}
-
-function currentVersion(releases) {
-  const current = path.join(releases, 'current');
-  if (!fs.lstatSync(current, {throwIfNoEntry:false})) return 'bundled';
-  const target = fs.readlinkSync(current);
-  const version = path.basename(target);
-  requireThat(VERSION.test(version) && target === path.join(releases, version), 'invalid_catalogue_pointer');
-  return version;
-}
-
-function selectVersion(releases, version) {
-  const pointer = path.join(releases, 'current');
-  if (version === 'bundled') {
-    fs.unlinkSync(pointer);
-  } else {
-    const temporary = fs.mkdtempSync(path.join(releases, '.pointer-'));
-    try {
-      const next = path.join(temporary, 'current');
-      fs.symlinkSync(path.join(releases, version), next);
-      fs.renameSync(next, pointer);
-    } finally {
-      fs.rmSync(temporary, {recursive:true, force:true});
-    }
-  }
-  syncPath(releases);
-}
 
 function releaseSeal(version, index) {
   const [package_sha256, reader_sha256] = version.split('-');
@@ -180,46 +97,12 @@ function main(args) {
     ? {action, operation, application_sha, previous_version:current, package_sha256}
     : {action, operation, application_sha, activation:current};
   const releases = path.join(path.dirname(app), 'max-search-bot-private-logs', 'hotel-catalogue-releases');
-  return withLock(releases, () => {
-    const operations = path.join(releases, 'operations');
-    fs.mkdirSync(operations, {recursive:true, mode:0o700});
-    privateDirectory(operations);
-    const receipt = path.join(operations, operation + '.json');
-    const pendingFile = path.join(releases, 'pending.json');
-    const recorded = optionalReceipt(receipt);
-    const pending = optionalReceipt(pendingFile);
-    if (recorded) {
-      requireThat(isDeepStrictEqual(recorded.request, request), 'catalogue_operation_id_reused');
-      if (pending?.request?.operation === operation) {
-        requireThat(isDeepStrictEqual(recorded, pending) && currentVersion(releases) === recorded.to,
-          'catalogue_pending_conflict');
-        fs.unlinkSync(pendingFile);
-        syncPath(releases);
-      }
-      return recorded;
-    }
-    requireThat(!pending || isDeepStrictEqual(pending.request, request), 'catalogue_release_pending');
-    // A previously rolled-back activation cannot affect a later activation of the same bytes.
-    const rollbackMark = isActivation ? null : path.join(operations, current + '.rollback.json');
-    const priorRollback = rollbackMark === null ? null : optionalReceipt(rollbackMark);
-    requireThat(!priorRollback || (pending && isDeepStrictEqual(priorRollback, pending)), 'catalogue_activation_already_rolled_back');
-    const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
-    const installed = execFileSync('git', ['-C', app, 'rev-parse', '--show-toplevel', 'HEAD'],
-      {encoding:'utf8', env, timeout:5000, stdio:['ignore','pipe','pipe']}).trimEnd();
-    requireThat(installed === app + '\n' + application_sha, 'catalogue_application_changed');
+  return transact({releases, contract:RECEIPT, request}, (pending, activation) => {
+    checkApplication(app, application_sha);
     const reader = path.join(app, 'services', 'ManagerHotelKnowledge.php');
     const readerBytes = readFile(reader, 131072);
-    const next = isActivation ? activate(app, releases, request, archive, reader, readerBytes, pending)
-      : rollback(app, releases, request, optionalReceipt(path.join(operations, current + '.json')),
-        digest(readerBytes), pending);
-    if (pending) requireThat(isDeepStrictEqual(pending, next), 'catalogue_pending_conflict');
-    else writeNew(pendingFile, next);
-    if (rollbackMark !== null && !priorRollback) writeNew(rollbackMark, next);
-    if (currentVersion(releases) !== next.to) selectVersion(releases, next.to);
-    writeNew(receipt, next);
-    fs.unlinkSync(pendingFile);
-    syncPath(releases);
-    return next;
+    return isActivation ? activate(app, releases, request, archive, reader, readerBytes, pending)
+      : rollback(app, releases, request, activation, digest(readerBytes), pending);
   });
 }
 

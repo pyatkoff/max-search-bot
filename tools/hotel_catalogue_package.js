@@ -4,6 +4,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const {createHash} = require('node:crypto');
+const {readFile} = require('./catalogue_release_transaction');
 const {hotelCatalogueAddition} = require('./ci_change_scope');
 
 const INDEX = 'catalogue.json';
@@ -27,32 +28,6 @@ function fileLimit(name) {
   if (typeof name !== 'string' || name.length > 255) return 0;
   if (SHARD.test(name)) return 65536;
   return name === INDEX || BUNDLE.test(name) ? 16384 : 0;
-}
-
-function readFile(file, limit) {
-  const before = fs.lstatSync(file);
-  if (!limit || !before.isFile() || before.size > limit) throw new Error('invalid_package_file');
-  const fd = fs.openSync(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
-  try {
-    const first = fs.fstatSync(fd);
-    if (!first.isFile() || first.dev !== before.dev || first.ino !== before.ino || first.size !== before.size) {
-      throw new Error('package_file_changed');
-    }
-    const buffer = Buffer.alloc(first.size + 1);
-    let length = 0;
-    while (length < buffer.length) {
-      const count = fs.readSync(fd, buffer, length, buffer.length - length, null);
-      if (count === 0) break;
-      length += count;
-    }
-    const last = fs.fstatSync(fd);
-    if (length !== first.size || last.size !== first.size || last.mtimeMs !== first.mtimeMs || last.ctimeMs !== first.ctimeMs) {
-      throw new Error('package_file_changed');
-    }
-    return buffer.subarray(0, length);
-  } finally {
-    fs.closeSync(fd);
-  }
 }
 
 function readSnapshot(directory) {
