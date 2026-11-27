@@ -44,7 +44,7 @@ jobs:
 
           MANIFEST = 'config/anytour_ranked_reader_pairs.json'
           WORKFLOW = '.github/workflows/read-1566-telegram-46-20261123.yml'
-          WORKFLOW_UPGRADE_PARENT = '3de64b31d1dde645b4bd20d72d19c400fe93aedc'
+          WORKFLOW_UPGRADE_PARENT = '9e3b0a91dcad07d21c46a66c09e082b794d37e9f'
           FIELDS = {
               'hotel_id', 'source_mid', 'source_publication_id', 'target_mid',
               'target_published_unixtime', 'target_caption_sha256', 'target_photo_marker_sha256',
@@ -142,17 +142,23 @@ jobs:
             if (accepted.release.run_attempt !== 1) throw Error('unsupported_installation_attempt');
             let resolved;
             let observationOnly = false;
-            if (accepted.phase === 'pending_terminal' && release.positive(accepted.closure?.run_id)) {
+            const currentInstalled = accepted.kind === 'installed' &&
+              accepted.repository_sha === repositorySha && accepted.application_sha === repositorySha;
+            const pendingCurrentInstall = accepted.phase === 'pending_closure' && currentInstalled;
+            // The canonical resolver explicitly accepts a verified installation
+            // without a release-slot binding. A bound pending install remains observation-only.
+            const unboundCurrentInstall = pendingCurrentInstall &&
+              await release.currentBinding(api, repositorySha) === null;
+            if ((accepted.phase === 'pending_terminal' && release.positive(accepted.closure?.run_id)) ||
+                unboundCurrentInstall) {
               await release.requireAncestry(api, accepted.repository_sha, repositorySha);
               resolved = await release.resolveCurrent(api, { sha: accepted.repository_sha }, before);
               if (!resolved.ready || resolved.repository_sha !== accepted.repository_sha ||
                   resolved.application_sha !== accepted.application_sha || resolved.kind !== accepted.kind) {
                 throw Error('installation_not_accepted');
               }
-            } else if (accepted.phase === 'pending_closure' && accepted.kind === 'installed' &&
-                       accepted.repository_sha === repositorySha && accepted.application_sha === repositorySha) {
-              // Successful exact-source install and verification permit observation.
-              // Its immutable result is never eligible for a writer packet.
+            } else if (pendingCurrentInstall) {
+              // The verified installation may be observed, with no write admission.
               await release.authenticatePublication(api, before);
               await release.requireOps(api, repositorySha);
               observationOnly = true;

@@ -2,13 +2,40 @@
   "schema": 1,
   "pairs": [
     {
-      "hotel_id": 28512,
-      "source_mid": "353",
-      "source_publication_id": 801,
-      "target_mid": "1461",
-      "target_published_unixtime": 1772958185,
-      "target_caption_sha256": "66a5fc4da0a62aca4d71b6561be0df7dd08bb6cde68f7135a5d3715165f781c9",
-      "target_photo_marker_sha256": "2d1d2e329678856de4f3f231d27cb2376bc1ad44042148a7a8be117d8515c3cf"
+      "hotel_id": 237,
+      "source_mid": "46",
+      "source_publication_id": 172,
+      "target_mid": "1021",
+      "target_published_unixtime": 1740309135,
+      "target_caption_sha256": "ad871229bb400050b574a369e699762515ed56930a99874d73cedfefdd33ccb6",
+      "target_photo_marker_sha256": "4b47bdb4e865de8373ac9ef3d12dc067ed5facb37d76e4b4bb29d2e877018e8d"
+    },
+    {
+      "hotel_id": 28448,
+      "source_mid": "370",
+      "source_publication_id": 838,
+      "target_mid": "1434",
+      "target_published_unixtime": 1771836365,
+      "target_caption_sha256": "70e25d3c6af4da1fe1f6db22bc20d8efa30c4eb7168f0d6f9c197825406752b4",
+      "target_photo_marker_sha256": "b71a5c3b35cd5f948548fe6756fc08483c173a8af146f64966746b1ce5102c8a"
+    },
+    {
+      "hotel_id": 88750,
+      "source_mid": "356",
+      "source_publication_id": 804,
+      "target_mid": "926",
+      "target_published_unixtime": 1731326341,
+      "target_caption_sha256": "2ff559858699969a8458d9c02c17f3f417afc572ef53352530f2ecfaddb0ab55",
+      "target_photo_marker_sha256": "7d54c206c0225875a088ed20140c1a611f7be0e81bf1da49cc77690974e8d58e"
+    },
+    {
+      "hotel_id": 1649,
+      "source_mid": "369",
+      "source_publication_id": 837,
+      "target_mid": "882",
+      "target_published_unixtime": 1727781971,
+      "target_caption_sha256": "d87d4989a9ae7e5209624e2de7685a07319065fe5f5044cce33fe92af36ac7be",
+      "target_photo_marker_sha256": "553476716a39be1a2feb200ec8bfc69a27f9238bc731599f2c10a79866f02a14"
     },
     {
       "hotel_id": 1015,
@@ -18,33 +45,6 @@
       "target_published_unixtime": 1777464872,
       "target_caption_sha256": "ab009723687aeeaf703f90c21aa8bd2bd0a8dc71b10d0654b12b671e165e54fa",
       "target_photo_marker_sha256": "942a9f597fd2eb75b4a084022c8ba446716f3b3d8d7778b139e465e0542e3923"
-    },
-    {
-      "hotel_id": 1716,
-      "source_mid": "371",
-      "source_publication_id": 839,
-      "target_mid": "1250",
-      "target_published_unixtime": 1762244218,
-      "target_caption_sha256": "3fab4e288b8d26966435c214406d3619dc9b7fdf0a794f41f2650d817430bfe4",
-      "target_photo_marker_sha256": "4d73af5c0ca67f695963b751a78ffdebb2e6a93db520a365482516f3bb95d4eb"
-    },
-    {
-      "hotel_id": 1026,
-      "source_mid": "263",
-      "source_publication_id": 624,
-      "target_mid": "676",
-      "target_published_unixtime": 1718182308,
-      "target_caption_sha256": "72e317e5c56cf5a16ae7eec9abe857f780938604666c83cd7e3a4db55a9e4b96",
-      "target_photo_marker_sha256": "1f5a907714bd4c2ef50c06ba4d9880e412646b14b7818b5f50d9c52180e2af9d"
-    },
-    {
-      "hotel_id": 55828,
-      "source_mid": "268",
-      "source_publication_id": 629,
-      "target_mid": "1121",
-      "target_published_unixtime": 1749715193,
-      "target_caption_sha256": "8491ce5398653b746c8dc1cf1cce8956ba53e9d7581efddb94f1ea37f0005307",
-      "target_photo_marker_sha256": "aa2f379998a9feb6bb3affca69e4a27e9602f0a372690df9eda269aab90629fa"
     }
   ]
 }
