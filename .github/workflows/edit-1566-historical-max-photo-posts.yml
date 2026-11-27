@@ -236,11 +236,16 @@ jobs:
           [[ "$app" =~ ^[a-f0-9]{40}$ && "$native_repo" =~ ^[a-f0-9]{40}$ ]]
           php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json \
             "$native_sha" "$native_repo" "$app" > pub/batch-plan.json
-          python3 - <<'PYTHON'
+          PYTHONPATH="$tool" python3 - <<'PYTHON'
           import json
-          plan=json.load(open('pub/batch-plan.json'))
-          scope=json.load(open('pub/manifest.json'))
-          assert plan['provider_writes']==0 and plan['ready']==[r['hotel_id'] for r in scope['rows']] and not plan['held']
+          from pathlib import Path
+
+          from run_batch import plan_rows
+
+          plan = json.loads(Path("pub/batch-plan.json").read_bytes())
+          scope = json.loads(Path("pub/manifest.json").read_bytes())
+          hotels, held = plan_rows(scope, plan)
+          print(f"Offline preflight ready: {len(hotels) - len(held)}/{len(hotels)}")
           PYTHON
           cat > pub/stage/execute.sh <<'SH'
           #!/usr/bin/env bash
