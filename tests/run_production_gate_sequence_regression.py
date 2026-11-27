@@ -953,8 +953,8 @@ def monitor_release_health_cases(root, source):
             remote = args[-1]
             check(args[-2] == 'fixture@fixture.example'
                   and 'test "$(git rev-parse HEAD)" = ' + repr(DEPLOY_SHA) in remote
-                  and remote.endswith('timeout 15s php tools/modeled_conversion_monitor.php availability'),
-                  'release monitor: server command pins the installed source and only reads availability')
+                  and remote.endswith('timeout 15s php tools/modeled_conversion_monitor.php release-availability'),
+                  'release monitor: server command pins the installed source and reads technical availability only')
 
 
 def monitor_schedule_cases(root, sources):
