@@ -9,6 +9,8 @@ function manager2StyleReleaseChecks(string $repository): void
     if (!mkdir($temporary, 0700)) throw new RuntimeException('cannot_create_style_fixture');
     $app = $temporary.'/app';
     $releaseRoot = Manager2WorkspaceStyle::releaseRoot($app);
+    $server = null;
+    $serverPipes = [];
     try {
         foreach (Manager2WorkspaceStyle::CONTRACT_FILES as $file) {
             $target = $app.'/'.$file;
@@ -16,6 +18,21 @@ function manager2StyleReleaseChecks(string $repository): void
             if (!copy($repository.'/'.$file, $target)) throw new RuntimeException('cannot_copy_style_fixture');
         }
         mkdir(dirname($releaseRoot).'/hotel-catalogue-releases', 0700, true);
+        $server = proc_open([PHP_BINARY, '-S', '127.0.0.1:0', '-t', $app],
+            [['file', '/dev/null', 'r'], ['file', '/dev/null', 'w'], ['pipe', 'w']], $serverPipes);
+        if (!is_resource($server)) throw new RuntimeException('cannot_start_style_http_fixture');
+        stream_set_timeout($serverPipes[2], 5);
+        $startup = (string)fgets($serverPipes[2]);
+        if (preg_match('~\(http://127\.0\.0\.1:([1-9][0-9]*)\) started~', $startup, $address) !== 1) {
+            throw new RuntimeException('cannot_read_style_http_fixture_port');
+        }
+        $http = static function (string $path) use ($address): array {
+            $context = stream_context_create(['http' => ['ignore_errors' => true, 'timeout' => 5]]);
+            $body = file_get_contents('http://127.0.0.1:'.$address[1].$path, false, $context);
+            $headers = array_map('strtolower', $http_response_header ?? []);
+            $status = explode(' ', $headers[0] ?? '')[1] ?? '';
+            return [$body, $headers, $status];
+        };
         $run = static function (array $command, int $expect = 0): array {
             $process = proc_open($command, [['file','/dev/null','r'],['pipe','w'],['pipe','w']], $pipes);
             if (!is_resource($process)) throw new RuntimeException('cannot_run_style_fixture');
@@ -34,19 +51,19 @@ function manager2StyleReleaseChecks(string $repository): void
         $git([...$commit, 'baseline']);
         $application = $git(['rev-parse','HEAD']);
         $style = file_get_contents($app.'/'.Manager2WorkspaceStyle::BUNDLED);
+        if (!is_string($style)) throw new RuntimeException('cannot_read_bundled_style_fixture');
         $candidate = $temporary.'/approved.css';
-        $bytes = $style."\n/* fixture only */\n";
-        file_put_contents($candidate, $bytes);
-        $hash = hash('sha256', $bytes);
+        file_put_contents($candidate, $style);
+        $hash = hash('sha256', $style);
         $cli = ['node', $repository.'/tools/manager2_style_release.js'];
         $apply = [...$cli,'activate',$app,$application,'bundled',$candidate,$hash,'manager2-first-style'];
         $rollback = [...$cli,'rollback',$app,$application,'manager2-first-style','manager2-style-rollback'];
         $receipt = static fn(array $command): array => json_decode($run($command)[0], true, 32, JSON_THROW_ON_ERROR);
-        $asset = static fn(string $version): string => $run([PHP_BINARY, '-r',
-            '$_GET["v"]=$argv[1]; require $argv[2];', $version, $app.'/manager2/workspace-style.php'])[0];
         $bundledLink = Manager2WorkspaceStyle::href($app);
+        [$bundledBody, , $bundledStatus] = $http($bundledLink);
         checkManager2('only the bundled stylesheet is selected before activation',
-            str_starts_with($bundledLink, '/manager2/assets/manager2.css?v='));
+            str_starts_with($bundledLink, '/manager2/assets/manager2.css?v=')
+            && $bundledStatus === '200' && $bundledBody === $style);
         $badHash = $apply;
         $badHash[7] = str_repeat('0',64);
         checkManager2('wrong approved CSS digest refuses before changing the selection',
@@ -54,10 +71,18 @@ function manager2StyleReleaseChecks(string $repository): void
         $activated = $receipt($apply);
         $version = $activated['to'];
         $pointer = $releaseRoot.'/current';
-        checkManager2('the selected CSS serves exact approved bytes without changing the shell or the workspace JS',
+        $assetUrl = '/manager2/workspace-style.php?v='.$version;
+        [$assetBody, $assetHeaders, $assetStatus] = $http($assetUrl);
+        [$rejectedBody, $rejectedHeaders, $rejectedStatus] = $http('/manager2/workspace-style.php?v=../manager/index.php');
+        checkManager2('the selected CSS serves exact approved bytes over HTTP without changing application HEAD',
             $activated['state'] === 'activated' && $activated['from'] === 'bundled'
-            && Manager2WorkspaceStyle::href($app) === '/manager2/workspace-style.php?v='.$version
-            && $asset($version) === $bytes && $asset('../manager/index.php') === ''
+            && Manager2WorkspaceStyle::href($app) === $assetUrl
+            && $assetBody === $bundledBody && $assetStatus === '200'
+            && in_array('content-type: text/css; charset=utf-8', $assetHeaders, true)
+            && in_array('cache-control: public, max-age=31536000, immutable', $assetHeaders, true)
+            && in_array('x-content-type-options: nosniff', $assetHeaders, true)
+            && $rejectedBody === '' && $rejectedStatus === '404'
+            && in_array('cache-control: no-store', $rejectedHeaders, true)
             && $git(['rev-parse','HEAD']) === $application && $git(['status','--porcelain']) === '');
         $record = $releaseRoot.'/operations/manager2-first-style.json';
         $pending = $releaseRoot.'/pending.json';
@@ -79,9 +104,15 @@ function manager2StyleReleaseChecks(string $repository): void
         $rolledBack = $receipt($rollback);
         checkManager2('style rollback restores the original URL, preserves old immutable reads and keeps core files',
             $rolledBack['state'] === 'rolled_back' && $receipt($rollback) === $rolledBack
-            && Manager2WorkspaceStyle::href($app) === $bundledLink && $asset($version) === $bytes
+            && Manager2WorkspaceStyle::href($app) === $bundledLink
+            && $http($bundledLink)[0] === $style && $http($assetUrl)[0] === $style
             && $git(['rev-parse','HEAD']) === $application && $git(['status','--porcelain']) === '');
     } finally {
+        if (is_resource($server)) {
+            proc_terminate($server);
+            fclose($serverPipes[2]);
+            proc_close($server);
+        }
         $files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($temporary, FilesystemIterator::SKIP_DOTS),
             RecursiveIteratorIterator::CHILD_FIRST);
         foreach ($files as $entry) {
