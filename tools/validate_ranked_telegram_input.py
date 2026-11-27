@@ -31,7 +31,7 @@ def document(item, limit, root=ROOT):
     return json.loads(raw), raw
 
 
-def registry(zip_path, index):
+def registry(zip_path, index, *, allow_read_only_snapshot=False):
     proof = index["native_preflight"]
     require(zip_path.stat().st_size == index["native_zip_bytes"] <= 4_000_000, "native ZIP size changed")
     require(sha(zip_path.read_bytes()) == proof["artifact_zip_sha256"], "native ZIP digest changed")
@@ -40,13 +40,17 @@ def registry(zip_path, index):
         raw = z.read("registry.json")
     require(sha(raw) == proof["registry_sha256"], "native registry bytes changed")
     d = json.loads(raw)
+    snapshot = (allow_read_only_snapshot
+                and d.get("registry_read_contract") == "read_only_snapshot_v1"
+                and d.get("price_editor_shared_read_lease") is False
+                and d.get("write_admission") is False)
     require(d["schema"] == 1 and d["issue"] == 1566 and d["ok"] is True
             and d["operation"] in {"hotel_archive_telegram_46_registry", "hotel_archive_telegram_ranked_registry"}
             and d["native_run_id"] == proof["run_id"] and d["native_run_attempt"] == proof["run_attempt"] == 1
             and d["repository_sha"] == proof["repository_sha"] and d["application_sha"] == proof["application_sha"]
             and d["checkpoint_sha256"] == proof["checkpoint_sha256"]
             and all(d[k] == 0 for k in ("production_writes", "provider_writes", "bot_starts"))
-            and d["price_editor_shared_read_lease"] is True, "native read identity changed")
+            and (d.get("price_editor_shared_read_lease") is True or snapshot), "native read identity changed")
     require(d["target_channel"]["chat_id"] == "-1001845835645" and d["target_channel"]["url"] == "https://t.me/anytour"
             and d["native_channel_rights"]["state"] == "ready" and d["native_channel_rights"]["receipt"]["write_attempts"] == 0
             and d["native_public_channel_binding"] == {"anytour": True, "any_toour": True}, "channel rights unverified")
@@ -100,13 +104,13 @@ MAX_CHUNK_ROWS = 40
 MAX_INSPECTION_ROWS = 100
 
 
-def checked_index(index, archive, root, *, inspection=False):
+def checked_index(index, archive, root, *, inspection=False, allow_read_only_snapshot=False):
     plans = index["plans"]
     if inspection:
         require(index["schema"] == 1 and 0 < len(plans) <= MAX_INSPECTION_ROWS, "invalid inspection index")
     else:
         require(index["schema"] == 1 and len(plans) == 1, "expected one independently executable chunk")
-    by_hotel, channel = registry(archive, index)
+    by_hotel, channel = registry(archive, index, allow_read_only_snapshot=allow_read_only_snapshot)
     identities = {key: set() for key in ROW_IDENTITY}
     operations = set()
     chunks = []
@@ -188,13 +192,14 @@ def verify_git_scope(repo, application_sha, data_sha, index_path, index_blob, in
         require(changes[path] == ("000000", "0" * 40, blob, "A"), "Git data blob changed: " + path)
 
 
-def inspect_input(index_sha, archive, root, index_path, git_source=None):
+def inspect_input(index_sha, archive, root, index_path, git_source=None, *, allow_read_only_snapshot=False):
     """Check unapproved input bytes; this result never grants execution permission."""
     require(re.fullmatch(r"[a-f0-9]{64}", index_sha) is not None, "invalid index digest")
     require(root.is_absolute() and root.resolve(strict=True) == root and root.is_dir(),
             "invalid inspection root")
     index, raw = document({"path": index_path, "sha256": index_sha}, 64000, root)
-    chunks = checked_index(index, archive, root, inspection=True)
+    chunks = checked_index(index, archive, root, inspection=True,
+                           allow_read_only_snapshot=allow_read_only_snapshot)
     result = {"evidence_only": True, "approval_verified": False, "write_admission": False,
               "index_sha256": index_sha, "chunks": chunks}
     if git_source is not None:
@@ -214,6 +219,8 @@ if __name__ == "__main__":
     parser.add_argument("--git-root", type=Path, help="Git repository for the read-only scope comparison")
     parser.add_argument("--application-sha", help="Exact baseline application commit")
     parser.add_argument("--data-source-sha", help="Exact candidate data commit")
+    parser.add_argument("--allow-read-only-snapshot", action="store_true",
+                        help="Inspect an authenticated detached reader snapshot; never grants APPLY")
     args = parser.parse_args()
     if (args.inspect_root is None) != (args.inspect_index is None):
         parser.error("--inspect-root and --inspect-index must be supplied together")
@@ -223,9 +230,12 @@ if __name__ == "__main__":
             parser.error("Git scope comparison requires all three Git options and inspection mode")
     else:
         git_source = None
+    if args.allow_read_only_snapshot and git_source is None:
+        parser.error("Snapshot inspection requires the exact Git scope")
     result = (approved_input(args.approved_index_sha256, args.original_zip)
               if args.inspect_root is None else
               inspect_input(args.approved_index_sha256, args.original_zip,
-                            args.inspect_root, args.inspect_index, git_source))
+                            args.inspect_root, args.inspect_index, git_source,
+                            allow_read_only_snapshot=args.allow_read_only_snapshot))
     print(json.dumps(result, ensure_ascii=False))
 
