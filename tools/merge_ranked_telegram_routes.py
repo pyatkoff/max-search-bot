@@ -25,10 +25,11 @@ LATE_READER = ".github/workflows/read-1566-telegram-46-20261123.yml"
 LATE_BRANCH = "ops/1566-telegram-46-native-read-20261123"
 OWNER_ID = 226193297
 
-# Original late receipts reviewed in ROUTE #1699, comment 7191354146.
-# Pin these two native/readback chains. A registry push is not a general observer.
+# Original late receipts reviewed in ROUTE #1699 and #1566.
+# A registry push is not a general observer.
 LATE_PUBLIC_RECEIPTS = {
     "45799877337": {
+        "observed_on": "2026-11-26",
         "head": "3d21cbcf0f04709a2b83898337b7718a7680a48c",
         "job": 139840014674,
         "native": "45799514607",
@@ -38,6 +39,7 @@ LATE_PUBLIC_RECEIPTS = {
         "digest": "sha256:8b0d8d0e8520bad522b5d70c4ab2f7f890b44effbf075455566ed763e976b46d",
     },
     "45802597406": {
+        "observed_on": "2026-11-26",
         "head": "e0fb2920ef2105dcffc0a56b8f45367626d1bd25",
         "job": 139849399157,
         "native": "45801952244",
@@ -46,6 +48,46 @@ LATE_PUBLIC_RECEIPTS = {
         "name": "ranked-public-readback-late-tested-45801952244",
         "digest": "sha256:761505488982489ab39bbf2641823f4fdbae98034cc5f2be30738b32306cffe6",
     },
+    "46158825964": {
+        "observed_on": "2026-11-28",
+        "head": "1a36cdfca932b9eb9f5fb170b69a712c538e7972",
+        "job": 141021331710,
+        "native": "45691382074",
+        "early_observer": 45691472625,
+        "artifact": 15268279494,
+        "name": "ranked-public-readback-late-45691382074",
+        "digest": "sha256:dac9ec869ec95ca8ace95799e593878463b9388e1e73cde2b08c94054310c082"
+    },
+    "46158937314": {
+        "observed_on": "2026-11-28",
+        "head": "892cdccc7c04c28702e35760af8bfe86dd21f175",
+        "job": 141021669647,
+        "native": "45704784247",
+        "early_observer": 45704857389,
+        "artifact": 15268577525,
+        "name": "ranked-public-readback-late-45704784247",
+        "digest": "sha256:a1031fc52662186cbdb8d342aa6fc40ee2a583331b2fd1609c490bba2852b978"
+    },
+    "46158977680": {
+        "observed_on": "2026-11-28",
+        "head": "45952c09efa139ca37fd3ea5fc57c6e86b30477d",
+        "job": 141021796048,
+        "native": "45734639325",
+        "early_observer": 45734694299,
+        "artifact": 15268532641,
+        "name": "ranked-public-readback-late-45734639325",
+        "digest": "sha256:ae7b85aba73f6bc2540c3f5a40d91092506b94b6df363eb97dba7bc8a0030755"
+    },
+    "46159031203": {
+        "observed_on": "2026-11-28",
+        "head": "496781f9b2978308a5d08a796588f112c6db0192",
+        "job": 141021967689,
+        "native": "45744057050",
+        "early_observer": 45744144954,
+        "artifact": 15269310406,
+        "name": "ranked-public-readback-late-45744057050",
+        "digest": "sha256:b049ca8264e80ac5cd452696c026b0aefb26d22d935623958983aad2a79b1fb1"
+    }
 }
 
 
