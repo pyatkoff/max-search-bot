@@ -56,19 +56,51 @@ function manager2StyleReleaseChecks(string $repository): void
         file_put_contents($candidate, $style);
         $hash = hash('sha256', $style);
         $cli = ['node', $repository.'/tools/manager2_style_release.js'];
+        $preflight = [...$cli,'preflight-bundled',$app,$hash];
         $apply = [...$cli,'activate',$app,$application,'bundled',$candidate,$hash,'manager2-first-style'];
         $rollback = [...$cli,'rollback',$app,$application,'manager2-first-style','manager2-style-rollback'];
         $receipt = static fn(array $command): array => json_decode($run($command)[0], true, 32, JSON_THROW_ON_ERROR);
+        $guard = static fn(string $candidate, int $expected): array => $run(['bash','-c',
+            'cd "$1" || exit 1; source "$2"; deploy_hotel_catalogue_guard "$1" "$3"',
+            'guard',$app,$repository.'/tools/deploy_hotel_catalogue_guard.sh',$candidate], $expected);
         $bundledLink = Manager2WorkspaceStyle::href($app);
         [$bundledBody, , $bundledStatus] = $http($bundledLink);
         checkManager2('only the bundled stylesheet is selected before activation',
             str_starts_with($bundledLink, '/manager2/assets/manager2.css?v=')
             && $bundledStatus === '200' && $bundledBody === $style);
+        $lock = dirname($releaseRoot).'/hotel-catalogue-releases/operation.lock';
+        checkManager2('style preflight requires the existing deployment lock without creating it',
+            $run($preflight, 1)[1] === 'ENOENT' && !file_exists($lock) && !file_exists($releaseRoot));
+        $guard($application, 0);
+        $first = $receipt($preflight);
+        $git([...array_slice($commit, 0, -1), '--allow-empty', '-qm', 'unrelated application release']);
+        $next = $git(['rev-parse','HEAD']);
+        $second = $receipt($preflight);
+        checkManager2('same approved CSS can prepare against unrelated deployment without writing release state',
+            $first['contract'] === 'manager2-style-preflight-v1' && $first['application_sha'] === $application
+            && $second === array_replace($first, ['application_sha' => $next])
+            && $second['candidate_version'] === $hash.'-'.Manager2WorkspaceStyle::contractPin($app)
+            && $second['previous'] === 'bundled' && $second['css'] === $app.'/'.Manager2WorkspaceStyle::BUNDLED
+            && !file_exists($releaseRoot) && Manager2WorkspaceStyle::href($app) === $bundledLink);
+        $lockHandle = fopen($lock, 'r');
+        if ($lockHandle === false || !flock($lockHandle, LOCK_EX | LOCK_NB)) throw new RuntimeException('style_fixture_lock_failed');
+        try {
+            checkManager2('style preflight refuses during the existing exclusive writer lock',
+                $run($preflight, 1)[1] === 'catalogue_operation_busy' && !file_exists($releaseRoot));
+        } finally {
+            fclose($lockHandle);
+        }
+        checkManager2('style preflight refuses an unapproved stylesheet digest',
+            $run([...$cli,'preflight-bundled',$app,str_repeat('0',64)], 1)[1] === 'manager2_style_digest_mismatch'
+            && !file_exists($releaseRoot));
+        $git(['reset','--hard',$application]);
         $badHash = $apply;
         $badHash[7] = str_repeat('0',64);
         checkManager2('wrong approved CSS digest refuses before changing the selection',
             $run($badHash, 1)[1] === 'manager2_style_digest_mismatch' && Manager2WorkspaceStyle::href($app) === $bundledLink);
         $activated = $receipt($apply);
+        checkManager2('bundled preflight refuses once an independent version is selected',
+            $run($preflight, 1)[1] === 'catalogue_baseline_changed');
         $version = $activated['to'];
         $pointer = $releaseRoot.'/current';
         $assetUrl = '/manager2/workspace-style.php?v='.$version;
@@ -87,11 +119,10 @@ function manager2StyleReleaseChecks(string $repository): void
         $record = $releaseRoot.'/operations/manager2-first-style.json';
         $pending = $releaseRoot.'/pending.json';
         rename($record, $pending);
+        checkManager2('bundled preflight refuses an unsettled transaction',
+            $run($preflight, 1)[1] === 'catalogue_release_pending' && is_file($pending) && !file_exists($record));
         checkManager2('a lost operation response recovers the receipt without a second style switch',
             $receipt($apply) === $activated && readlink($pointer) === $releaseRoot.'/'.$version);
-        $guard = static fn(string $candidate, int $expected): array => $run(['bash','-c',
-            'cd "$1" || exit 1; source "$2"; deploy_hotel_catalogue_guard "$1" "$3"',
-            'guard',$app,$repository.'/tools/deploy_hotel_catalogue_guard.sh',$candidate], $expected);
         checkManager2('the installation lock accepts an unchanged Manager2 style contract',
             str_contains($guard($application, 0)[0], 'manager2_style_guard=compatible'));
         file_put_contents($app.'/manager2/workspace-chrome.php', "\n", FILE_APPEND);
