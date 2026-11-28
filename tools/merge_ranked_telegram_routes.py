@@ -21,6 +21,30 @@ from collect_ranked_route_manifests import api, OBSERVER, REPO
 from prepare_ranked_telegram_routes import ROOT, RESOLVER, materialize_ranked_data, project, require
 
 WRITER = ".github/workflows/edit-1566-ranked-46-historical-telegram.yml"
+LATE_READER = ".github/workflows/read-1566-telegram-46-20261123.yml"
+LATE_BRANCH = "ops/1566-telegram-46-native-read-20261123"
+OWNER_ID = 226193297
+
+# Original late receipts reviewed in ROUTE #1699, comment 7191354146.
+# Pin these two native/readback chains. A registry push is not a general observer.
+LATE_PUBLIC_RECEIPTS = {
+    "45799877337": {
+        "head": "3d21cbcf0f04709a2b83898337b7718a7680a48c",
+        "job": 139840014674,
+        "native": "45799514607",
+        "artifact": 15107016255,
+        "name": "ranked-public-readback-late-45799514607",
+        "digest": "sha256:8b0d8d0e8520bad522b5d70c4ab2f7f890b44effbf075455566ed763e976b46d",
+    },
+    "45802597406": {
+        "head": "e0fb2920ef2105dcffc0a56b8f45367626d1bd25",
+        "job": 139849399157,
+        "native": "45801952244",
+        "artifact": 15108431030,
+        "name": "ranked-public-readback-late-tested-45801952244",
+        "digest": "sha256:761505488982489ab39bbf2641823f4fdbae98034cc5f2be30738b32306cffe6",
+    },
+}
 
 
 def original_run(run_id, workflow, event):
@@ -57,30 +81,62 @@ def unpack(body, names, target):
             (target / member.filename).write_bytes(arc.read(member))
 
 
-def stage_original(run_id, feed, folder):
-    observer = original_run(run_id, OBSERVER, "workflow_run")
-    require(observer["head_branch"] == "main", "public observer must run from main")
+def check_observer_job(observer, job_name, steps):
+    run_id = str(observer["id"])
     jobs = api(f"actions/runs/{run_id}/attempts/1/jobs?per_page=100")
     require(jobs["total_count"] == len(jobs["jobs"]) == 1, "public job inventory invalid")
     job = jobs["jobs"][0]
     require(str(job["run_id"]) == run_id and job["run_attempt"] == 1 and job["head_sha"] == observer["head_sha"]
-            and job["name"] == "public-readback" and job["status"] == "completed", "public job attribution invalid")
-    for name, allowed in [
+            and job["name"] == job_name and job["status"] == "completed", "public job attribution invalid")
+    for name, allowed in steps:
+        found = [step["conclusion"] for step in job["steps"] if step["name"] == name]
+        require(len(found) == 1 and found[0] in allowed, "original public verification or upload missing")
+    return job
+
+
+def observe_original(run_id):
+    late = LATE_PUBLIC_RECEIPTS.get(run_id)
+    if late is not None:
+        observer = original_run(run_id, LATE_READER, "push")
+        require(observer["head_branch"] == LATE_BRANCH and observer["head_sha"] == late["head"]
+                and observer["conclusion"] == "success" and observer["actor"]["id"] == OWNER_ID
+                and observer["triggering_actor"]["id"] == OWNER_ID, "unrecognized late public observer")
+        job = check_observer_job(observer, "registry", [
+            ("Authenticate the original transfer, job and immutable artifact", ["success"]),
+            ("Read and verify published Telegram cards", ["success"]),
+            ("Preserve independent late public evidence separately", ["success"]),
+        ])
+        require(job["id"] == late["job"] and job["conclusion"] == "success", "unrecognized late public job")
+        public, body = artifact(observer, re.escape(late["name"]))
+        require(public["id"] == late["artifact"] and public["digest"] == late["digest"],
+                "unrecognized late public archive")
+        return observer, public, body, late["native"]
+
+    observer = original_run(run_id, OBSERVER, "workflow_run")
+    require(observer["head_branch"] == "main", "public observer must run from main")
+    check_observer_job(observer, "public-readback", [
         ("Authenticate the original transfer, job and immutable artifact", ["success"]),
         ("Read and verify published Telegram cards", ["success", "failure"]),
         ("Save verified destinations for the existing route publisher", ["success"]),
-    ]:
-        found = [step["conclusion"] for step in job["steps"] if step["name"] == name]
-        require(len(found) == 1 and found[0] in allowed, "original public verification or upload missing")
-    pub, body = artifact(observer, r"ranked-public-readback-[1-9][0-9]{0,19}")
+    ])
+    public, body = artifact(observer, r"ranked-public-readback-[1-9][0-9]{0,19}")
+    return observer, public, body, None
+
+
+def stage_original(run_id, feed, folder):
+    observer, pub, body, expected_native_id = observe_original(run_id)
     public_dir = folder / "public"
     unpack(body, ["ranked-public-readback.json"], public_dir)
     report_file = public_dir / "ranked-public-readback.json"
     report = json.loads(report_file.read_bytes())
-    require(pub["name"] == "ranked-public-readback-" + report["run_id"], "native/public run mismatch")
+    if expected_native_id is None:
+        require(pub["name"] == "ranked-public-readback-" + report["run_id"], "native/public run mismatch")
+    else:
+        require(report["run_id"] == expected_native_id and report["read_only"] is True
+                and report["provider_write_attempts"] == 0, "late native/public run mismatch")
     native = original_run(report["run_id"], WRITER, "push")
-    require(native["head_sha"] == report["repository_sha"] and native["actor"]["id"] == 226193297
-            and native["triggering_actor"]["id"] == 226193297, "original native producer mismatch")
+    require(native["head_sha"] == report["repository_sha"] and native["actor"]["id"] == OWNER_ID
+            and native["triggering_actor"]["id"] == OWNER_ID, "original native producer mismatch")
     receipt, archive = artifact(native, "issue-1566-hotel-ranked-46-transfer")
     require(str(receipt["id"]) == report["artifact_id"] and receipt["digest"] == "sha256:" + report["artifact_sha256"],
             "native archive differs from independently observed archive")
