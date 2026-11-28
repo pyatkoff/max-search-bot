@@ -62,6 +62,14 @@ Manager Workspace V2 is the forward manager surface. Keep responsibilities separ
 
 See `docs/ARCHITECTURE.md` for the detailed dependency contract.
 
+### Reviewing Manager2 module boundaries
+
+Apply these checks when reviewing new or changed Manager2 module boundaries.
+
+- When changing a module boundary, trace the producer and consumer at the call sites. In Manager2, include classic scripts connected through `window` or `globalThis`. Check new or moved dependencies in both directions.
+- Keep state transitions with the canonical owner. Expose the operations callers need and keep representation details inside the owner. For a confirmed cycle, move coordination to the nearest common caller when that gives the features a one-way dependency.
+- Verify a repeated operation or a coupling problem with a focused behavior check before changing it. Use file and directory size to choose where to inspect. Keep the existing feature entry points and required CI.
+
 ## Handoff policy
 
 Product policy is fixed unless explicitly changed by the user:
