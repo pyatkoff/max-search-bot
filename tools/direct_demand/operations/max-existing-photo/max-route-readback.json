@@ -1,5 +1,13 @@
 {
-  "prepare_only": true,
+  "targets": [
+    {
+      "offer_id": "max_466",
+      "target_mid": "mid.ffffc1752b045fed01a0aa565299012a"
+    }
+  ],
+  "run_id": 46121228843,
+  "job_id": 140905975182,
+  "observed_utc": "2026-11-28T07:26:43+00:00",
   "native_source": {
     "run_id": 46121104742,
     "job_id": 140905582430,
@@ -9,5 +17,12 @@
     "application_sha": "9322dcda19f397b83060a8995d9de2e26292b935",
     "zip_sha256": "1cb113feb3e165e7b58b7e919348f3bc14f08edb6d418c3bd2acae5c66e61435",
     "json_sha256": "52bc5c815bbbbad93c20e5794cc57c81fcd40663e577e5c8f36e0685381cc63d"
+  },
+  "preparation_source": {
+    "run_id": 46121169279,
+    "job_id": 140905782151,
+    "artifact_id": 15253472427,
+    "workflow_head": "1229ecedc24aced41fecf7c39c00a2a277967eaa",
+    "zip_sha256": "f93e9f410c5e8f9b146e2315d16766608d7ee61698bf7eae23a341e3c8516b1a"
   }
 }
