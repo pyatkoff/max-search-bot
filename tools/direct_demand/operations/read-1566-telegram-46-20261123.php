@@ -217,6 +217,123 @@ function corroborateTargetKeyboard(array $embedded, array $archive): array
     return $embedded;
 }
 
+/** Classify the exact historical href without dereferencing it or exporting unrecognized values. */
+function legacyPublicDestinationRead(string $href): array
+{
+    if ($href === 'https://t.me/anyru_bot?start=tg_anytour_msk') {
+        return ['kind'=>'channel_generic_bot_cta', 'public_destination'=>$href];
+    }
+    if (preg_match('~\Ahttps://anytour\.online/poisk-turov-tg/[a-z0-9]{10}/\z~D',$href)===1) {
+        return ['kind'=>'historical_public_tour_price_page', 'public_destination'=>$href];
+    }
+    return ['kind'=>'unclassified', 'public_destination'=>null];
+}
+
+/** Inspect only the pinned caption link and old inline button in the exact public post. */
+function legacyTargetPublicLinksRead(string $body,string $message,array $proof): array
+{
+    requireRead(strlen($body)<=1_000_000,'legacy_public_body_unbounded');
+    $dom=new DOMDocument('1.0','UTF-8');$prior=libxml_use_internal_errors(true);
+    try{$loaded=$dom->loadHTML($body,LIBXML_NONET);}finally{libxml_clear_errors();libxml_use_internal_errors($prior);}
+    requireRead($loaded&&preg_match('/\A[1-9][0-9]{0,9}\z/D',$message)===1,'legacy_public_identity_changed');
+    $xp=new DOMXPath($dom);$nodes=$xp->query('//*[@data-post="anytour/'.$message.'"]');
+    requireRead($nodes&&$nodes->length===1,'legacy_public_identity_changed');
+    $node=$nodes->item(0);
+    $cls=static fn(string $name):string=>'contains(concat(" ",normalize-space(@class)," ")," '.$name.' ")';
+    $paths=['price'=>'.//*['.$cls('tgme_widget_message_text').']//a[@href]',
+        'keyboard'=>'.//a[@href and '.$cls('tgme_widget_message_inline_button').']'];
+    $out=[];
+    foreach($paths as $role=>$path){
+        $links=$xp->query($path,$node);
+        requireRead($links&&$links->length<=40,'legacy_public_links_unbounded');
+        $matches=[];
+        foreach($links as $link){
+            $href=$link->getAttribute('href');$hash=hash('sha256',$href);
+            if(hash_equals($proof[$role.'_href_sha256'],$hash))$matches[]=['href_sha256'=>$hash]+legacyPublicDestinationRead($href);
+        }
+        requireRead(count($matches)<=1,'legacy_public_link_ambiguous');
+        $out[$role]=['observed_links'=>$links->length,'matched'=>$matches[0]??null];
+    }
+    return $out;
+}
+
+function legacyTargetPublicEvidenceRead(array $embed,array $archive,array $pinned): array
+{
+    $target=corroborateTargetKeyboard($embed,$archive);
+    requireRead($target['single_photo']===true&&$archive['single_photo']===true
+        &&$target['published_unixtime']===$pinned['target_date']
+        &&$target['caption_sha256']===$pinned['target_caption']
+        &&$target['photo_marker_sha256']===$pinned['target_photo']
+        &&$archive['photo_marker_sha256']===$pinned['target_photo'],'legacy_public_preimage_changed');
+    $e=$embed['legacy_links'];$a=$archive['legacy_links'];
+    requireRead($a['price']['matched']!==null&&$a['price']['matched']===$e['price']['matched']
+        &&$a['keyboard']['observed_links']===1&&$a['keyboard']['matched']!==null
+        &&($e['keyboard']['observed_links']===0||($e['keyboard']['observed_links']===1
+            &&$e['keyboard']['matched']===$a['keyboard']['matched'])),'legacy_public_links_changed');
+    return ['ok'=>true,'published_unixtime'=>$target['published_unixtime'],
+        'caption_sha256'=>$target['caption_sha256'],'photo_marker_sha256'=>$target['photo_marker_sha256'],
+        'embed_html_sha256'=>$embed['html_sha256'],'archive_html_sha256'=>$archive['html_sha256'],
+        'price'=>$a['price']['matched'],'keyboard'=>$a['keyboard']['matched']];
+}
+
+function legacyTargetPartialViewsRead(array $views): array
+{
+    $safe=array_flip(['published_unixtime','caption_sha256','photo_marker_sha256','html_sha256','legacy_links']);
+    return array_map(static fn(array $view):array=>array_intersect_key($view,$safe),$views);
+}
+
+function legacyRetryAfterSecondsRead(mixed $value): ?int
+{
+    if (is_string($value)&&preg_match('/\A[0-9]{1,8}\z/D',$value)===1) $value=(int)$value;
+    return is_int($value)&&$value>=0&&$value<=99_999_999?$value:null;
+}
+
+function legacyRetryAfterRead(?array $observation): ?array
+{
+    if ($observation===null) return null;
+    $seconds=legacyRetryAfterSecondsRead($observation['retry_after_seconds']??null);
+    $until=$observation['resume_not_before_unix']??null;
+    return ['retry_after_seconds'=>$seconds,'resume_not_before_unix'=>$seconds!==null&&is_int($until)&&$until>0?$until:null];
+}
+
+function legacyTargetPinRead(array $response): array
+{
+    $chat=$response['data']['result']??null;
+    if (($response['http']??null)!==200||!empty($response['transport_error'])
+        ||($response['data']['ok']??null)!==true||!is_array($chat)||($chat['type']??null)!=='channel'
+        ||(string)($chat['id']??'')!=='-1001845835645'||strtolower((string)($chat['username']??''))!=='anytour') {
+        return ['observed'=>false,'message_id'=>null];
+    }
+    if (!array_key_exists('pinned_message',$chat)) return ['observed'=>true,'message_id'=>null];
+    $id=$chat['pinned_message']['message_id']??null;
+    $valid=(is_int($id)||is_string($id))&&preg_match('/\A[1-9][0-9]{0,9}\z/D',(string)$id)===1;
+    return ['observed'=>$valid,'message_id'=>$valid?(string)$id:null];
+}
+
+function legacyTelegramFeedReferenceRead(?string $url): array
+{
+    if ($url===null) return ['kind'=>'absent','url'=>null,'url_sha256'=>null];
+    if (preg_match('~\Ahttps://t\.me/(?:anytour|any_toour)/[1-9][0-9]{0,9}\z~D',$url)===1) {
+        return ['kind'=>'telegram_post','url'=>$url,'url_sha256'=>null];
+    }
+    return ['kind'=>'other_url_redacted','url'=>null,'url_sha256'=>hash('sha256',$url)];
+}
+
+function legacyTargetMissingEvidenceRead(array $source,array $target,?bool $pin,bool $binding,
+    ?string $rights,array $occupancy): array
+{
+    $required=['source_binding'=>$binding,'source_native'=>$source['native_matches_expected']??false,
+        'source_public'=>$source['public_matches_native']??false,'target_public'=>($target['ok']??false)===true,
+        'target_link_classification'=>is_string($target['price']['public_destination']??null)
+            &&is_string($target['keyboard']['public_destination']??null),
+        'target_pin'=>is_bool($pin),'channel_rights'=>$rights==='ready',
+        'native_occupancy'=>($occupancy['observed']??false)===true
+            &&($occupancy['target_native_projection_reason']??null)===null,
+        'target_lease'=>is_bool($occupancy['target_lease_observed_free']??null),
+        'target_journal'=>in_array($occupancy['media_journal_state']??null,['absent','present_do_not_replay'],true)];
+    return array_keys(array_filter($required,static fn(bool $confirmed):bool=>!$confirmed));
+}
+
 
 const INSTALLED_BLOBS=[
  '.github/workflows/edit-1566-ranked-46-historical-telegram.yml'=>'bf59d830df21fe9bc1cc4ba46d5ea01d14a4c972',
@@ -596,6 +713,36 @@ function telegramPreparedPairTargetRead(PDO $pdo,ChannelPostRegistryService $reg
     }
     return ['target_native_ids'=>$targets,'hotel_duplicate_publication_ids'=>$duplicates,
         'target_native'=>$native,'target_native_projection_reason'=>$projectionReason];
+}
+
+function legacyTargetOccupancyRead(PDO $pdo,ChannelPostRegistryService $registry,int $hotel,array $pair,
+    array $feed,array $routes,?string $observedBotId): array
+{
+    $observed=telegramPreparedPairTargetRead($pdo,$registry,$hotel,$pair);
+    $target=$pair['target'];$targetUrl='https://t.me/anytour/'.$target;
+    $journal=telegramMediaOperationRead($target);
+    $q=$pdo->prepare('SELECT IS_FREE_LOCK(?)');
+    $q->execute(['anytour-issue1566-historical-tg-media-'.$target.'-v1']);
+    $free=$q->fetchColumn();$q->closeCursor();
+    $native=$observed['target_native'];
+    $nativeMessage=$native['telegram_message']??null;
+    $senderBotId=$nativeMessage['from_bot_id']??null;
+    return ['observed'=>true,'target_native_ids'=>array_map('intval',$observed['target_native_ids']),
+        'hotel_duplicate_publication_ids'=>array_map('intval',$observed['hotel_duplicate_publication_ids']),
+        'target_native_state'=>$native['state']??null,'target_native_version_id'=>$native['version_id']??null,
+        'target_native_claim_held_or_unknown'=>$native['native_claim_held_or_unknown']??null,
+        'target_native_projection_reason'=>$observed['target_native_projection_reason'],
+        'target_native_message_state'=>$nativeMessage['state']??null,
+        'same_bot_sender_observed'=>$senderBotId!==null&&$observedBotId!==null?$senderBotId===$observedBotId:null,
+        'per_message_editability_confirmed'=>false,
+        'media_operation_held_or_unknown'=>telegramMediaOperationHeldRead($journal),
+        'media_journal_state'=>$journal['journal']['state']??null,
+        'target_lease_observed_free'=>$free!==false&&$free!==null?(int)$free===1:null,
+        'raw_feed_offers_to_target'=>array_keys($feed,$targetUrl,true),
+        'configured_route_offers_to_target'=>array_keys($routes,$targetUrl,true),
+        'own_offer'=>['id'=>'tg_'.$hotel,'feed'=>legacyTelegramFeedReferenceRead($feed['tg_'.$hotel]??null),
+            'configured_target'=>legacyTelegramFeedReferenceRead($routes['tg_'.$hotel]??null)],
+        'external_campaign_attribution_observed'=>false];
 }
 function telegramPreparedPairSourceRead(PDO $pdo,ChannelPostRegistryService $registry,int $hotel,array $pair): array
 {
