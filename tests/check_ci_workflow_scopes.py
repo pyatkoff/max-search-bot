@@ -165,6 +165,15 @@ check('["workspace-style", "hotel-catalogue-data", "telegram-public-observer"].i
 check('node tests/check_ci_selection_style_scope.js' in policy['run'], 'style selector selftests are mandatory')
 check("needs.change-scope.outputs.mode == 'full'" in visual['browser-tests']['if'], 'full browser assembler must not run after OAuth-only skips')
 check(set(visual['full-screenshots']['needs']) == {'browser-tests','firefox-history','firefox-notifications'}, 'full screenshot proof preserves all engines and Firefox')
+for job_name, pattern, destination in [
+    ('browser-tests', 'workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-[0-3]',
+     'parts/${{ matrix.browser }}'),
+    ('full-screenshots', 'workspace-v2-visual-${{ github.sha }}-{chromium,webkit}', 'evidence'),
+]:
+    downloads = [step['with'] for step in visual[job_name]['steps']
+                 if step.get('uses') == 'actions/download-artifact@v4']
+    check(downloads == [{'pattern': pattern, 'path': destination, 'merge-multiple': False}],
+          f'{job_name} downloads exact current-run archives once into separate named directories')
 check(visual['oauth-browser']['strategy']['matrix']['browser'] == ['chromium','webkit'], 'OAuth requires both browser engines')
 oauth_steps = '\n'.join(s.get('run','') for s in visual['oauth-browser']['steps'])
 check("--grep 'OAuth native (allow|deny|legacy policy control)'" in oauth_steps, 'OAuth scope must execute only native consent tests' )
