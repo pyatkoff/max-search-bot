@@ -17,7 +17,7 @@ import yaml
 GROUPS = {
     'replies': ['tests/run_manager_prepared_reply_regression.php'],
     'migrations': [
-        'tests/mysql/manager-preparation-migrations.php',
+        'tests/mysql/manager-preparation-migrations.php --skip-modeled-stream',
         'tests/mysql/manager-reply-queue.php',
         'tests/mysql/virtual-reply-sampling.php',
         'tests/mysql/virtual-reply-controls.php',
@@ -27,6 +27,7 @@ GROUPS = {
     'queues': [
         'tests/mysql/hotel-work-queue.php',
         'tests/mysql/hotel-work-events.php',
+        'tests/mysql/modeled-conversion-stream.php',
     ],
     'regional-access': [
         'tests/mysql/manager-regional-routing.php --required-native',
@@ -106,8 +107,8 @@ def verify(document):
     expected.extend(['*) exit 2 ;;', 'esac'])
     script = step['run']
     check([line.strip() for line in script.splitlines() if line.strip()] == expected,
-          'all twelve commands must execute exactly once in their group order')
-    check(len({command for commands in GROUPS.values() for command in commands}) == 12,
+          'all fixture commands must execute exactly once in their group order')
+    check(len({command for commands in GROUPS.values() for command in commands}) == 13,
           'partition must not duplicate any command')
     aggregate = jobs['regression']
     check('prepared-mysql' in aggregate['needs'] and aggregate['if'] == 'always()'
