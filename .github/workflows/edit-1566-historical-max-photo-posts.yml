@@ -93,6 +93,7 @@ jobs:
     timeout-minutes: 6
     outputs:
       prepared: ${{ steps.seal.outputs.prepared }}
+      write_requested: ${{ steps.input.outputs.write_requested }}
       archive_sha: ${{ steps.seal.outputs.archive_sha }}
       receipt_sha: ${{ steps.seal.outputs.receipt_sha }}
       manifest_sha: ${{ steps.seal.outputs.manifest_sha }}
@@ -149,7 +150,12 @@ jobs:
               evidence=route.read(16_001)
           if not 0 < len(evidence) <= 16_000:
               raise ValueError("invalid activation evidence length")
-          changed=apply_activation(scope, json.loads(evidence))
+          activation=json.loads(evidence)
+          changed=apply_activation(scope, activation)
+          if activation.get("prepare_only"):
+              (pub/"prepare-only").touch()
+          if "preparation_source" in activation:
+              (pub/"preparation-source.json").write_text(json.dumps(activation["preparation_source"]))
           manifest.write_text(json.dumps(scope, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
           if changed:
               (pub/"native-artifact-id").write_text(str(scope["native_source"]["artifact_id"])+"\n")
@@ -159,6 +165,16 @@ jobs:
             export MAX_NATIVE_ID="$(<pub/native-artifact-id)"
             export MAX_PREPARED_ARTIFACT_ID=''
             echo 'MAX_NATIVE_PROOF_REFRESHED=1'
+          fi
+          if [[ -f pub/prepare-only ]]; then
+            export MAX_PREPARED_ARTIFACT_ID=''
+            echo 'write_requested=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'write_requested=true' >> "$GITHUB_OUTPUT"
+          fi
+          if [[ -f pub/preparation-source.json ]]; then
+            export MAX_PREPARED_ARTIFACT_ID="$(jq -r .artifact_id pub/preparation-source.json)"
+            export MAX_PREPARED_ZIP_SHA="$(jq -r .zip_sha256 pub/preparation-source.json)"
           fi
           cat > pub/admit.cjs <<'NODE'
           const R=require('../tools/deployment_release')
@@ -194,6 +210,20 @@ jobs:
             check(a.total_count===1&&file.id===artifactId&&file.name===name&&file.expired===false
               &&file.digest==='sha256:'+digest&&file.workflow_run.id===id&&file.workflow_run.head_sha===head,'original_artifact_changed')
           }
+          async function verifyPreparation(proof){
+            const base=root+'/actions/runs/'+proof.run_id
+            const [run,jobs,artifacts]=await Promise.all([api('GET',base),api('GET',base+'/attempts/1/jobs?per_page=100'),api('GET',base+'/artifacts?per_page=100')])
+            check(run.id===proof.run_id&&run.repository.id===1342493152&&run.actor.id===226193297
+              &&run.head_sha===proof.workflow_head&&run.path==='.github/workflows/edit-1566-historical-max-photo-posts.yml'
+              &&run.head_branch==='audit/1566-main-hotel-registry-20261119'&&run.event==='push'
+              &&run.run_attempt===1&&run.status==='completed'&&run.conclusion==='success','original_preparation_run_changed')
+            check(jobs.total_count===jobs.jobs.length&&jobs.jobs.some(job=>job.id===proof.job_id&&job.name==='prepare'&&job.conclusion==='success')
+              &&jobs.jobs.filter(job=>job.name==='edit_existing'&&job.conclusion==='skipped').length===1,'original_preparation_job_changed')
+            const artifact=artifacts.artifacts.find(file=>file.id===proof.artifact_id)
+            check(artifacts.total_count===artifacts.artifacts.length&&artifact?.name==='issue-1566-max-read-only-preparation'
+              &&artifact.expired===false&&artifact.digest==='sha256:'+proof.zip_sha256
+              &&artifact.workflow_run.id===proof.run_id&&artifact.workflow_run.head_sha===proof.workflow_head,'original_preparation_artifact_changed')
+          }
           async function all(){
             check(native.attempt===1&&scope.route_readback.write_calls===0
               &&/^[a-f0-9]{40}$/.test(native.repository_sha)&&/^[a-f0-9]{40}$/.test(native.application_sha),'scope_evidence_identity_changed')
@@ -204,7 +234,10 @@ jobs:
                 receipt(Number(scope.archive_run_id),'3a9195debcfbeb703a220895871f5a40a61d3010','.github/workflows/read-1566-max-archive-20261123.yml',139261677044,Number(process.env.MAX_ARCHIVE_ID),scope.archive_sha256,'issue-1566-main-max-archive-inventory'),
                 receipt(native.run_id,native.workflow_head,'.github/workflows/read-1566-old-ordinary-max-posts.yml',native.job_id,Number(process.env.MAX_NATIVE_ID),native.zip_sha256,'max-commercial-album-sources','registry')
               ]
-              if(process.env.MAX_PREPARED_ARTIFACT_ID) originalReads.push(receipt(
+              const fs=require('node:fs')
+              if(fs.existsSync('pub/preparation-source.json')) {
+                originalReads.push(verifyPreparation(JSON.parse(fs.readFileSync('pub/preparation-source.json','utf8'))))
+              } else if(process.env.MAX_PREPARED_ARTIFACT_ID) originalReads.push(receipt(
                 Number(process.env.MAX_PREPARED_RUN_ID),process.env.MAX_PREPARED_SOURCE,
                 '.github/workflows/read-1566-old-ordinary-max-posts.yml',Number(process.env.MAX_PREPARED_JOB_ID),
                 Number(process.env.MAX_PREPARED_ARTIFACT_ID),process.env.MAX_PREPARED_ZIP_SHA,'issue-1566-max-native-prepare-proof','prepare_only'))
@@ -309,7 +342,19 @@ jobs:
                                ('manifest_sha','manifest.json'),('admission_sha','admit.cjs')):
                   print(key+'='+hashlib.sha256((pub/name).read_bytes()).hexdigest(),file=out)
           PY
+      - name: Store the reusable read-only preparation
+        if: steps.input.outputs.write_requested == 'false'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-max-read-only-preparation
+          path: |
+            pub/manifest.json
+            pub/batch-plan.json
+            pub/preparation.json
+          retention-days: 7
+          if-no-files-found: error
       - name: Store the exact inputs and native preparation receipt
+        if: steps.input.outputs.write_requested == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: issue-1566-max-prepared-${{ github.run_attempt }}
@@ -325,7 +370,7 @@ jobs:
         run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
   edit_existing:
     needs: prepare
-    if: needs.prepare.outputs.prepared == 'true'
+    if: needs.prepare.outputs.prepared == 'true' && needs.prepare.outputs.write_requested == 'true'
     concurrency:
       group: anytour-authorized-channel-publication
       cancel-in-progress: false

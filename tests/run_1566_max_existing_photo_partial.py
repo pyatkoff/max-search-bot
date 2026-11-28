@@ -360,6 +360,19 @@ except ValueError:
 else:
     raise AssertionError("Activation changed the editorial scope")
 
+early = json.loads(json.dumps(baseline))
+assert apply_activation(early, {"prepare_only": True, "native_source": fresh})
+assert early == (baseline | {"native_source": base_native | fresh})
+prepared_source = {key: fresh[key] for key in ("run_id", "job_id", "artifact_id", "workflow_head", "zip_sha256")}
+assert not apply_activation(early, activation_route | {"native_source": fresh, "preparation_source": prepared_source})
+for forbidden in ({"prepare_only": True}, activation_route | {"prepare_only": True, "native_source": fresh},
+                  activation_route | {"native_source": fresh, "preparation_source": prepared_source | {"job_id": False}}):
+    try:
+        apply_activation(json.loads(json.dumps(baseline)), forbidden)
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Invalid split preparation request was accepted")
 print("One data-only activation can refresh the native receipt, with post, archive and publication policy fixed")
 
 # Exercise the actual observer extracted from the existing workflow.

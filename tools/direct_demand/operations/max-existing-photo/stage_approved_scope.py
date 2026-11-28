@@ -64,7 +64,21 @@ def replace_route_read(scope, route):
 def apply_activation(scope, activation):
     """Refresh evidence for the same editorial scope. Return whether native inputs changed."""
     require(isinstance(activation, dict), "invalid MAX activation")
-    route = {key: value for key, value in activation.items() if key != "native_source"}
+    prepare_only = activation.get("prepare_only", False)
+    require(type(prepare_only) is bool, "invalid MAX preparation mode")
+    route = {key: value for key, value in activation.items()
+             if key not in {"native_source", "prepare_only", "preparation_source"}}
+    if prepare_only:
+        require(set(activation) == {"native_source", "prepare_only"}, "prepare-only requires native evidence alone")
+    elif "preparation_source" in activation:
+        proof = activation["preparation_source"]
+        ids = ("run_id", "job_id", "artifact_id")
+        require("native_source" in activation and isinstance(proof, dict)
+                and set(proof) == set(ids + ("workflow_head", "zip_sha256")), "invalid preparation evidence fields")
+        require(all(type(proof[key]) is int and proof[key] > 0 for key in ids)
+                and isinstance(proof["workflow_head"], str) and re.fullmatch("[a-f0-9]{40}", proof["workflow_head"])
+                and isinstance(proof["zip_sha256"], str) and re.fullmatch("[a-f0-9]{64}", proof["zip_sha256"]),
+                "invalid preparation evidence identity")
     previous = scope["native_source"]
     selected = previous
     if "native_source" in activation:
@@ -81,7 +95,8 @@ def apply_activation(scope, activation):
                 "invalid native proof digest")
         selected = {**previous, **fresh}
 
-    replace_route_read(scope, route)
+    if not prepare_only:
+        replace_route_read(scope, route)
     scope["native_source"] = selected
     return selected != previous
 
