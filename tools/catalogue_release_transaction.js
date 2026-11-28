@@ -44,16 +44,16 @@ function privateDirectory(directory) {
     (stat.mode & 0o022) === 0, 'invalid_catalogue_release_directory');
 }
 
-function withLock(releases, run) {
+function withLock(releases, run, {readOnly = false} = {}) {
   privateDirectory(releases);
   const lock = path.join(releases, 'operation.lock');
-  const fd = fs.openSync(lock, fs.constants.O_RDONLY | fs.constants.O_CREAT |
+  const fd = fs.openSync(lock, fs.constants.O_RDONLY | (readOnly ? 0 : fs.constants.O_CREAT) |
     fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK, 0o600);
   try {
     const opened = fs.fstatSync(fd);
     requireThat(opened.isFile(), 'invalid_catalogue_lock');
     // flock on this inherited file description remains held by the parent fd.
-    const result = spawnSync('flock', ['--exclusive', '--nonblock', '--conflict-exit-code', '75', '3'],
+    const result = spawnSync('flock', [readOnly ? '--shared' : '--exclusive', '--nonblock', '--conflict-exit-code', '75', '3'],
       {stdio:['ignore', 'ignore', 'pipe', fd]});
     requireThat(result.status === 0, result.status === 75 ? 'catalogue_operation_busy' : 'catalogue_lock_failed');
     const named = fs.lstatSync(lock);
@@ -118,11 +118,17 @@ function selectVersion(releases, version) {
   syncPath(releases);
 }
 
-function checkApplication(app, sha) {
+function applicationHead(app) {
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
   const actual = execFileSync('git', ['-C', app, 'rev-parse', '--show-toplevel', 'HEAD'],
     {encoding:'utf8', env, timeout:5000, stdio:['ignore','pipe','pipe']}).trimEnd();
-  requireThat(actual === app + '\n' + sha, 'catalogue_application_changed');
+  const [root, sha, ...extra] = actual.split('\n');
+  requireThat(root === app && /^[a-f0-9]{40}$/.test(sha) && extra.length === 0, 'catalogue_application_changed');
+  return sha;
+}
+
+function checkApplication(app, sha) {
+  requireThat(applicationHead(app) === sha, 'catalogue_application_changed');
 }
 
 function transact({releases, lockRoot = releases, contract, request}, prepare) {
@@ -166,4 +172,4 @@ function transact({releases, lockRoot = releases, contract, request}, prepare) {
 }
 
 module.exports = {VERSION, OPERATION, readFile, requireThat, currentVersion, privateDirectory,
-  checkApplication, syncPath, transact};
+  applicationHead, checkApplication, syncPath, withLock, transact};
