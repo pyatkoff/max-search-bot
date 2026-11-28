@@ -374,7 +374,7 @@ observer = workflow.split("- name: Read each same public MAX address independent
 observer = observer.split("python3 - <<'PY'\n", 1)[1].split("\n          PY\n", 1)[0]
 observer = compile(textwrap.dedent(observer), "public MAX observer", "exec")
 
-def observe_responses(provider_status, retry_after):
+def observe_responses(provider_status, retry_after, native_states=None):
     requests = Counter()
 
     class Response(BytesIO):
@@ -386,7 +386,7 @@ def observe_responses(provider_status, retry_after):
     def open_post(request, timeout):
         url = request.full_url
         requests[url] += 1
-        if url.endswith("/2") and requests[url] == 1:
+        if provider_status is not None and url.endswith("/2") and requests[url] == 1:
             headers = Message()
             if retry_after is not None:
                 headers["Retry-After"] = retry_after
@@ -404,8 +404,8 @@ def observe_responses(provider_status, retry_after):
                 for n, url in enumerate(urls, 1)]
         (publication / "manifest.json").write_text(json.dumps({"rows": rows}))
         (publication / "native-results.txt").write_text("".join(
-            f'RESULT {n} {json.dumps({"hotel": n, "state": "existing_max_message_updated_and_verified"})}\n'
-            for n in range(1, 5)))
+            f'RESULT {n} {json.dumps({"hotel": n, "state": state})}\n'
+            for n, state in enumerate(native_states or ["existing_max_message_updated_and_verified"] * 4, 1)))
         before = os.getcwd()
         try:
             os.chdir(work)
@@ -429,3 +429,13 @@ assert [requests[url] for url in urls] == [1, 2, 1, 1]
 assert all(row["verified"] for row in rows)
 sleep.assert_called_once_with(5)
 print("Public MAX observes provider backoff without losing accepted rows")
+
+urls, requests, rows, sleep = observe_responses(None, None, [
+    "existing_max_message_updated_and_verified", "held_no_retry", "unobserved", "untouched"])
+assert [requests[url] for url in urls] == [1, 1, 1, 0]
+assert [row["native_state"] for row in rows] == [
+    "existing_max_message_updated_and_verified", "held_no_retry", "unobserved"]
+assert [row["verified"] for row in rows] == [True, False, False]
+assert all(row["public_matches"] for row in rows)
+sleep.assert_not_called()
+print("Public MAX reconciles ambiguous writes without promoting them to accepted rows")

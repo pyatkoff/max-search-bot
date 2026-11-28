@@ -444,8 +444,11 @@ jobs:
           from datetime import datetime,timezone
           original=json.loads(Path('pub/manifest.json').read_text())['rows']
           native=[json.loads(line.split(' ',2)[2]) for line in Path('pub/native-results.txt').read_text().splitlines() if line.startswith('RESULT ')]
-          accepted={r['hotel'] for r in native if r.get('state')=='existing_max_message_updated_and_verified'}
-          plans=[{'id':r['hotel_id'],'url':r['target_url'],'title':r['name'],'caption':r['caption_without_price']} for r in original if r['hotel_id'] in accepted]
+          confirmed='existing_max_message_updated_and_verified'
+          observable={confirmed,'held_no_retry','unobserved'}
+          states={r['hotel']:r['state'] for r in native if r.get('state') in observable}
+          plans=[{'id':r['hotel_id'],'url':r['target_url'],'title':r['name'],'caption':r['caption_without_price']}
+                 for r in original if r['hotel_id'] in states]
           class Page(HTMLParser):
               def __init__(self):
                   super().__init__(convert_charrefs=True)
@@ -516,6 +519,10 @@ jobs:
                   results[index] = read(plan)
                   if results[index].get('error') == 'provider_backoff':
                       limit = results[index]
+          for row in results:
+              row['native_state']=states[row['hotel_id']]
+              row['public_matches']=row['verified']
+              row['verified']=row['public_matches'] and row['native_state']==confirmed
           out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
           Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
           print('MAX_COMMERCIAL_ALBUM_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
