@@ -184,18 +184,39 @@ tour_parts=visual['tour-browser-parts']
 visual_document=load('workspace-v2-visual-qa.yml')
 visual_events=visual_document.get('on',visual_document.get(True))
 visual_paths=visual_events['pull_request']['paths']
-def visual_triggered(*changed_paths):
+def visual_triggered(*changed_paths, patterns=visual_paths):
     # GitHub applies ordered include/exclude patterns to each changed path,
     # then starts the workflow if any path remains included.
     for changed_path in changed_paths:
         included=False
-        for pattern in visual_paths:
+        for pattern in patterns:
             excluded=pattern.startswith('!')
             if fnmatch.fnmatchcase(changed_path,pattern[1:] if excluded else pattern):
                 included=not excluded
         if included:
             return True
     return False
+
+manager2_documentation='manager2/README.md'
+manager2_release_tools=['tools/manager2_style_release.js','tools/catalogue_release_transaction.js',
+                       'tests/support/manager2-style-release.php']
+for name in ['workspace-v2-visual-qa.yml','channel-post-context.yml']:
+    workflow=load(name)
+    events=workflow.get('on',workflow.get(True))
+    paths=events['pull_request']['paths']
+    check(not visual_triggered(manager2_documentation, patterns=paths),
+          'Manager2 release documentation alone must not start '+name)
+    check(not visual_triggered(manager2_documentation, *manager2_release_tools, patterns=paths),
+          'the supported CLI-only release diff must not start '+name)
+    for runtime_path in ['manager2/index.php','manager2/workspace-style.php','manager2/workspace-chrome.php',
+                         'manager2/assets/manager2.js','manager2/assets/manager2.css','manager/index.php',
+                         'services/Manager2WorkspaceStyle.php']:
+        check(visual_triggered(runtime_path,patterns=paths),
+              'Manager2 reader and runtime need coverage for '+runtime_path+' in '+name)
+        check(visual_triggered(manager2_documentation,runtime_path,patterns=paths),
+              'Manager2 documentation must preserve runtime coverage for '+runtime_path+' in '+name)
+    check('workflow_dispatch' in events and visual_triggered('.github/workflows/'+name,patterns=paths),
+          'manual and workflow change coverage remain available for '+name)
 
 component_paths=json.loads(subprocess.check_output(['node','-e',"process.stdout.write(JSON.stringify([...require('./tools/ci_change_scope').TOUR_SELECTION_PATHS]))"],cwd=root))
 regression_document=load('regression-tests.yml')
