@@ -1,4 +1,4 @@
-name: "#1566 Confirm exact historical Telegram post 232"
+name: "#1566 Confirm exact historical Telegram post 456"
 on:
   push:
     branches: [ops/1566-telegram-46-native-read-20261123]
@@ -13,16 +13,16 @@ jobs:
       github.event.repository.id == 1342493152 &&
       github.actor == 'pyatkoff' && github.event.sender.id == 226193297 &&
       github.event.created == false && github.event.forced == false &&
-      github.event.before == '892cdccc7c04c28702e35760af8bfe86dd21f175' && github.run_attempt == 1
+      github.event.before == '45952c09efa139ca37fd3ea5fc57c6e86b30477d' && github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 6
     env:
-      NATIVE_RUN_ID: "45734639325"
-      NATIVE_REPOSITORY_SHA: "53c7a0c0a9162ab31a88325790be52df2c2ecbde"
-      NATIVE_BRANCH: "ops/anytour-hotel-ranked-plan-59920dac17de85f6fa65649b31a0b69df209c7cb6c68ac374cc16ee32eaa5a69"
-      NATIVE_JOB_ID: "139624790227"
-      NATIVE_ARTIFACT_ID: "15078162711"
-      NATIVE_ARCHIVE_SHA256: "c545359d8387da29892c7761e3908026bc787b19689927d677636360e575b1e0"
+      NATIVE_RUN_ID: "45744057050"
+      NATIVE_REPOSITORY_SHA: "c35c354220f7e30cd639672015b52d5f11c767a1"
+      NATIVE_BRANCH: "ops/anytour-hotel-ranked-plan-9026254a10e842f45f0c7eeedf80067704d6c81259baed4fc17745e0290f49a2"
+      NATIVE_JOB_ID: "139655721761"
+      NATIVE_ARTIFACT_ID: "15082915366"
+      NATIVE_ARCHIVE_SHA256: "1e8c8b1686edd19ca7d7da927e1fc4f1d1d26d8d36666ca97afd49209b8eca3c"
     steps:
       - name: Check out the trusted public verifier
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -44,8 +44,8 @@ jobs:
              .actor.id==226193297 and .triggering_actor.id==226193297 and .path==".github/workflows/edit-1566-ranked-46-historical-telegram.yml" and
              .status=="completed" and .conclusion=="success"' "$RUNNER_TEMP/native-run.json" >/dev/null
           operation=hotel_ranked_approved_input
-          index_sha="59920dac17de85f6fa65649b31a0b69df209c7cb6c68ac374cc16ee32eaa5a69"
-          index="config/anytour_ranked_index_45720027803.json"
+          index_sha="9026254a10e842f45f0c7eeedf80067704d6c81259baed4fc17745e0290f49a2"
+          index="config/anytour_ranked_index_45734791283.json"
           [[ "$index" =~ ^config/anytour_[a-z0-9_]+\.json$ ]]
           printf '%s  %s\n' "$index_sha" "$index" | sha256sum --check --status
           export RANKED_APPROVED_INDEX="$index"
@@ -97,14 +97,14 @@ jobs:
           set -euo pipefail
           status=0
           php tools/verify_ranked_telegram_public.php || status=$?
-          jq -e --argjson hotel 232 --arg target "https://t.me/anytour/831" \
+          jq -e --argjson hotel 456 --arg target "https://t.me/anytour/476" \
             '[.plans[].verified_destinations[] | select(.hotel_id==$hotel and .post_url==$target)] | length==1' ranked-public-readback.json
           test "$status" -eq 0
       - name: Preserve independent late public evidence separately
         if: ${{ !cancelled() && hashFiles('ranked-public-readback.json') != '' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ranked-public-readback-late-45734639325
+          name: ranked-public-readback-late-45744057050
           path: ranked-public-readback.json
           retention-days: 7
           if-no-files-found: error
