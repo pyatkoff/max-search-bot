@@ -1,0 +1,13 @@
+{
+  "prepare_only": true,
+  "native_source": {
+    "run_id": 46121104742,
+    "job_id": 140905582430,
+    "artifact_id": 15253068289,
+    "workflow_head": "45c1d990a01ecccbaf7a46d3b908d0e69db6ec7a",
+    "repository_sha": "9322dcda19f397b83060a8995d9de2e26292b935",
+    "application_sha": "9322dcda19f397b83060a8995d9de2e26292b935",
+    "zip_sha256": "1cb113feb3e165e7b58b7e919348f3bc14f08edb6d418c3bd2acae5c66e61435",
+    "json_sha256": "52bc5c815bbbbad93c20e5794cc57c81fcd40663e577e5c8f36e0685381cc63d"
+  }
+}
