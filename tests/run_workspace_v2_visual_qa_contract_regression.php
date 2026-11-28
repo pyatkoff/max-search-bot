@@ -18,7 +18,12 @@ $adminFixture=(string)@file_get_contents($root.'/tests/visual/admin-audit-fixtur
 $passed=0;$failed=0;
 function vqCheck(string $name,bool $ok):void{global$passed,$failed;if($ok){echo "PASS  {$name}\n";$passed++;return;}echo "FAIL  {$name}\n";$failed++;}
 vqCheck('visual workflow exists',$workflow!=='');
-vqCheck('release gate requires both engines and Firefox evidence',strpos($workflow,'needs: [browser-tests, firefox-history, firefox-notifications]')!==false&&strpos($workflow,'tools/verify_manager2_visual_evidence.js evidence')!==false&&strpos($workflow,'path: evidence/chromium')!==false&&strpos($workflow,'path: evidence/webkit')!==false);
+vqCheck('release gate requires both engines and Firefox evidence',
+    str_contains($workflow,'needs: [browser-tests, firefox-history, firefox-notifications]')
+    && str_contains($workflow,'pattern: workspace-v2-visual-${{ github.sha }}-{chromium,webkit}')
+    && str_contains($workflow,'for browser in chromium webkit; do')
+    && str_contains($workflow,'mv -T -- "evidence/workspace-v2-visual-$GITHUB_SHA-$browser" "evidence/$browser"')
+    && str_contains($workflow,'tools/verify_manager2_visual_evidence.js evidence'));
 vqCheck('preview uses separate non-release check on test branches',strpos($previewWorkflow,"branches: ['m2-preview/**']")!==false&&strpos($previewWorkflow,'preview-smoke:')!==false&&strpos($previewWorkflow,'  screenshots:')===false&&strpos($previewWorkflow,'compact header keeps native tools|actual shell boots, preserves canonical paths')!==false);
 vqCheck('preview has read-only permissions and local synthetic server',strpos($previewWorkflow,'contents: read')!==false&&strpos($previewWorkflow,'packages: read')!==false&&strpos($previewWorkflow,'127.0.0.1:4173')!==false&&strpos($previewWorkflow,'app.anytoour.ru')===false&&substr_count($previewWorkflow,'password: ${{ secrets.GITHUB_TOKEN }}')===1&&strpos(str_replace('password: ${{ secrets.GITHUB_TOKEN }}','',$previewWorkflow),'secrets.')===false);
 vqCheck('visual fixture exists',$fixture!=='');
@@ -45,7 +50,11 @@ vqCheck('fixture uses production Workspace V2 styles',strpos($fixture,'../../man
 vqCheck('visual workflow does not rewrite fixture at runtime',strpos($workflow,'sed -i')===false&&strpos($workflow,"grep -q 'workspace-v2-mobile.css'")!==false);
 vqCheck('visual workflow runs registered layout assertions through exact partitions',strpos($workflow,'tools/manager2_visual_shards.js run-part')!==false&&strpos($workflow,'Assert responsive layout contracts')!==false&&preg_match('~^ghcr\.io/pyatkoff/max-search-bot-browser-qa@sha256:[a-f0-9]{64}$~',$prepared['image']??'')===1&&strpos($workflow,'image: '.$prepared['image'])!==false&&strpos($workflow,'node /opt/manager2-qa/verify-runtime.js --require-source')!==false&&($browserPackage['dependencies']['@playwright/test']??null)==='1.55.0'&&strpos($inventory,"'workspace-v2-layout'")!==false&&strpos($inventory,'function partitionSpecs(')!==false&&strpos($shards,'inventory.partitionSpecs(browser,part)')!==false);
 vqCheck('partition jobs have independent namespaces and mandatory fail-closed assembly',strpos($workflow,'part: [0, 1, 2, 3]')!==false&&strpos($workflow,'workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-${{ matrix.part }}')!==false&&strpos($workflow,'QA_PARTS_RESULT: ${{ needs.browser-parts.result }}')!==false&&strpos($workflow,'tools/manager2_visual_shards.js assemble')!==false&&strpos($shards,"result==='success'")!==false);
-foreach(range(0,3) as $part)vqCheck('assembly downloads original partition '.$part,strpos($workflow,'name: workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-'.$part)!==false&&strpos($workflow,'path: parts/${{ matrix.browser }}/part-'.$part)!==false);
+vqCheck('assembly downloads and restores the exact four original part directories',
+    str_contains($workflow,'pattern: workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-[0-3]')
+    && str_contains($workflow,'path: parts/${{ matrix.browser }}')
+    && str_contains($workflow,'for part in 0 1 2 3; do')
+    && str_contains($workflow,'mv -T -- "parts/$QA_BROWSER/workspace-v2-part-$GITHUB_SHA-$QA_BROWSER-$part" "parts/$QA_BROWSER/part-$part"'));
 vqCheck('layout assertions cover overflow composer bubbles media and desktop zones',strpos($layoutSpec,'expectNoHorizontalOverflow')!==false&&strpos($layoutSpec,"'.composer textarea'")!==false&&strpos($layoutSpec,"'.quickReplies'")!==false&&strpos($layoutSpec,"'.msg.customer'")!==false&&strpos($layoutSpec,"'.msg:has(.attachments)'")!==false&&strpos($layoutSpec,"'.inboxZone'")!==false&&strpos($layoutSpec,"'.conversationZone'")!==false&&strpos($layoutSpec,"'.leadZone'")!==false);
 vqCheck('activity fixture uses production inbox and mobile styles',strpos($activityFixture,'../../manager/assets/workspace-v2-inbox.css')!==false&&strpos($activityFixture,'../../manager/assets/workspace-v2-mobile.css')!==false&&strpos($activityFixture,'../../manager/assets/workspace-v2-theme.css')!==false);
 vqCheck('startup fixture uses production core inbox notification and mobile styles',strpos($startupFixture,'../../manager/assets/workspace-v2.css')!==false&&strpos($startupFixture,'../../manager/assets/workspace-v2-inbox.css')!==false&&strpos($startupFixture,'../../manager/assets/workspace-v2-notifications.css')!==false&&strpos($startupFixture,'../../manager/assets/workspace-v2-mobile.css')!==false);
