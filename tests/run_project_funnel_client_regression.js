@@ -33,15 +33,29 @@ function fixture({reply=accepted,http=200,networkError=false,counter='',clientId
     if(nativeBridge)win.Telegram.WebApp.openTelegramLink=win.WebApp.openMaxLink;
     delete win.WebApp;
   }
-  return{win,els,requests,assigned,opened,metrics,metricUrls,addresses,timeline,scripts};
+  function clickContinue(){
+    let handled=false;
+    el('continue').listeners.click?.({preventDefault(){handled=true;}});
+    return handled;
+  }
+  return{win,els,requests,assigned,opened,metrics,metricUrls,addresses,timeline,scripts,clickContinue};
 }
 (async()=>{
   let f=fixture();await P.start(f.win);check('success redirects only after one acknowledged save',()=>{assert.equal(f.requests.length,1);assert.deepEqual(f.assigned,[accepted.redirect_url]);assert.equal(f.requests[0].body.init_data,init);});
+  check('without MAX Bridge the confirmed link still uses ordinary navigation',()=>{assert.equal(f.clickContinue(),false);assert.equal(f.els.get('continue').href,accepted.redirect_url);});
   f=fixture({nativeBridge:true});await P.start(f.win);check('confirmed Apple/MAX paid receipt uses ordinary navigation first like MAX2',()=>{assert.deepEqual(f.opened,[]);assert.deepEqual(f.assigned,[accepted.redirect_url]);assert.equal(f.requests.length,1);});
-  f=fixture({nativeBridge:true,reply:{...accepted,saved:false}});await P.start(f.win);check('failed save cannot open a native post or navigate',()=>{assert.deepEqual(f.opened,[]);assert.deepEqual(f.assigned,[]);assert.equal(f.els.get('retry').hidden,false);});
+  check('Apple/MAX manual continuation opens the saved post in MAX even if assign silently does nothing',()=>{
+    assert.equal(f.els.get('continue').textContent,'Открыть в MAX');
+    assert.equal(f.clickContinue(),true);
+    assert.deepEqual(f.opened,[{url:accepted.redirect_url,decoded:true}]);
+    assert.equal(f.requests.length,1);
+  });
+  f=fixture({nativeBridge:true,reply:{...accepted,saved:false}});await P.start(f.win);check('failed save cannot open a native post or navigate',()=>{assert.equal(f.clickContinue(),false);assert.deepEqual(f.opened,[]);assert.deepEqual(f.assigned,[]);assert.equal(f.els.get('retry').hidden,false);});
   f=fixture({nativeBridge:true,assignThrows:true});await P.start(f.win);check('ordinary navigation failure falls back to the exact native MAX link after receipt',()=>{assert.deepEqual(f.opened,[{url:accepted.redirect_url,decoded:true}]);assert.deepEqual(f.assigned,[]);assert.equal(f.els.get('continue').href,accepted.redirect_url);});
   f=fixture({nativeBridge:'throw',assignThrows:true});await P.start(f.win);check('both navigation failures retain the confirmed manual link',()=>{assert.deepEqual(f.opened,[{url:accepted.redirect_url,decoded:true}]);assert.deepEqual(f.assigned,[]);assert.equal(f.els.get('continue').href,accepted.redirect_url);assert.equal(f.els.get('continue').hidden,false);});
+  check('a throwing MAX bridge leaves ordinary manual navigation available',()=>{assert.equal(f.clickContinue(),false);});
   f=fixture({nativeBridge:true,project:'other-company',counter:'99900011'});await P.start(f.win);check('other MAX companies retain their original init and native-first navigation',()=>{assert.equal(f.metrics[0][2].url,undefined);assert.equal(f.metrics.filter(call=>call[1]==='notBounce').length,1);assert.deepEqual(f.opened,[{url:accepted.redirect_url,decoded:true}]);assert.deepEqual(f.assigned,[]);});
+  check('other MAX companies retain ordinary manual navigation',()=>{assert.equal(f.clickContinue(),false);assert.equal(f.opened.length,1);});
   f=fixture({reply:{...accepted,saved:false}});await P.start(f.win);check('save failure shows retry and never navigates',()=>{assert.deepEqual(f.assigned,[]);assert.equal(f.els.get('retry').hidden,false);});
   f=fixture({networkError:true});await P.start(f.win);check('network failure retains a manual retry',()=>{assert.equal(f.els.get('retry').hidden,false);assert.deepEqual(f.assigned,[]);});
   f=fixture({timeout:true});await P.start(f.win);check('unknown POST timeout never assumes saved or navigates',()=>assert.deepEqual(f.assigned,[]));
@@ -78,6 +92,8 @@ function fixture({reply=accepted,http=200,networkError=false,counter='',clientId
     assert.deepEqual(f.timeline.slice(0,3),['address','init','getClientID']);
     assert.equal(f.metrics[0][2].url,undefined);
     assert.equal(f.metrics.filter(call=>call[1]==='notBounce').length,1);
+    assert.equal(f.clickContinue(),false);
+    assert.equal(f.opened.length,1);
   });
   const hostedApplePage='https://tg.rhat.ru/tgminiapple/';
   const hostedAppleLaunch=hostedApplePage+'?'+new URLSearchParams({tgWebAppStartParam:telegramStart});

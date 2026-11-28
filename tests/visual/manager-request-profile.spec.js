@@ -302,7 +302,7 @@ for(const width of [390,1440])test(`current request stays independent of the opt
     await page.evaluate(({width})=>{
       const S={current:11,manager:{id:7,role:'manager'},authExpired:false,authGeneration:1,detail:{conversation:{id:11,project_key:'anytour',manager_id:7,status:'manager',channel:'telegram',customer_id:101,customer_channel_id:'fixture'},messages:[]}};
       const p=window.profileHostProbe={calls:[],hostReads:0,mayRead:true,profile:{label:'Текущая поездка',status:'fresh',fields:{dates:{value:'20 декабря'},party:{value:{adults:2,children:0}},budget:{value:'200 000 ₽ за всех'}}}};
-      window.WorkspaceV2={S,$:id=>document.getElementById(id),showAuthRecovery:()=>{throw new Error('unexpected_auth_recovery')},request:async(endpoint,action,args)=>{
+      window.WorkspaceV2={S,$:id=>document.getElementById(id),boot(){},showAuthRecovery:()=>{throw new Error('unexpected_auth_recovery')},request:async(endpoint,action,args)=>{
         p.calls.push({endpoint,action,conversation:args.conversation_id});
         return {ok:true,viewer_id:7,conversation_id:args.conversation_id,profile:p.profile};
       }};
@@ -314,6 +314,7 @@ for(const width of [390,1440])test(`current request stays independent of the opt
       document.getElementById('messages').scrollTop=75;
     },{width});
     await page.addScriptTag({path:path.join(root,'manager2/assets/request-profile-panel.js')});
+    await page.addScriptTag({path:path.join(root,'manager/assets/workspace-v2-bootstrap.js')});
     const trip=page.locator('#m2CurrentTrip');await expect(trip).toBeVisible();await expect(trip.locator('small')).toContainText('20 декабря');
     expect(await trip.evaluate(node=>node.parentElement.id==='conversationZone'&&node.previousElementSibling.classList.contains('conversationHead'))).toBe(true);
     await expect(page.locator('#optionalAiHost #m2CurrentTrip')).toHaveCount(0);
@@ -342,6 +343,7 @@ for(const width of [390,1440])test(`current request stays independent of the opt
     await expect(trip).toBeHidden();await expect(trip.locator('small')).toBeEmpty();
     await page.locator('#m2RequestProfileOpen').click();await expect(page.locator('#m2RequestProfilePanel')).toBeVisible();
     await page.locator('#m2RequestProfilePanel button').click();await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();
+    await expect(page.locator('#profileTools #m2RequestProfileOpen')).toBeFocused();
     expect(await page.evaluate(()=>({text:document.getElementById('replyText').value,file:document.getElementById('replyFile').files[0]===profileHostProbe.file,scroll:document.getElementById('messages').scrollTop}))).toEqual({text:'Несохранённый ответ',file:true,scroll:75});
     await page.evaluate(()=>{profileHostProbe.mayRead=false;WorkspaceV2RequestProfile.sync()});
     await expect(trip).toBeHidden();await expect(trip.locator('small')).toBeEmpty();await expect(page.locator('#m2RequestProfileOpen')).toBeHidden();

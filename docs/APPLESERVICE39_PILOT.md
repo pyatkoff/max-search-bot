@@ -1,5 +1,51 @@
 # AppleService39 MAX pilot
 
+## Independent release of the 15 repair questions
+
+The existing pilot's 15 repair entries can be checked from a separate local
+copy before any provider or release operation. Use the exact source SHA-256
+from `resources/appleservice39/pilot/provenance.json` for the same-version
+rehearsal. The command uses the same parser as ingress but does not update
+the active catalogue cache, connect to the application or activate a package.
+
+```sh
+php tools/check_appleservice39_catalogue_package.php /path/to/appleservice39-pilot-entries.json EXPECTED_SHA256
+```
+
+Exit 0 means the bytes and all parsed entries match the canonical file in this
+checkout. Exit 2 means the pinned candidate passed validation and differs. A
+bad digest, a bad file or invalid catalogue exits 1. A CLI usage error exits
+64. Treat this comparison as staging evidence.
+
+The existing AppleService39 publisher can activate an independently approved
+file. Take the application SHA from the accepted deployment receipt and the
+package SHA-256 from the owner's independent review. For a first activation,
+the previous version is `bundled`. Later activations use the exact version
+from the active operation receipt.
+
+```sh
+node tools/appleservice39_catalogue_release.js activate \
+  "$APP" "$APP_SHA" "$PREVIOUS_VERSION" "$PACKAGE" "$APPROVED_SHA256" "$OPERATION"
+node tools/appleservice39_catalogue_release.js rollback \
+  "$APP" "$APP_SHA" "$ACTIVATION_OPERATION" "$ROLLBACK_OPERATION"
+```
+
+The same reader serves the selected questions to MAX and Telegram. The
+independent path accepts changes to `question` only. Model, service, price,
+source and launch payload remain pinned to the bundled catalogue. Publications
+and commercial changes continue through their existing publishers. The
+independent release has its own private pointer and receipts. It uses the
+common checkout lock briefly during activation or rollback so that a core
+update cannot race with it. An incoming core must preserve the reader and
+the bundled catalogue while an independent package is selected.
+
+Keep the same operation ID and arguments after a lost response. A request
+resumes its recorded switch or returns the existing receipt. Rollback uses
+its own operation ID and restores the version recorded by the specified
+activation. The repair webhook regression exercises these commands in an
+isolated checkout and compares the Apple reader, AnyTour catalogue index
+and Manager2 interface bytes across the switch and rollback.
+
 ## Search-intent successor
 
 The fixed `search-intent-v1` source contains eight reviewed1254×1254 covers and

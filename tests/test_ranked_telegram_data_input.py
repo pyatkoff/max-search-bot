@@ -262,6 +262,20 @@ class PacketInspection(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'native read identity changed'):
             self.inspect()
 
+    def test_only_detached_snapshot_can_supply_unlocked_evidence(self):
+        self.native.update(price_editor_shared_read_lease=False, write_admission=False,
+                           registry_read_contract='read_only_snapshot_v1')
+        self.write_packet()
+        with self.assertRaisesRegex(ValueError, 'native read identity changed'):
+            self.inspect()
+        options = (self.index_sha, self.archive, self.root, self.index_path)
+        self.assertFalse(M.inspect_input(*options, allow_read_only_snapshot=True)['write_admission'])
+        self.native['write_admission'] = True
+        self.write_packet()
+        with self.assertRaisesRegex(ValueError, 'native read identity changed'):
+            M.inspect_input(self.index_sha, self.archive, self.root, self.index_path,
+                            allow_read_only_snapshot=True)
+
     def test_changed_plan_and_archive_are_rejected(self):
         (self.root / self.plan_path).write_text('{}')
         with self.assertRaisesRegex(ValueError, 'approved bytes changed'):

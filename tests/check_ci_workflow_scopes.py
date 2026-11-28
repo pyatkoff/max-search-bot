@@ -70,20 +70,36 @@ for name, jobs in [('workspace-v2-visual-qa.yml',['selection','firefox-history',
     for job in jobs:
         check(load(name)['jobs'][job]['if'] == "needs.change-scope.outputs.mode == 'full'", name + '/' + job + ' must require full mode')
         check('change-scope' in load(name)['jobs'][job]['needs'], name + '/' + job + ' must await selector')
+sound = load('workspace-sound.yml')['jobs']['sound']
+check(set(sound['strategy']['matrix']['browser']) == {'chromium', 'webkit'}, 'sound keeps both browser engines')
+sound_steps = {step['name']: step for step in sound['steps'] if 'name' in step}
+for name, command in [
+    ('Sound controller unit regression', 'node tests/notification-sound/client.unit.js'),
+    ('Read-only authentication bootstrap regression', 'php tests/notification-sound/bootstrap-readonly.php'),
+    ('Read-only feed regression', 'php tests/notification-sound/feed.php'),
+]:
+    step = sound_steps[name]
+    check(step['run'] == command and step.get('if') == "matrix.browser == 'chromium'"
+          and not step.get('continue-on-error', False), name + ' must run once and remain fatal')
+browser_sound = sound_steps['Touch, audio scheduling and deduplication']
+check(browser_sound.get('if') == 'success() || failure()' and '--browser=${{ matrix.browser }}' in browser_sound['run']
+      and not browser_sound.get('continue-on-error', False), 'sound must exercise both browsers even after a regression fails')
 for job in ['required','prepared-mysql','appleservice39-mysql']:
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
 check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
 check(regression['prepared-mysql']['if'] == "(needs.change-scope.outputs.mode == 'full' && (needs.change-scope.outputs.backend == 'full' || needs.change-scope.outputs.backend == 'telegram-public-observer')) || (needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend != 'selection-style')", 'the observer retains all shared native MySQL groups')
-expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || (needs.change-scope.outputs.backend == 'hotel-catalogue-data' && '[{\"group\":\"manager\"}]') || '[]') }}"
+expected_exclude = "${{ fromJSON(((needs.change-scope.outputs.mode == 'tour-selection' && needs.change-scope.outputs.backend == 'selection-style') || (needs.change-scope.outputs.mode == 'full' && needs.change-scope.outputs.backend == 'workspace-style')) && '[{\"group\":\"dialogue\"},{\"group\":\"website\"},{\"group\":\"manager\"},{\"group\":\"diagnostics\"}]' || (needs.change-scope.outputs.backend == 'hotel-catalogue-data' && '[{\"group\":\"manager\"},{\"group\":\"apple-coverage\"},{\"group\":\"apple-device\"}]') || (needs.change-scope.outputs.backend == 'telegram-public-observer' && '[{\"group\":\"apple-coverage\"},{\"group\":\"apple-device\"}]') || '[]') }}"
 check(regression['required']['strategy']['matrix'] == {
-    'group':['architecture','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
+    'group':['architecture','apple-coverage','apple-device','dialogue','website','manager','diagnostics'], 'exclude':expected_exclude},
     'catalogue excludes unrelated Manager2 tests and styling retains its existing matrix')
 pr_required = next(s for s in regression['required']['steps'] if s.get('name') == 'Run required group')
 check(pr_required['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}'
       and pr_required['env']['REQUIRED_CHECK_GROUP'] == '${{ matrix.group }}'
       and not pr_required.get('if') and not pr_required.get('continue-on-error')
       and '"$BACKEND_PROFILE" == telegram-public-observer' in pr_required['run']
-      and 'php tests/run_required_group.php architecture "$BACKEND_PROFILE"' in pr_required['run'],
+      and 'php tests/run_required_group.php architecture "$BACKEND_PROFILE"' in pr_required['run']
+      and 'php tests/run_required_group.php architecture ci-architecture-core' in pr_required['run']
+      and 'php tests/run_required_group.php architecture "ci-$REQUIRED_CHECK_GROUP"' in pr_required['run'],
       'PR architecture uses the proven profile without skipping the required group')
 check(source_gate['env']['BACKEND_PROFILE'] == '${{ needs.change-scope.outputs.backend }}', 'aggregate uses the actual backend selection')
 hotel_job = regression['hotel-catalogue']
@@ -137,8 +153,21 @@ check('test "$REQUIRED_RESULT" = success' in observer_gate
       and 'test "$PREPARED_MYSQL_RESULT" = success' in observer_gate
       and 'test "$APPLESERVICE39_MYSQL_RESULT" = skipped' in observer_gate,
       'observer excludes the pilot native fixture and keeps the whole shared stack')
-check('native-mysql' not in load('publish-appleservice39-pilot.yml')['jobs'],
+apple_publisher = load('publish-appleservice39-pilot.yml')
+check('native-mysql' not in apple_publisher['jobs'],
       'pilot native fixture has one mandatory aggregate owner')
+apple_events = apple_publisher.get('on', apple_publisher.get(True))
+check(set(apple_events) == {'push', 'workflow_dispatch'}
+      and apple_publisher['jobs']['publish']['needs'] == 'regression',
+      'standalone Apple publisher still gates each publication and no longer repeats PR CI')
+apple_preflight = next(s for s in apple_publisher['jobs']['regression']['steps'] if 'run' in s)
+apple_checks = [line for line in apple_preflight['run'].splitlines() if line.startswith('php tests/')]
+architecture_manifest = (root/'tests/required_checks_manifest.php').read_text().split("'architecture' => [", 1)[1].split('    ],', 1)[0]
+check(len(apple_checks) == len(set(apple_checks)) == 6
+      and all("'" + command + "'" in architecture_manifest for command in apple_checks)
+      and 'php -l tools/publish_appleservice39_pilot.php' in apple_preflight['run']
+      and not apple_preflight.get('if') and not apple_preflight.get('continue-on-error'),
+      'all publishing regressions belong to mandatory architecture and the real publisher keeps its own preflight')
 scope_document = load('ci-change-scope.yml')
 scope_events = scope_document.get('on',scope_document.get(True))
 check(scope_events['workflow_call']['outputs']['backend']['value'] == '${{ jobs.scope.outputs.backend }}'
@@ -150,6 +179,15 @@ check('["workspace-style", "hotel-catalogue-data", "telegram-public-observer"].i
 check('node tests/check_ci_selection_style_scope.js' in policy['run'], 'style selector selftests are mandatory')
 check("needs.change-scope.outputs.mode == 'full'" in visual['browser-tests']['if'], 'full browser assembler must not run after OAuth-only skips')
 check(set(visual['full-screenshots']['needs']) == {'browser-tests','firefox-history','firefox-notifications'}, 'full screenshot proof preserves all engines and Firefox')
+for job_name, pattern, destination in [
+    ('browser-tests', 'workspace-v2-part-${{ github.sha }}-${{ matrix.browser }}-[0-3]',
+     'parts/${{ matrix.browser }}'),
+    ('full-screenshots', 'workspace-v2-visual-${{ github.sha }}-{chromium,webkit}', 'evidence'),
+]:
+    downloads = [step['with'] for step in visual[job_name]['steps']
+                 if step.get('uses') == 'actions/download-artifact@v4']
+    check(downloads == [{'pattern': pattern, 'path': destination, 'merge-multiple': False}],
+          f'{job_name} downloads exact current-run archives once into separate named directories')
 check(visual['oauth-browser']['strategy']['matrix']['browser'] == ['chromium','webkit'], 'OAuth requires both browser engines')
 oauth_steps = '\n'.join(s.get('run','') for s in visual['oauth-browser']['steps'])
 check("--grep 'OAuth native (allow|deny|legacy policy control)'" in oauth_steps, 'OAuth scope must execute only native consent tests' )
@@ -160,18 +198,39 @@ tour_parts=visual['tour-browser-parts']
 visual_document=load('workspace-v2-visual-qa.yml')
 visual_events=visual_document.get('on',visual_document.get(True))
 visual_paths=visual_events['pull_request']['paths']
-def visual_triggered(*changed_paths):
+def visual_triggered(*changed_paths, patterns=visual_paths):
     # GitHub applies ordered include/exclude patterns to each changed path,
     # then starts the workflow if any path remains included.
     for changed_path in changed_paths:
         included=False
-        for pattern in visual_paths:
+        for pattern in patterns:
             excluded=pattern.startswith('!')
             if fnmatch.fnmatchcase(changed_path,pattern[1:] if excluded else pattern):
                 included=not excluded
         if included:
             return True
     return False
+
+manager2_documentation='manager2/README.md'
+manager2_release_tools=['tools/manager2_style_release.js','tools/catalogue_release_transaction.js',
+                       'tests/support/manager2-style-release.php']
+for name in ['workspace-v2-visual-qa.yml','channel-post-context.yml']:
+    workflow=load(name)
+    events=workflow.get('on',workflow.get(True))
+    paths=events['pull_request']['paths']
+    check(not visual_triggered(manager2_documentation, patterns=paths),
+          'Manager2 release documentation alone must not start '+name)
+    check(not visual_triggered(manager2_documentation, *manager2_release_tools, patterns=paths),
+          'the supported CLI-only release diff must not start '+name)
+    for runtime_path in ['manager2/index.php','manager2/workspace-style.php','manager2/workspace-chrome.php',
+                         'manager2/assets/manager2.js','manager2/assets/manager2.css','manager/index.php',
+                         'services/Manager2WorkspaceStyle.php']:
+        check(visual_triggered(runtime_path,patterns=paths),
+              'Manager2 reader and runtime need coverage for '+runtime_path+' in '+name)
+        check(visual_triggered(manager2_documentation,runtime_path,patterns=paths),
+              'Manager2 documentation must preserve runtime coverage for '+runtime_path+' in '+name)
+    check('workflow_dispatch' in events and visual_triggered('.github/workflows/'+name,patterns=paths),
+          'manual and workflow change coverage remain available for '+name)
 
 component_paths=json.loads(subprocess.check_output(['node','-e',"process.stdout.write(JSON.stringify([...require('./tools/ci_change_scope').TOUR_SELECTION_PATHS]))"],cwd=root))
 regression_document=load('regression-tests.yml')
@@ -431,7 +490,7 @@ check(production_scope['run'] == 'node tools/deploy_hotel_catalogue_scope.js'
       and dj['verify-syntax']['outputs'] == {'profile':'${{ steps.hotel_scope.outputs.profile }}'},
       'production catalogue scope is selected by one fatal, read-only source gate')
 production_inventory = next(s for s in dj['verify-inventory']['steps']
-                            if s.get('name') == 'Verify required inventory and architecture')
+                            if s.get('name') == 'Run assigned architecture checks')
 production_group = next(s for s in dj['verify-groups']['steps'] if s.get('name') == 'Run every required group in this lane')
 check(all(dj[job]['needs'] == 'verify-syntax' for job in ['verify-inventory','verify-groups'])
       and production_inventory['env']['DEPLOY_CHECK_PROFILE'] == profile_output
@@ -446,35 +505,48 @@ with tempfile.TemporaryDirectory() as stub_dir:
         '#!/usr/bin/env bash\nset -eu\n'
         'if [[ "$1" == tests/run_required_group.php ]]; then\n'
         '  shift\n  printf "%s\\n" "$*"\n'
+        '  if [[ "$*" == "${FAIL_CHECK:-}" ]]; then exit 17; fi\n'
         'else\n  printf "catalogue:%s\\n" "$1"\nfi\n'
     )
     php_stub.chmod(0o755)
     probe_env = {**os.environ, 'PATH': stub_dir + os.pathsep + os.environ['PATH']}
     for profile, group, expected in [
         ('hotel-catalogue-data','architecture','architecture hotel-catalogue-data'),
-        ('full','architecture','architecture'),
-        ('workspace-style','architecture','architecture'),
+        ('full','architecture','architecture ci-architecture-core'),
+        ('full','apple-coverage','architecture ci-apple-coverage'),
+        ('full','apple-device','architecture ci-apple-device'),
+        ('workspace-style','architecture','architecture ci-architecture-core'),
+        ('telegram-public-observer','architecture','architecture telegram-public-observer'),
         ('hotel-catalogue-data','website','website'),
     ]:
         probe = subprocess.run(['bash','-e','-c',pr_required['run']], capture_output=True, text=True,
             env={**probe_env, 'BACKEND_PROFILE':profile, 'REQUIRED_CHECK_GROUP':group})
         check(probe.returncode == 0 and probe.stdout.strip() == expected,
               'required group command for '+profile+'/'+group)
-    for profile in ['full','hotel-catalogue-data','']:
+    for profile, expected in [
+        ('full','architecture ci-apple-coverage'),
+        ('hotel-catalogue-data','architecture hotel-catalogue-data'),
+        ('telegram-public-observer','architecture telegram-public-observer'),
+        ('unknown', None),
+        ('', None),
+    ]:
         probe = subprocess.run(['bash','-e','-c',production_inventory['run']], capture_output=True, text=True,
             env={**probe_env, 'DEPLOY_CHECK_PROFILE':profile})
-        check((probe.returncode == 1 and not probe.stdout) if not profile else
-              (probe.returncode == 0 and probe.stdout.strip() == 'architecture '+profile),
+        check((probe.returncode == 1 and not probe.stdout) if expected is None else
+              (probe.returncode == 0 and probe.stdout.strip() == expected),
               'production architecture command for '+profile)
     for profile, lane, groups, expected in [
-        ('full','application','dialogue website manager',['dialogue','website','manager']),
+        ('full','application','dialogue website manager',
+            ['architecture ci-architecture-core','dialogue','website','manager']),
         ('hotel-catalogue-data','application','dialogue website manager',
             ['dialogue','website','catalogue:tests/run_manager_ai_draft_context_regression.php',
              'catalogue:tests/run_manager_ai_draft_context_regression.php',
              'catalogue:tests/run_manager_ai_draft_service_regression.php',
              'catalogue:tests/run_manager_preparation_mcp_regression.php']),
-        ('full','diagnostics','diagnostics',['diagnostics']),
+        ('full','diagnostics','diagnostics',['architecture ci-apple-device','diagnostics']),
         ('hotel-catalogue-data','diagnostics','diagnostics',['diagnostics']),
+        ('telegram-public-observer','application','dialogue website manager',['dialogue','website','manager']),
+        ('telegram-public-observer','diagnostics','diagnostics',['diagnostics']),
         ('','application','dialogue website manager',None),
         ('unknown','diagnostics','diagnostics',None),
     ]:
@@ -484,6 +556,16 @@ with tempfile.TemporaryDirectory() as stub_dir:
         check((probe.returncode == 1 and not probe.stdout) if expected is None else
               (probe.returncode == 0 and probe.stdout.splitlines() == expected),
               'actual deployment command routing for '+profile+'/'+lane)
+    for step, lane, groups, failed in [
+        (production_inventory, '', '', 'architecture ci-apple-coverage'),
+        (production_group, 'application', 'dialogue website manager', 'architecture ci-architecture-core'),
+        (production_group, 'diagnostics', 'diagnostics', 'architecture ci-apple-device'),
+    ]:
+        probe = subprocess.run(['bash','-e','-c',step['run']], capture_output=True, text=True,
+            env={**probe_env, 'DEPLOY_CHECK_PROFILE':'full', 'DEPLOY_CHECK_LANE':lane,
+                 'DEPLOY_CHECK_GROUPS':groups, 'FAIL_CHECK':failed})
+        check(probe.returncode == 17 and probe.stdout.splitlines() == [failed],
+              'failed architecture lane stops its production job: '+failed)
 check(dj['verify']['needs'] == 'deploy', 'verification cannot precede installation')
 vs = dj['verify']['steps']
 admit = next(i for i,s in enumerate(vs) if s.get('id') == 'admission')
@@ -529,5 +611,3 @@ check("format('monitor-proof:v1:{0}:{1}', github.event.workflow_run.id, github.e
       'activation provenance follows the exact original monitor')
 
 print(f'PASS {checks} workflow selection and gate cases')
-
-

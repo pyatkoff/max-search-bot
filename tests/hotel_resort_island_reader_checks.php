@@ -90,6 +90,31 @@ try {
     $negative=static function(string $name,callable $change,string $reason) use($core,$bundle,$entry,$native,$retained,$install,$read,$expect):void {
         $c=$core;$b=$bundle;$e=$entry;$change($c,$b,$e);$install($c,$b,$e);$expect($name,$read($native,$retained),$reason);
     };
+    $group=$core;
+    $group['identity_anchor']['schema_version']='resort_island_group_anchor_v1';
+    $group['identity_anchor']['locality']=['kind'=>'resort_island_group',
+        'property_labels'=>['First Island','Second Island','Third Island'],'admin_atoll'=>null];
+    $group['identity_anchor']['postal_code']=null;
+    $groupBundle=$bundle;
+    $groupBundle['sources']=[$property];
+    $install($group,$groupBundle,$entry);
+    foreach($read($native,$retained) as $type=>$reference) {
+        islandNeed($reference['status']==='available'&&$reference['binding_revision']===$hash($group)
+            &&$reference['facts']===json_decode($canon([$fact]),true)
+            &&$reference['sources']===json_decode($canon([$property]),true),'group '.$type);
+    }
+    $invalidGroup=$group;
+    $invalidGroup['identity_anchor']['locality']['property_labels'][2]='first island';
+    $install($invalidGroup,$groupBundle,$entry);
+    $expect('duplicate group label',$read($native,$retained),'manifest_invalid');
+    $invalidGroup=$group;
+    $invalidGroup['identity_anchor']['locality']['admin_atoll']='Inferred atoll';
+    $install($invalidGroup,$groupBundle,$entry);
+    $expect('unproved group admin atoll',$read($native,$retained),'manifest_invalid');
+    $staleGroupBundle=$groupBundle;
+    $staleGroupBundle['sources'][0]['url']='https://property.example/revised';
+    $install($group,$staleGroupBundle,$entry);
+    $expect('resealed group without approved source',$read($native,$retained),'bundle_invalid');
     $negative('unknown anchor version',function(&$c){$c['identity_anchor']['schema_version']='future';},'manifest_invalid');
     $negative('unknown locality type',function(&$c){$c['identity_anchor']['locality']['kind']='archipelago';},'manifest_invalid');
     $negative('mixed city and island',function(&$c){$c['identity_anchor']['city']='Postal City';},'manifest_invalid');

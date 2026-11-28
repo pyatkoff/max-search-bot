@@ -73,7 +73,7 @@ $checks = [
     'structured history containment runs in exact checkout sync before migrations' =>
         $reset!==false&&$contain!==false&&$reset<$contain
         && substr_count($sync,'php tools/structured_runtime_log_smoke.php;')===1
-        && str_contains($sync,"= '\$EXPECTED_SHA'; php tools/structured_runtime_log_smoke.php;")
+        && str_contains($sync,"= '\$EXPECTED_SHA'; exec 8<&-; php tools/structured_runtime_log_smoke.php;")
         && str_contains($workflow,"if: steps.sync.outcome == 'success'"),
     'early anonymous structured log probe discards headers and accepts only denied or missing' =>
         $anonymousFence && $preflight!==false && $upload!==false && $postflight!==false

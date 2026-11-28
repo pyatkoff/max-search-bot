@@ -22,6 +22,7 @@ const currentId = refusedId + 1;
 const head = 'b'.repeat(40);
 const indexes = readJson('config/anytour_ranked_approved_indexes.json');
 const dataHead = 'd'.repeat(40);
+const newerMain = 'a'.repeat(40);
 const digestOf = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 
 function detachedCase(name) {
@@ -119,6 +120,13 @@ function offlineFetch(digest) {
       ]).get(file) : fs.readFileSync(path.join(root,file));
       assert.ok(bytes, 'Unexpected config in the exact data commit');
       data = {type:'file',path:file,size:bytes.length,encoding:'base64',content:bytes.toString('base64'),sha:R.gitBlob(bytes)};
+    } else if (['parallel','editor_changed','incomplete'].includes(scenario) && route === '/git/ref/heads/main') {
+      data = {object:{sha:newerMain}};
+    } else if (['parallel','editor_changed','incomplete'].includes(scenario)
+        && route === '/compare/' + head + '...' + newerMain) {
+      data = {status:'ahead',total_commits:scenario === 'incomplete' ? 2 : 1,merge_base_commit:{sha:head},
+        commits:[{sha:newerMain}],files:[{status:'modified',filename:scenario === 'editor_changed'
+          ? 'tools/anytour_existing_post_batch.php' : 'tools/appleservice39_catalogue_release.js'}]};
     } else if (route === '/git/ref/heads/' + branch) {
       data = {object:{sha:sourceHead}};
     } else if (detached && route === '/git/commits/' + dataHead) {
@@ -415,7 +423,7 @@ try {
         assert.equal(values[field('PARENT_EVIDENCE')], undefined);
       }
     }
-    for (const scenario of ['a','b','parent','scope','stale']) {
+    for (const scenario of ['a','b','parallel','editor_changed','incomplete','parent','scope','stale']) {
       const data = detachedCase(scenario);
       const ref = 'refs/heads/' + data.branch;
       const output = path.join(temp,'detached-' + scenario), eventPath = output + '.json';
@@ -430,7 +438,8 @@ try {
         GITHUB_JOB:'transfer', GITHUB_RUN_ATTEMPT:'1', GITHUB_WORKFLOW_REF:R.REPOSITORY + '/' + editor + '@' + ref,
         GITHUB_RUN_ID:String(currentId)
       }});
-      const refusal = {parent:'ranked_data_parent_changed',scope:'ranked_data_scope_changed',
+      const refusal = {editor_changed:'ranked_data_release_affects_editor',incomplete:'ranked_data_release_affects_editor',
+        parent:'ranked_data_parent_changed',scope:'ranked_data_scope_changed',
         stale:'ranked_data_native_base_changed'}[scenario];
       if (refusal) {
         assert.notEqual(child.status,0);
@@ -441,6 +450,7 @@ try {
       const values = new Map(fs.readFileSync(output,'utf8').trimEnd().split('\n').map(line => line.split('=')));
       assert.equal(values.get(field('REPOSITORY_SHA')),head);
       assert.equal(values.get(field('APPLICATION_SHA')),head);
+      assert.equal(values.get(field('CONTROL_SHA')),scenario === 'parallel' ? newerMain : head);
       assert.equal(values.get(field('DATA_SHA')),dataHead);
       assert.equal(values.get(field('DATA_INDEX_PATH')),data.indexPath);
       assert.equal(values.get(field('INDEX_SHA')),data.digest);

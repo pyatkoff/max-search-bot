@@ -48,18 +48,25 @@
     const doc=win.document,cfg=JSON.parse(doc.getElementById('funnel-config').textContent),el=id=>doc.getElementById(id),pause=ms=>new Promise(r=>win.setTimeout(r,ms));
     const telegram=cfg.platform==='telegram',messenger=telegram?'Telegram':'MAX';
     const bridge=()=>telegram?win.Telegram?.WebApp:win.WebApp;
-    let busy=false,ctx,bridgeScript,metric=false;
+    const continueLink=el('continue');
+    let busy=false,ctx,bridgeScript,metric=false,confirmedMaxPost='';
     function load(src){const s=doc.createElement('script');s.src=src;s.async=true;doc.head.appendChild(s);return s;}
     function status(title,text,loading=false){el('status-title').textContent=title;el('status-copy').textContent=text;doc.querySelector('main').setAttribute('aria-busy',String(loading));}
     // Match the installed MAX2 paid-visit measurement and navigation contract for Apple/MAX only.
     function appleMaxPaid(){return !telegram&&cfg.project==='appleservice39'&&ctx?.payload.kind==='advertising';}
+    continueLink.addEventListener('click',event=>{
+      if(!confirmedMaxPost)return;
+      const max=bridge();
+      if(typeof max?.openMaxLink!=='function')return;
+      try{max.openMaxLink(confirmedMaxPost);event.preventDefault();}catch(_){}
+    });
     async function cid(){
       if(!cfg.counter_id||ctx.payload.kind!=='advertising')return'';
       if(!metric){metric=true;win.ym=win.ym||function(){(win.ym.a=win.ym.a||[]).push(arguments);};win.ym.l=Date.now();const opts={clickmap:false,trackLinks:false,webvisor:false};if(appleMaxPaid()){opts.url=ctx.metric;opts.referrer='';}win.ym(cfg.counter_id,'init',opts);load('https://mc.yandex.ru/metrika/tag.js');if(appleMaxPaid())win.ym(cfg.counter_id,'notBounce');}
       return await new Promise(resolve=>{let done=false;const end=v=>{if(!done){done=true;resolve(typeof v==='string'&&/^[1-9][0-9]{0,39}$/.test(v)?v:'');}};win.setTimeout(()=>end(''),3000);win.ym(cfg.counter_id,'getClientID',end);});
     }
     async function run(){
-      if(busy)return;busy=true;el('retry').hidden=true;el('continue').hidden=true;status('Открываем предложение','Подготавливаем переход к публикации в '+messenger+'…',true);
+      if(busy)return;busy=true;confirmedMaxPost='';el('retry').hidden=true;continueLink.hidden=true;status('Открываем предложение','Подготавливаем переход к публикации в '+messenger+'…',true);
       try{
         if(!bridge()&&!bridgeScript){bridgeScript=load(telegram?'https://telegram.org/js/telegram-web-app.js':'https://st.max.ru/js/max-web-app.js');bridgeScript.onload=()=>{try{bridge()?.ready?.();}catch(_){}};bridgeScript.onerror=()=>{bridgeScript?.remove();bridgeScript=null;};}
         if(!ctx){const until=Date.now()+2000;let next;do{next=context(win.location.href,bridge(),cfg.platform);if(next.init_data)break;await pause(100);}while(Date.now()<until);
@@ -71,14 +78,18 @@
 
         if(telegram && ctx.start_param==='' && cfg.catalogue_url===cfg.channel_url &&
           /^https:\/\/t\.me\/[A-Za-z0-9_]{3,100}$/.test(cfg.catalogue_url)){
-          const link=el('continue');
-          link.href=cfg.catalogue_url;link.textContent='Открыть каталог';link.hidden=false;
+          continueLink.href=cfg.catalogue_url;continueLink.textContent='Открыть каталог';continueLink.hidden=false;
           status('Каталог AppleService39','Выберите услугу в нашем Telegram-канале.');
           return;
         }
         const client_id=await cid(),controller=new AbortController(),timer=win.setTimeout(()=>controller.abort(),10000);
         let data;try{const res=await win.fetch(ctx.clean,{method:'POST',credentials:'same-origin',cache:'no-store',headers:{'Content-Type':'application/json'},body:JSON.stringify({init_data:ctx.init_data,start_param:ctx.start_param,client_id}),signal:controller.signal});data=await res.json();if(!res.ok||!receipt(data,ctx,cfg))throw Error('save_failed');}finally{win.clearTimeout(timer);}
-        el('continue').href=data.redirect_url;el('continue').hidden=false;status('Готово','Открываем выбранную публикацию…');
+        continueLink.href=data.redirect_url;continueLink.hidden=false;
+        if(appleMaxPaid()){
+          confirmedMaxPost=data.redirect_url;
+          continueLink.textContent='Открыть в MAX';
+          status('Предложение готово','Если публикация не открылась, нажмите «Открыть в MAX».');
+        }else status('Готово','Открываем выбранную публикацию…');
         if(metric)win.ym(cfg.counter_id,'notBounce');
         let opened=false;
         const open=telegram?'openTelegramLink':'openMaxLink';
