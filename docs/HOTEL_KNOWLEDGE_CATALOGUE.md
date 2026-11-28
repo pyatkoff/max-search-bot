@@ -156,6 +156,19 @@ fails with `EEXIST`. The active pointer is untouched.
 Activation uses the separately admitted package digest. The working publisher
 checks the installed application and reader before using the package.
 
+### Resorts spanning multiple islands
+
+`resort_island_group_anchor_v1` keeps one accepted hotel identity and its
+existing source chain. Its `locality` has `kind: resort_island_group`, a list
+of distinct `property_labels`, and `admin_atoll: null`. The property's own
+published atoll label stays in `property_atoll_label`. The official source
+record for the whole property must match the anchor's URL and SHA-256. The
+existing `resort_island_anchor_v1` still requires its separate authority source.
+
+These names describe the whole property. Room categories and offer-to-island
+observations require their own evidence. Both readers use the same approved
+binding and bundle, including the existing limits and source hashes.
+
 ## Activate and roll back through the HOTEL publisher
 
 Run the CLI under the existing HOTEL publisher account with the canonical
