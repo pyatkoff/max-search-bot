@@ -69,7 +69,8 @@ class RouteCandidateOrigin(unittest.TestCase):
                         raise ValueError('late archive unavailable')
                     return {'public': {'artifact_id': '202'}}
 
-                merge = SimpleNamespace(LATE_PUBLIC_RECEIPTS={'567': {'early_observer': 456, 'native': '123'}},
+                merge = SimpleNamespace(LATE_PUBLIC_RECEIPTS={'567': {'observed_on': '2026-11-28',
+                                                                    'early_observer': 456, 'native': '123'}},
                                         stage_original=stage_original)
                 now = SimpleNamespace(now=lambda _: datetime(2026, 11, 28, tzinfo=timezone.utc))
                 with patch.dict(sys.modules, {'merge_ranked_telegram_routes': merge}), patch.object(source, 'datetime', now), \
