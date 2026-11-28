@@ -53,8 +53,20 @@ def verified(artifact, observer, body):
 def collect(out, feed):
     out.mkdir(parents=True, exist_ok=False)
     collected = []
+    recovered_native = {}
     # Producer artifacts have seven days of retention; include one extra day at the UTC boundary.
     oldest = (datetime.now(timezone.utc) - timedelta(days=8)).date().isoformat()
+    if oldest <= '2026-11-26':
+        from merge_ranked_telegram_routes import LATE_PUBLIC_RECEIPTS, stage_original
+        for run_id, receipt in LATE_PUBLIC_RECEIPTS.items():
+            try:
+                with tempfile.TemporaryDirectory() as work:
+                    report = stage_original(run_id, feed.resolve(), Path(work))
+                (out / f'{run_id}-late-original.json').write_text(json.dumps(report) + '\n')
+                collected.append({'observer_run': int(run_id), 'original_public_artifact': report['public']['artifact_id']})
+                recovered_native[receipt['early_observer']] = receipt['native']
+            except (ValueError, RuntimeError, OSError, KeyError, subprocess.SubprocessError, zipfile.BadZipFile) as err:
+                collected.append({'observer_run': int(run_id), 'rejected': type(err).__name__})
     # The archive must come from this exact completed observer, including partial native success.
     for page in range(1, 6):
         runs = api(f'actions/workflows/read-ranked-telegram-public.yml/runs?event=workflow_run&status=completed&created=%3E%3D{oldest}&per_page=100&page={page}')['workflow_runs']
@@ -100,6 +112,11 @@ def collect(out, feed):
                                  and str(p['id'])==str(public['artifact_id']) and p['digest']=='sha256:'+public['artifact_sha256']]
                     if len(companion) != 1:
                         raise ValueError('original public readback artifact mismatch')
+                    if (recovered_native.get(run['id']) == info['native']['run_id']
+                            and all(info.get(key) == [] for key in ('changes', 'already_configured', 'held'))):
+                        collected.append({'observer_run':run['id'], 'artifact_id':artifact['id'],
+                                          'superseded_empty_candidate':True})
+                        continue
                     (out / f"{run['id']}-{artifact['id']}.json").write_bytes(raw)
                     collected.append({'observer_run': run['id'], 'artifact_id': artifact['id'], 'digest': artifact['digest']})
                 except (ValueError, RuntimeError, OSError, KeyError, subprocess.SubprocessError, zipfile.BadZipFile) as err:
