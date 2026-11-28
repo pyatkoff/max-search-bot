@@ -19,8 +19,10 @@ try{
         $prior=is_array($old)&&(($old['last_notification_at']??null)!==null||($old['notification']??null)==='unknown');
         echo json_encode(['schema_version'=>1,'project'=>'anytour','counter_id'=>'98615635','token'=>$token,
             'previous_state_recorded'=>$prior],JSON_THROW_ON_ERROR).PHP_EOL;
-    }elseif($operation==='availability'){
-        $availability=ModeledConversionPipelineMonitorStatus::availability(time());
+    }elseif($operation==='availability'||$operation==='release-availability'){
+        $availability=$operation==='release-availability'
+            ?ModeledConversionPipelineMonitorStatus::technicalAvailability(time())
+            :ModeledConversionPipelineMonitorStatus::availability(time());
         if($availability===null){
             // No cutover marker: preserve the complete legacy SQL health check.
             ProjectAccessService::initializeReadOnly();$p=ConversationDb::connection();

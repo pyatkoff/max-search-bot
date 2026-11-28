@@ -139,8 +139,21 @@ check('test "$REQUIRED_RESULT" = success' in observer_gate
       and 'test "$PREPARED_MYSQL_RESULT" = success' in observer_gate
       and 'test "$APPLESERVICE39_MYSQL_RESULT" = skipped' in observer_gate,
       'observer excludes the pilot native fixture and keeps the whole shared stack')
-check('native-mysql' not in load('publish-appleservice39-pilot.yml')['jobs'],
+apple_publisher = load('publish-appleservice39-pilot.yml')
+check('native-mysql' not in apple_publisher['jobs'],
       'pilot native fixture has one mandatory aggregate owner')
+apple_events = apple_publisher.get('on', apple_publisher.get(True))
+check(set(apple_events) == {'push', 'workflow_dispatch'}
+      and apple_publisher['jobs']['publish']['needs'] == 'regression',
+      'standalone Apple publisher still gates each publication and no longer repeats PR CI')
+apple_preflight = next(s for s in apple_publisher['jobs']['regression']['steps'] if 'run' in s)
+apple_checks = [line for line in apple_preflight['run'].splitlines() if line.startswith('php tests/')]
+architecture_manifest = (root/'tests/required_checks_manifest.php').read_text().split("'architecture' => [", 1)[1].split('    ],', 1)[0]
+check(len(apple_checks) == len(set(apple_checks)) == 6
+      and all("'" + command + "'" in architecture_manifest for command in apple_checks)
+      and 'php -l tools/publish_appleservice39_pilot.php' in apple_preflight['run']
+      and not apple_preflight.get('if') and not apple_preflight.get('continue-on-error'),
+      'all publishing regressions belong to mandatory architecture and the real publisher keeps its own preflight')
 scope_document = load('ci-change-scope.yml')
 scope_events = scope_document.get('on',scope_document.get(True))
 check(scope_events['workflow_call']['outputs']['backend']['value'] == '${{ jobs.scope.outputs.backend }}'
