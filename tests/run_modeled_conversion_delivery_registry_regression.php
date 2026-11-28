@@ -327,6 +327,22 @@ function dailyReconciliationAssertions(PDO $p,callable $check):void
             &&(int)round($whole['calendar']['accruals']['by_platform']['max']['value_rub']*100)===14833321
             &&(int)round($whole['calendar']['accruals']['by_platform']['telegram']['value_rub']*100)===14500010
             &&!$p->inTransaction());
+
+        // The exact native binding must still include the oldest admitted rows after crossing 1000.
+        // Keep this synthetic growth inside a rollback to avoid disturbing subsequent fixtures.
+        $growthBefore=deliveryRegistryDataDigest($p);$p->beginTransaction();
+        try{
+            $growthLast='';
+            for($i=3000;$i<3800;$i++)$growthLast=$event($i,1,$from+$i);
+            $visitLedger=ModeledConversionVisitProof::ledger($p);
+            $visitIds=array_map('strval',array_column($visitLedger,'id'));
+            $check('visit proof reads the complete scoped ledger beyond its former 1000-row ceiling',
+                count($visitLedger)>1000&&count($visitLedger)<=ModeledConversionVisitProof::MAX_LEDGER_ROWS
+                &&count($visitIds)===count(array_unique($visitIds))
+                &&in_array($ids['400:1'],$visitIds,true)&&in_array($growthLast,$visitIds,true));
+        }finally{if($p->inTransaction())$p->rollBack();}
+        $check('synthetic >1000-row SQL proof does not alter the fixture ledger',
+            deliveryRegistryDataDigest($p)===$growthBefore&&!$p->inTransaction());
     }finally{
         if($p->inTransaction())$p->rollBack();
         foreach(['max_channel_conversion_outbox','modeled_conversion_profile_versions','conversations','customer_channels','customers']as$table)$p->exec('DELETE FROM '.$table);
@@ -356,6 +372,27 @@ function deliveryPredictiveAndVisitAssertions(PDO $p,callable $check):void
         }
     };
     $ledger=[$legacy,$a,$b];$before=serialize($ledger);
+    $expanded=[];
+    for($i=1;$i<=1002;$i++){
+        $row=$legacy;$row['id']=(string)$i;$row['upload_id']=null;
+        $row['value_api_accepted_at_unix']=null;$row['value_processed_at_unix']=null;
+        $row['upload_status']=null;$row['state']='pending';$expanded[]=$row;
+    }
+    $priorCalls=count($api->calls);
+    $expandedProof=ModeledConversionVisitProof::verify($expanded,$api,$day,$day+500,$now,[]);
+    $expandedDay=ModeledConversionVisitProof::dailySentCohort($expanded,[],$now,static fn(array $r):array=>[]);
+    $check('a complete 1002-row scoped ledger has a valid bounded empty-visit proof',
+        $expandedProof['ledger_complete']===true&&$expandedProof['selected_rows']===0
+        &&$expandedProof['other_rows_omitted']===1002&&$expandedDay['ledger_complete']===true
+        &&count($api->calls)===$priorCalls);
+    $overflow=false;$overflowDay=false;
+    $tooLarge=array_fill(0,ModeledConversionVisitProof::MAX_LEDGER_ROWS+1,$legacy);
+    try{ModeledConversionVisitProof::verify($tooLarge,$api,$day,$day+500,$now,[]);}
+    catch(InvalidArgumentException $e){$overflow=$e->getMessage()==='verification_scope';}
+    try{ModeledConversionVisitProof::dailySentCohort($tooLarge,[],$now);}
+    catch(RuntimeException $e){$overflowDay=$e->getMessage()==='verification_daily_scope';}
+    $check('overflow above the finite bound fails closed in both visit proof and calendar without API calls',
+        $overflow&&$overflowDay&&count($api->calls)===$priorCalls);
     $proof=ModeledConversionVisitProof::verify($ledger,$api,$day,$day+500,$now);
     $check('visit proof reconciles a predictive increment together with the legacy amount in one exact visit',
         $proof['events'][0]['increment_rub']===17&&$proof['events'][0]['linkage']==='unique_visit_reconciled'
