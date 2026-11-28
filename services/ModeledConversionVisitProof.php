@@ -74,9 +74,7 @@ final class ModeledConversionVisitProof
                 continue;
             }
             if($r['target']!==ModeledConversionValueContract::predictionKey((string)$r['value_profile_id']))throw new RuntimeException('verification_binding');
-            $accepted=(int)($r['value_api_accepted_at_unix']??0);
-            $in=$accepted>0&&$accepted<=$checkpoint&&($r['value_processed_at_unix']===null||(int)$r['value_processed_at_unix']>$checkpoint);
-            if($in)$cohort[]=$r;else $other[]=$r;
+            if(self::isOriginalCohortRow($r,$checkpoint))$cohort[]=$r;else $other[]=$r;
         }
         if(count($cohort)>self::MAX_ROWS)throw new RuntimeException('verification_cohort_bound');
         if($selectedIds!==null){
@@ -252,15 +250,45 @@ final class ModeledConversionVisitProof
         $a['attribution_source']=$window['source_class'];$a['window_days']=$window['window_days'];
         return $a;
     }
+    private static function isOriginalCohortRow(array $row,int $checkpoint):bool
+    {
+        $accepted=(int)($row['value_api_accepted_at_unix']??0);
+        return str_starts_with((string)($row['target']??''),'anytour_value_pred_')&&$accepted>0&&$accepted<=$checkpoint
+            &&($row['value_processed_at_unix']===null||(int)$row['value_processed_at_unix']>$checkpoint);
+    }
+
+    /** Retain only evidence that verify() can consume from the original cohort. */
+    public static function retainedOriginalCohort(array $ledger,array $cache,int $checkpoint,int $now,callable $prior):array
+    {
+        $receipt=($cache['available']??false)?$cache['receipt']:null;
+        $cachedEvents=array_column($receipt['events']??[],null,'fingerprint');
+        $retained=[];
+        foreach($ledger as$row){
+            if(!self::isOriginalCohortRow($row,$checkpoint))continue;
+            $old=$prior($row);
+            if($old===[]&&$cachedEvents!==[]){
+                $cached=$cachedEvents[self::fingerprint($row)]??null;
+                if($cached!==null)$old=['at'=>strtotime($cached['checked_at']??$receipt['checked_at']),'event'=>$cached];
+            }
+            $event=$old['event']??[];
+            $terminal=($event['linkage']??null)==='unique_visit_reconciled'
+                ||(($event['upload_status']??null)==='LINKAGE_FAILURE'&&!in_array($event['reason']??null,
+                    ['provider_linkage_failure','client_visit_report_unavailable'],true));
+            if($terminal&&$now-($old['at']??0)<86400){
+                $event['checked_at']=gmdate('Y-m-d\\TH:i:s\\Z',$old['at']);
+                $retained[(string)$row['id']]=$event;
+            }
+        }
+        return $retained;
+    }
+
     /** Newest half plus oldest unchecked half; stable terminal evidence is rechecked daily. */
     public static function dueIds(array $ledger,int $checkpoint,int $now,callable $prior,int $batch=26):array
     {
         $due=[];$urgent=[];$repairs=[];$repairKeys=[];$cohort=0;
         foreach($ledger as$r){
             if(!ModeledConversionValueContract::isKey($r['target']??null)||empty($r['upload_id']))continue;
-            $accepted=(int)($r['value_api_accepted_at_unix']??0);
-            if(str_starts_with((string)$r['target'],'anytour_value_pred_')&&$accepted>0&&$accepted<=$checkpoint
-                &&($r['value_processed_at_unix']===null||(int)$r['value_processed_at_unix']>$checkpoint)){$cohort++;continue;}
+            if(self::isOriginalCohortRow($r,$checkpoint)){$cohort++;continue;}
             $old=$prior($r);$at=(int)($old['at']??0);$e=$old['event']??[];
             $journal=ModeledConversionWireValue::read($r);
             if($journal!==null&&isset($journal['members'][(string)$r['id']])

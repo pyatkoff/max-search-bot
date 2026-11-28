@@ -41,19 +41,9 @@ try{
             if($scheduled){
                 $cutoff=($cache['available']??false)?strtotime($cache['receipt']['checkpoint_at']):$activation;
                 if(!is_int($cutoff))throw new RuntimeException();
-                foreach($ledger as$r){
-                    $old=ModeledConversionVisitProof::prior($r,$now);
-                    if($old===[]&&($cache['available']??false))foreach($cache['receipt']['events']as$e)
-                        if($e['fingerprint']===ModeledConversionVisitProof::fingerprint($r))$old=['at'=>strtotime($e['checked_at']??$cache['receipt']['checked_at']),'event'=>$e];
-                    $e=$old['event']??[];
-                    $terminal=($e['linkage']??null)==='unique_visit_reconciled'
-                        ||(($e['upload_status']??null)==='LINKAGE_FAILURE'&&!in_array($e['reason']??null,['provider_linkage_failure','client_visit_report_unavailable'],true));
-                    if($terminal&&$now-($old['at']??0)<86400){
-                        $e['checked_at']=gmdate('Y-m-d\\TH:i:s\\Z',$old['at']);$retained[(string)$r['id']]=$e;
-                    }
-                }
-                $ids=ModeledConversionVisitProof::dueIds($ledger,$cutoff,$now,
-                    static fn(array $r):array=>ModeledConversionVisitProof::prior($r,$now),2);
+                $priorForRow=static fn(array $row):array=>ModeledConversionVisitProof::prior($row,$now);
+                $retained=ModeledConversionVisitProof::retainedOriginalCohort($ledger,$cache,$cutoff,$now,$priorForRow);
+                $ids=ModeledConversionVisitProof::dueIds($ledger,$cutoff,$now,$priorForRow,2);
             }else $cutoff=$checkpoint->getTimestamp();
             $followup=($cache['available']??false)&&is_string($cache['receipt']['followup_checkpoint_at']??null)
                 ?strtotime($cache['receipt']['followup_checkpoint_at']):false;
