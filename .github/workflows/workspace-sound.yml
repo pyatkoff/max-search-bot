@@ -67,10 +67,13 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           node /opt/manager2-qa/verify-runtime.js --require-source
       - name: Sound controller unit regression
+        if: matrix.browser == 'chromium'
         run: node tests/notification-sound/client.unit.js
       - name: Read-only authentication bootstrap regression
+        if: matrix.browser == 'chromium'
         run: php tests/notification-sound/bootstrap-readonly.php
       - name: Read-only feed regression
+        if: matrix.browser == 'chromium'
         run: php tests/notification-sound/feed.php
       - name: Start static fixtures
         if: success() || failure()

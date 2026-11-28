@@ -390,6 +390,9 @@ HOTEL;
         if (!array_key_exists('schema_version', $anchor)) {
             return self::keys($anchor, [...$common, 'city']) && self::text($anchor['city'] ?? null, 160);
         }
+        if ($anchor['schema_version'] === 'resort_island_group_anchor_v1') {
+            return self::validIslandGroup($anchor, $common);
+        }
         if (!self::keys($anchor, [...$common, 'schema_version','locality','property_atoll_label','postal_code'])
             || $anchor['schema_version'] !== 'resort_island_anchor_v1' || $anchor['country'] !== 'Maldives'
             || !self::text($anchor['property_atoll_label'], 160)
@@ -400,6 +403,26 @@ HOTEL;
             && self::identifier($place['authority_source_id']) && self::hex($place['authority_source_record_sha256'])
             && $place['authority_source_id'] !== $anchor['research_source_id']
             && $place['authority_source_record_sha256'] !== $anchor['research_source_record_sha256'];
+    }
+
+    private static function validIslandGroup(array $anchor, array $common): bool
+    {
+        if (!self::keys($anchor, [...$common, 'schema_version','locality','property_atoll_label','postal_code'])
+            || $anchor['country'] !== 'Maldives' || !self::text($anchor['property_atoll_label'], 160)
+            || ($anchor['postal_code'] !== null && !self::text($anchor['postal_code'], 32))) return false;
+        $group = $anchor['locality'];
+        if (!is_array($group) || !self::keys($group, ['kind','property_labels','admin_atoll'])
+            || $group['kind'] !== 'resort_island_group' || $group['admin_atoll'] !== null
+            || !is_array($group['property_labels']) || !array_is_list($group['property_labels'])
+            || count($group['property_labels']) < 2 || count($group['property_labels']) > 8) return false;
+        $unique = [];
+        foreach ($group['property_labels'] as $label) {
+            if (!self::text($label, 160)) return false;
+            $key = self::foldName($label);
+            if ($key === '' || isset($unique[$key])) return false;
+            $unique[$key] = true;
+        }
+        return true;
     }
 
     private static function validApproval($approval): bool
@@ -464,13 +487,16 @@ HOTEL;
         $anchor = $core['identity_anchor'];
         if (isset($anchor['locality'])) {
             $propertyId = $anchor['research_source_id'];
-            $place = $anchor['locality'];
-            $authorityId = $place['authority_source_id'];
             $hashes = $bundle['record_hashes']['sources'];
             if (($hashes[$propertyId] ?? null) !== $anchor['research_source_record_sha256']
-                || ($hashes[$authorityId] ?? null) !== $place['authority_source_record_sha256']
-                || $sources[$propertyId]['kind'] !== 'official' || $sources[$authorityId]['kind'] !== 'official'
-                || $sources[$propertyId]['url'] !== $anchor['official_url']
+                || $sources[$propertyId]['kind'] !== 'official'
+                || $sources[$propertyId]['url'] !== $anchor['official_url']) return false;
+            // These labels describe the property without assigning rooms or an administrative atoll.
+            if ($anchor['schema_version'] === 'resort_island_group_anchor_v1') return true;
+            $place = $anchor['locality'];
+            $authorityId = $place['authority_source_id'];
+            if (($hashes[$authorityId] ?? null) !== $place['authority_source_record_sha256']
+                || $sources[$authorityId]['kind'] !== 'official'
                 || strtolower(parse_url($sources[$authorityId]['url'], PHP_URL_HOST))
                     === strtolower(parse_url($anchor['official_url'], PHP_URL_HOST))) return false;
         }

@@ -1357,9 +1357,16 @@ test('FUN&SUN native numeric gallery survives its canonical navigation with exac
  const source=await sourceFixture(page,{canonical:true});await collectorSourceRuntime(page);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'✓ В подборке',exact:true})).toBeVisible();expect(await page.evaluate(()=>collectorStaged[0].observation.photos)).toEqual(source.nativePhotos);expect(source.galleryRequests).toContain('https://b2b.fstravel.com/hotel/10');expect(source.galleryRequests).toContain('https://b2b.fstravel.com/hotel/europe/turkey/synthetic-hotel');expect(source.calls).toEqual([]);expect(await page.locator('iframe').count()).toBe(0);
 });
 test('FUN&SUN retries one incomplete gallery before its single import',async({page})=>{
- test.setTimeout(45000);
+ await page.clock.install();
  const source=await sourceFixture(page,{canonical:true,incompleteGalleryOnce:true});await collectorSourceRuntime(page);await page.addScriptTag({path:path.join(root,'extensions/selection-collector/content.js')});
- await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();await expect(page.getByRole('button',{name:'✓ В подборке',exact:true})).toBeVisible({timeout:25000});
+ await page.getByRole('button',{name:'В подборку AnyTour',exact:true}).click();
+ const firstGallery=page.frameLocator('iframe');
+ await expect(firstGallery.locator('.hotel_name')).toHaveText('Синтетический отель');
+ await expect(firstGallery.locator('img.slider-img')).toHaveCount(0);
+ expect(source.galleryRequests).toEqual(['https://b2b.fstravel.com/hotel/10']);
+ expect(await page.evaluate(()=>collectorStaged)).toHaveLength(0);
+ await page.clock.runFor(16000);
+ await expect(page.getByRole('button',{name:'✓ В подборке',exact:true})).toBeVisible();
  const staged=await page.evaluate(()=>collectorStaged),commands=await page.evaluate(()=>collectorRequests);
  expect(staged).toHaveLength(1);expect(staged[0].observation.photos).toEqual(source.nativePhotos);expect(staged[0].observation.offer.amount).toBe('237017');
  expect(commands.filter(x=>x.type==='begin_add')).toHaveLength(1);expect(commands.filter(x=>x.type==='enqueue')).toHaveLength(1);

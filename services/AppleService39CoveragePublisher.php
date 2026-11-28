@@ -172,12 +172,16 @@ final class AppleService39CoveragePublisher
         $parent = $this->device() ? $this->deviceParents() : $this->call('parents', $override);
         if (!$this->device()) self::check(count($parent['addresses']) === 30 && $parent['verified'] === 8, 'coverage_parent_incomplete');
         $addresses = $parent['addresses']; $mids = $parent['mids']; $verified = 0;
-        foreach ($this->store->rows() as $row) {
-            if (!$this->revision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
-            self::check(in_array($row['state'], ['prepared','write_started','unknown','verified'], true)
-                && (int)$row['write_attempts'] === ($row['state'] === 'prepared' ? 0 : 1)
-                && $row['request'] === $this->request($row['post_key'], $row['operation'])
-                && $row['payload_sha256'] === self::hash($row['request']), 'coverage_revision_changed');
+        if ($this->device()) {
+            foreach ($this->store->rows() as $row) {
+                if (!$this->revision::isOperation($row['post_key'], $row['operation'], $row['request'])) continue;
+                self::check(in_array($row['state'], ['prepared','write_started','unknown','verified'], true)
+                    && (int)$row['write_attempts'] === ($row['state'] === 'prepared' ? 0 : 1)
+                    && $row['request'] === $this->request($row['post_key'], $row['operation'])
+                    && $row['payload_sha256'] === self::hash($row['request']), 'coverage_revision_changed');
+            }
+        } else {
+            $this->store->validateCoverageSnapshotRequests();
         }
         $devicePhotos = []; $operations = []; $candidates = []; $recorded = [];
         foreach ($this->revision->order() as $id) {
