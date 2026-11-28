@@ -4,6 +4,7 @@ require_once dirname(__DIR__) . '/services/ChannelPostRegistryService.php';
 require_once dirname(__DIR__) . '/services/ChannelPostAutomationService.php';
 require_once dirname(__DIR__) . '/integrations/ChannelPostIncomingAdapter.php';
 require_once __DIR__ . '/fixtures/channel_post_registry_fixture.php';
+require_once dirname(__DIR__) . '/tools/anytour_existing_post_batch.php';
 
 $passed = 0;
 function postCheck(string $name, bool $condition): void
@@ -725,7 +726,7 @@ $secondBindingRow = [
 ];
 
 $bindingBefore = $readBindingTables();
-$bindingCheck = $bindingRegistry->restoreTelegramHotelSourceBindings([$bindingRow], $bindingDigest);
+$bindingCheck = \AnyTour\ExistingPostBatch\restoreTelegramHotelSourceBindings($bindingDb, $bindingRegistry, [$bindingRow], $bindingDigest);
 postCheck('source hotel binding dry run returns its exact version without writing',
     count($bindingCheck) === 1 && array_values($bindingCheck)[0]['state'] === 'ready'
     && array_values($bindingCheck)[0]['publication_id'] === $bindingRow['source_publication_id']
@@ -734,7 +735,7 @@ postCheck('source hotel binding dry run returns its exact version without writin
     && $readBindingTables() === $bindingBefore);
 $wrongBindingRow = array_replace($secondBindingRow, ['source_content_hash'=>str_repeat('f', 64)]);
 postCheck('source hotel binding refuses an invalid second row without restoring the first',
-    manualPostThrows(fn()=>$bindingRegistry->restoreTelegramHotelSourceBindings(
+    manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\restoreTelegramHotelSourceBindings($bindingDb, $bindingRegistry, 
         [$bindingRow, $wrongBindingRow], $bindingDigest, true), 'hotel_source_binding_changed')
     && $readBindingTables() === $bindingBefore);
 
@@ -745,12 +746,12 @@ $bindingDb->prepare("INSERT INTO post_versions
 $unknownBindingVersion = (int)$bindingDb->lastInsertId();
 $heldBindingTables = $readBindingTables();
 postCheck('source hotel binding preserves an unresolved provider operation',
-    manualPostThrows(fn()=>$bindingRegistry->restoreTelegramHotelSourceBindings(
+    manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\restoreTelegramHotelSourceBindings($bindingDb, $bindingRegistry, 
         [$bindingRow, $secondBindingRow], $bindingDigest, true), 'hotel_source_binding_held')
     && $readBindingTables() === $heldBindingTables);
 $bindingDb->prepare('DELETE FROM post_versions WHERE id=?')->execute([$unknownBindingVersion]);
 
-$bindingStored = array_values($bindingRegistry->restoreTelegramHotelSourceBindings(
+$bindingStored = array_values(\AnyTour\ExistingPostBatch\restoreTelegramHotelSourceBindings($bindingDb, $bindingRegistry, 
     [$bindingRow], $bindingDigest, true))[0];
 $bindingAfter = $bindingRegistry->publication($bindingRow['source_publication_id']);
 $bindingResolved = $bindingRegistry->resolveToken('anytour', 'telegram', 'anyru_bot', $bindingCurrent['start_payload']);
@@ -769,7 +770,7 @@ postCheck('source hotel binding writes only an immutable same-content sent succe
     && $bindingAfterTables[1][0] === $bindingBefore[1][0]
     && $bindingAfterTables[0][0] === array_replace($bindingBefore[0][0], ['current_version_id'=>$bindingAfter['version_id']])
     && $bindingRegistry->pendingPublications('anytour', 'telegram', 'anyru_bot') === []);
-$bindingRepeat = array_values($bindingRegistry->restoreTelegramHotelSourceBindings(
+$bindingRepeat = array_values(\AnyTour\ExistingPostBatch\restoreTelegramHotelSourceBindings($bindingDb, $bindingRegistry, 
     [$bindingRow], $bindingDigest, true))[0];
 postCheck('source hotel binding replay returns the restored version without a second observation or version',
     $bindingRepeat['state'] === 'already_restored' && $bindingRepeat['version_id'] === $bindingAfter['version_id']

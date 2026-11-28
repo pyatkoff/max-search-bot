@@ -571,6 +571,148 @@ function transferPublicPreimage(array $row, array $source, array $target): void
         && $target['photo_marker_sha256'] === $row['target_photo_marker_sha256'], 'transfer_target_public_changed');
 }
 
+/**
+ * Restore an approved legacy source binding without creating Telegram work.
+ * The admitted publisher must authenticate the evidence and hold the CONTENT/PRICE lease.
+ */
+function restoreTelegramHotelSourceBindings(PDO $pdo, ChannelPostRegistryService $registry, array $rows,
+    string $evidenceDigest, bool $apply = false): array
+{
+    if ($rows === [] || !array_is_list($rows) || count($rows) > 5
+        || preg_match('/\A[a-f0-9]{64}\z/D', $evidenceDigest) !== 1) {
+        throw new \InvalidArgumentException('hotel_source_binding_plan_invalid');
+    }
+    $ids = $hotels = [];
+    foreach ($rows as $row) {
+        if (!is_array($row)) throw new \InvalidArgumentException('hotel_source_binding_plan_invalid');
+        foreach (['source_publication_id', 'source_version_id', 'hotel_id'] as $key) {
+            if (!is_int($row[$key] ?? null) || $row[$key] <= 0) {
+                throw new \InvalidArgumentException('hotel_source_binding_plan_invalid');
+            }
+        }
+        foreach (['source_content_hash', 'source_photo_sha256', 'source_button_sha256'] as $key) {
+            if (!is_string($row[$key] ?? null) || preg_match('/\A[a-f0-9]{64}\z/D', $row[$key]) !== 1) {
+                throw new \InvalidArgumentException('hotel_source_binding_plan_invalid');
+            }
+        }
+        if (!is_string($row['source_message_id'] ?? null) || preg_match('/\A[1-9][0-9]{0,9}\z/D', $row['source_message_id']) !== 1
+            || isset($ids[$row['source_publication_id']]) || isset($hotels[$row['hotel_id']])) {
+            throw new \InvalidArgumentException('hotel_source_binding_plan_invalid');
+        }
+        $ids[$row['source_publication_id']] = true;
+        $hotels[$row['hotel_id']] = true;
+    }
+    usort($rows, static fn(array $a, array $b): int => $a['source_publication_id'] <=> $b['source_publication_id']);
+    requirePost(!$pdo->inTransaction(), 'hotel_source_binding_requires_own_transaction');
+    $pdo->beginTransaction();
+    try {
+        $channel = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1002262666616', true, $apply);
+        requirePost(is_array($channel), 'hotel_source_binding_changed');
+        $results = [];
+        foreach ($rows as $row) {
+            $results[] = restoreTelegramHotelSourceBinding($pdo, $registry, $channel, $row, $evidenceDigest, $apply);
+        }
+        $pdo->commit();
+        return $results;
+    } catch (Throwable $error) {
+        if ($pdo->inTransaction()) $pdo->rollBack();
+        throw $error;
+    }
+}
+
+function restoreTelegramHotelSourceBinding(PDO $pdo, ChannelPostRegistryService $registry, array $channel,
+    array $row, string $evidenceDigest, bool $apply): array
+{
+    $id = $row['source_publication_id'];
+    $expectedVersion = $row['source_version_id'];
+    $mid = $row['source_message_id'];
+    $hotel = $row['hotel_id'];
+    $lock = $apply && $pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql' ? ' FOR UPDATE' : '';
+    $identity = telegramSourceBindingRow($pdo, 'SELECT * FROM post_publications WHERE id=?' . $lock, [$id]);
+    if (!$identity || (int)$identity['post_channel_id'] !== (int)$channel['id']
+        || (int)$identity['source_id'] !== (int)$channel['source_id'] || $identity['external_message_id'] !== $mid) {
+        throw new RuntimeException('hotel_source_binding_changed');
+    }
+    $previous = telegramSourceBindingRow($pdo, 'SELECT * FROM post_versions WHERE publication_id=? AND id=?' . $lock, [$id, $expectedVersion]);
+    if (!$previous || $previous['state'] !== 'sent') throw new RuntimeException('hotel_source_binding_changed');
+    $snapshot = json_decode((string)$previous['snapshot_json'], true, 32, JSON_THROW_ON_ERROR);
+    $attachments = $snapshot['attachments'] ?? [];
+    $photo = is_array($attachments) && count($attachments) === 1 ? ($attachments[0] ?? []) : [];
+    $token = (string)$identity['start_payload'];
+    $button = rtrim((string)$channel['bot_url'], '/') . '?start=' . rawurlencode($token);
+    if (!preg_match('/\Ap_[A-Za-z0-9_-]{24}\z/D', $token) || !is_array($snapshot['metadata'] ?? null)
+        || ($snapshot['metadata']['hotel_catalog_id'] ?? null) !== null
+        || ($snapshot['metadata']['capability'] ?? '') !== 'supported' || !empty($snapshot['metadata']['media_group_id'])
+        || ($snapshot['post_url'] ?? '') !== 'https://t.me/any_toour/' . $mid
+        || !hash_equals($row['source_content_hash'], (string)$previous['content_hash'])
+        || !hash_equals($row['source_content_hash'], ChannelPostIncomingAdapter::contentFingerprint($snapshot))
+        || ($photo['type'] ?? '') !== 'image' || ($photo['provider'] ?? '') !== 'telegram'
+        || !is_string($photo['file_unique_id'] ?? null) || !is_string($photo['telegram_file_id'] ?? null)
+        || !preg_match('/\A[A-Za-z0-9_-]{8,1024}\z/D', $photo['telegram_file_id'])
+        || !hash_equals($row['source_photo_sha256'], hash('sha256', $photo['file_unique_id']))
+        || !hash_equals($row['source_button_sha256'], hash('sha256', $button))) {
+        throw new RuntimeException('hotel_source_binding_changed');
+    }
+    $held = telegramSourceBindingRow($pdo, "SELECT id FROM post_versions WHERE publication_id=?
+        AND (state IN ('claimed','write_started','unknown') OR claim_token IS NOT NULL OR claimed_at IS NOT NULL)
+        LIMIT 1" . $lock, [$id]);
+    if ($held) throw new RuntimeException('hotel_source_binding_held');
+
+    $snapshot['metadata']['hotel_catalog_id'] = $hotel;
+    $receipt = ['completion_kind'=>'telegram_hotel_source_binding_v1', 'evidence_sha256'=>$evidenceDigest,
+        'source_version_id'=>$expectedVersion, 'hotel_id'=>$hotel, 'write_attempts'=>0, 'request_count'=>0];
+    $eventKey = hash('sha256', $receipt['completion_kind'].':'.$evidenceDigest.':'.$id.':'.$expectedVersion.':'.$hotel);
+    $event = telegramSourceBindingRow($pdo, 'SELECT version_id FROM post_observations WHERE publication_id=? AND source_event_key=?' . $lock,
+        [$id, $eventKey]);
+    $currentVersion = (int)$identity['current_version_id'];
+    $result = ['publication_id'=>$id, 'version_id'=>$currentVersion, 'hotel_id'=>$hotel];
+    if ($event) {
+        $current = $registry->publication($id);
+        if ((int)$event['version_id'] !== $currentVersion || !$current || $current['state'] !== 'sent'
+            || $current['snapshot'] !== $snapshot || $current['receipt'] !== $receipt
+            || !hash_equals($row['source_content_hash'], $current['content_hash'])) {
+            throw new RuntimeException('hotel_source_binding_changed');
+        }
+        return $result + ['state'=>'already_restored'];
+    }
+    $current = $registry->resolveToken('anytour', 'telegram', 'anyru_bot', $token);
+    if ($currentVersion !== $expectedVersion || !$current
+        || $current['publication_id'] !== $id || $current['version_id'] !== $expectedVersion) {
+        throw new RuntimeException('hotel_source_binding_changed');
+    }
+    if (!$apply) return $result + ['state'=>'ready'];
+
+    $now = gmdate('Y-m-d H:i:s');
+    $jsonFlags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR;
+    $insert = $pdo->prepare("INSERT INTO post_versions (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,error_reason,receipt_json,created_at,updated_at)
+        VALUES (?,?,?,?,'sent',0,'',?,?,?)");
+    $insert->execute([$id, (int)$previous['version_number'] + 1, $row['source_content_hash'],
+        json_encode($snapshot, $jsonFlags), json_encode($receipt, $jsonFlags), $now, $now]);
+    $successor = (int)$pdo->lastInsertId();
+    $move = $pdo->prepare('UPDATE post_publications SET current_version_id=? WHERE id=? AND current_version_id=?');
+    $move->execute([$successor, $id, $expectedVersion]);
+    requirePost($move->rowCount() === 1, 'hotel_source_binding_changed');
+    $observation = $pdo->prepare('INSERT INTO post_observations
+        (publication_id,source_event_key,version_id,created_at) VALUES (?,?,?,?)');
+    $observation->execute([$id, $eventKey, $successor, $now]);
+    $resolved = $registry->resolveToken('anytour', 'telegram', 'anyru_bot', $token);
+    if (!$resolved || $resolved['publication_id'] !== $id || $resolved['version_id'] !== $successor
+        || $resolved['state'] !== 'sent' || $resolved['snapshot'] !== $snapshot || $resolved['receipt'] !== $receipt) {
+        throw new RuntimeException('hotel_source_binding_changed');
+    }
+    $result['version_id'] = $successor;
+    return $result + ['state'=>'restored'];
+}
+
+function telegramSourceBindingRow(PDO $pdo, string $sql, array $params): ?array
+{
+    $query = $pdo->prepare($sql);
+    $query->execute($params);
+    $row = $query->fetch(PDO::FETCH_ASSOC);
+    $query->closeCursor();
+    return $row ?: null;
+}
+
 /** This exact recovery packet is bound to #1777's native read and the #1566 archive proof. */
 function checkTelegramSourceBindings(string $root, string $applicationSha, string $evidenceDigest): array
 {
@@ -631,7 +773,7 @@ function checkTelegramSourceBindings(string $root, string $applicationSha, strin
     $channel = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1002262666616');
     requirePost($channel && (int)$channel['id'] === 10, 'hotel_source_binding_channel_changed');
     $pdo->exec('SET TRANSACTION READ ONLY');
-    $results = $registry->restoreTelegramHotelSourceBindings($rows, $evidenceDigest);
+    $results = restoreTelegramHotelSourceBindings($pdo, $registry, $rows, $evidenceDigest);
     return ['schema'=>1, 'ok'=>true, 'operation'=>'telegram_hotel_source_binding_v1',
         'mode'=>'read_only', 'application_sha'=>$applicationSha, 'evidence_sha256'=>$evidenceDigest,
         'provider_write_attempts'=>0, 'supplier_requests'=>0, 'bot_starts'=>0, 'results'=>$results,
