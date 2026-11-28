@@ -26,7 +26,12 @@ function publicHistory(string $message): string
     ]);
     $ok = curl_exec($request);
     $http = curl_getinfo($request, CURLINFO_HTTP_CODE);
+    $error = curl_errno($request);
     curl_close($request);
+    $transient = $ok === false
+        ? in_array($error, [CURLE_COULDNT_CONNECT, CURLE_OPERATION_TIMEDOUT, CURLE_GOT_NOTHING, CURLE_RECV_ERROR], true)
+        : in_array($http, [408, 500, 502, 503, 504], true);
+    requirePost(!$transient, 'public_history_transient');
     requirePost($ok !== false && $http === 200, 'public_history_unavailable');
     return $body;
 }
@@ -142,6 +147,16 @@ function inspectPublic(array $candidates, string $digest, callable $read, ?calla
     }
 
     if ($wait !== null) {
+        // A missing public response has no snapshot evidence. Retry only the
+        // transient requests once before considering the propagation schedule.
+        $transient = array_filter($rows, static fn(array $row): bool => ($row['reason'] ?? null) === 'public_history_transient');
+        if ($transient !== []) {
+            $wait(5);
+            foreach (array_keys($transient) as $i) {
+                [$plan, $native] = $candidates[$i];
+                $rows[$i] = inspectPublicRow($plan, $native, $digest, $read);
+            }
+        }
         foreach ([30, 45, 60, 60] as $seconds) {
             $pending = array_filter($rows, static fn(array $row): bool => $row['previous_public_snapshot'] ?? false);
             if ($pending === []) break;
