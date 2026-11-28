@@ -89,6 +89,123 @@ function as39CoverageSuccess(array $fixture, ?callable $beforeMenu = null): void
     as39Expect($provider->writes() === $writes,'forged or legacy successor execution cannot bypass the exact Store request');
 }
 
+/** Count local SELECT preparations, not wall time or calls to a real provider. */
+final class AppleCoverageReadCountingPDO extends PDO
+{
+    public int $selects = 0;
+    public $beforeSelect = null;
+    private function observe(string $query): void
+    {
+        if (!preg_match('/\A\s*SELECT\b/i', $query)) return;
+        $this->selects++;
+        if ($this->beforeSelect !== null) ($this->beforeSelect)($this->selects);
+    }
+    public function prepare(string $query, array $options = []): PDOStatement|false
+    {
+        $this->observe($query);
+        return parent::prepare($query, $options);
+    }
+    public function query(string $query, ?int $fetchMode = null, mixed ...$fetchModeArgs): PDOStatement|false
+    {
+        $this->observe($query);
+        return $fetchMode === null ? parent::query($query) : parent::query($query, $fetchMode, ...$fetchModeArgs);
+    }
+}
+
+/** Reuse genuine completed transitions; never seed a manufactured success receipt. */
+function as39CoverageSnapshotRegression(array $completed, bool $localFiles): void
+{
+    [$pdo,$provider,$store] = $completed;
+    $rows = $store->rows(); $requests = $provider->requests;
+    $store->validateCoverageSnapshotRequests();
+    $owned = array_filter($rows, static fn(array $row): bool =>
+        AppleService39CoverageRevision::isOperation($row['post_key'], $row['operation'], $row['request']));
+    foreach ($owned as $row) as39Expect($store->coverageRequest($row['post_key'], $row['operation']) === $row['request'],
+        'snapshot accepts the same complete request as the independent fresh Store path');
+    as39Expect(count($owned) === 41 && $store->rows() === $rows && $provider->requests === $requests,
+        'snapshot request validation preserves all193 original rows and performs no provider operation');
+
+    $first = $store->operation('model-iphone-8', 'create');
+    $upload = $store->operation(AppleService39CoverageRevision::COVER, AppleService39CoverageRevision::UPLOAD);
+    $cases = [
+        'payload' => [$first, ['payload_sha256'=>str_repeat('f',64)], 'coverage_revision_changed'],
+        'attempt' => [$first, ['write_attempts'=>2], 'coverage_revision_changed'],
+        'state' => [$first, ['state'=>'rejected'], 'coverage_revision_changed'],
+        'parent' => [$rows[0], ['state'=>'unknown'], 'coverage_parent_incomplete'],
+    ];
+    $forged = $first['request']; $forged['body']['text'] .= ' changed';
+    $json = json_encode($forged, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR);
+    $cases['request'] = [$first, ['request_json'=>$json, 'payload_sha256'=>hash('sha256',$json)], 'coverage_revision_changed'];
+    $token = $store->operation('repair-iphone-x-battery-replacement','upload')['outcome']['token'];
+    $cases['upload'] = [$upload, ['outcome_json'=>json_encode(['photo_id'=>'0','token'=>$token])], 'coverage_upload_collision'];
+    foreach ($cases as $name=>[$row,$fields,$reason]) {
+        $store->validateCoverageSnapshotRequests();
+        $set = implode(',',array_map(static fn(string $field): string => $field.'=?',array_keys($fields)));
+        $query = $pdo->prepare('UPDATE appleservice39_pilot_operations SET '.$set.' WHERE id=?');
+        $query->execute([...array_values($fields),$row['id']]);
+        try { as39Refuses(static fn()=>$store->validateCoverageSnapshotRequests(), $reason); }
+        finally { $query->execute([...array_map(static fn(string $field) => $row[$field],array_keys($fields)),$row['id']]); }
+        as39Expect($store->rows() === $rows && $provider->requests === $requests,
+            $name.' mutation after a successful snapshot is refused without a write or provider request');
+    }
+    $pdo->exec('DELETE FROM manager_projects WHERE manager_id=2');
+    try { as39Refuses(static fn()=>as39SearchPublisher($pdo,$provider)->run('coverage_inspect'), 'active_project_admin_and_source_required'); }
+    finally { $pdo->exec('INSERT INTO manager_projects VALUES (2,1)'); }
+    as39Expect($store->rows() === $rows && $provider->writes() === count(array_filter($requests,static fn(array $r): bool => $r['method'] !== 'GET')),
+        'a previously accepted request snapshot cannot retain revoked publication authority');
+
+    if (!$localFiles) return;
+    $revision = new AppleService39CoverageRevision();
+    foreach ([dirname(__DIR__).'/resources/appleservice39/coverage-v1/manifest.json'=>'coverage_source_changed',
+        $revision->artwork()=>'coverage_image_changed'] as $path=>$reason) {
+        $saved = file_get_contents($path);
+        if (!is_string($saved)) throw new RuntimeException('Missing local snapshot source fixture');
+        $store->validateCoverageSnapshotRequests();
+        try {
+            file_put_contents($path, $saved."\n"); clearstatcache(true,$path);
+            as39Refuses(static fn()=>$store->validateCoverageSnapshotRequests(),$reason);
+            as39Refuses(static fn()=>$store->coverageRequest($first['post_key'],$first['operation']),$reason);
+        } finally { file_put_contents($path,$saved); clearstatcache(true,$path); }
+        $store->validateCoverageSnapshotRequests();
+        as39Expect($store->rows() === $rows,
+            'changed source or artwork is re-read after a successful snapshot and never changes receipts');
+    }
+
+    $counted = new AppleCoverageReadCountingPDO('sqlite::memory:',null,null,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION]);
+    $counted->exec('PRAGMA foreign_keys=ON'); as39Schema($counted);
+    foreach (['appleservice39_pilot_campaigns','appleservice39_pilot_operations'] as $table) {
+        foreach ($pdo->query('SELECT * FROM '.$table)->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $query = $counted->prepare('INSERT INTO '.$table.' ('.implode(',',array_keys($row)).') VALUES ('.implode(',',array_fill(0,count($row),'?')).')');
+            $query->execute(array_values($row));
+        }
+    }
+    $copy = new AppleService39PilotPublicationStore($counted);
+    $counted->selects = 0; $copy->validateCoverageSnapshotRequests(); $selects = $counted->selects;
+    as39Expect($selects > 0 && $selects <= 8 && $copy->rows() === $rows,
+        'the complete41-request snapshot uses bounded fresh SELECTs rather than per-row graph reads');
+
+    // A coherent initial view does not authorize accepting a changed view at return.
+    foreach (['campaign','parent'] as $drift) {
+        $counted->selects = 0;
+        $campaign = $copy->campaign(); $counted->selects = 0;
+        $counted->beforeSelect = static function (int $select) use ($counted,$drift): void {
+            if ($select !== 3) return;
+            $counted->beforeSelect = null;
+            if ($drift === 'campaign') $counted->exec("UPDATE appleservice39_pilot_campaigns SET manifest_sha256='changed'");
+            else $counted->exec("UPDATE appleservice39_pilot_operations SET updated_at='changed' WHERE id=1");
+        };
+        try { as39Refuses(static fn()=>$copy->validateCoverageSnapshotRequests(),'coverage_revision_changed'); }
+        finally {
+            $counted->beforeSelect = null;
+            $counted->prepare('UPDATE appleservice39_pilot_campaigns SET manifest_sha256=?')->execute([$campaign['manifest_sha256']]);
+            $counted->prepare('UPDATE appleservice39_pilot_operations SET updated_at=? WHERE id=?')->execute([$rows[0]['updated_at'],$rows[0]['id']]);
+        }
+        $copy->validateCoverageSnapshotRequests();
+        as39Expect($copy->rows() === $rows && $copy->campaign() === $campaign,
+            $drift.' drift during one request snapshot is refused and no stale context survives');
+    }
+}
+
 function as39CoverageRegression(?PDO $native = null): void
 {
     $bodyGuard = new ReflectionMethod(AppleService39ChannelTransport::class,'body');
@@ -104,6 +221,7 @@ function as39CoverageRegression(?PDO $native = null): void
         $beforeMenu = as39SearchClone($completed);
         $beforeMenu[1]->membershipHook = null;
     });
+    as39CoverageSnapshotRegression($completed, $native === null);
     if ($native !== null) return;
     as39Expect(is_array($beforeMenu) && $beforeMenu[2]->operation('menu',AppleService39CoverageRevision::MENU)['state'] === 'prepared',
         'menu recovery reuses an actual pre-claim publisher snapshot without rewinding or fabricating receipts');
