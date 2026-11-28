@@ -40,5 +40,10 @@ foreach(['workspaceRoot','managerName','managerShiftBtn','adminLink','notificati
     checkManager2('exactly one working control '.$id,substr_count($modern,'id="'.$id.'"')===1&&substr_count($legacy,'id="'.$id.'"')===1);
 }
 checkManager2('modern assets exist and are cache-busted',is_file($root.'/manager2/assets/manager2.css')&&is_file($root.'/manager2/assets/manager2.js')&&preg_match('~/manager2/assets/manager2\.(?:css|js)\?v=\d+~',$modern)===1);
+checkManager2('the live and bundled Manager2 style share the same precedence anchor',
+    substr_count($modern,'data-manager2-style')===1&&!str_contains($legacy,'data-manager2-style')
+    &&str_contains((string)file_get_contents($root.'/manager2/assets/manager2.js'),'link[data-manager2-style]'));
 checkManager2('new entrypoint contains no parallel endpoint or business rules',count(glob($root.'/manager2/*api*.php'))===0&&str_contains((string)file_get_contents($root.'/manager2/index.php'),"require dirname(__DIR__).'/manager/index.php'"));
+require_once __DIR__.'/support/manager2-style-release.php';
+manager2StyleReleaseChecks($root);
 echo 'MANAGER2 ENTRYPOINT CHECKS: '.$checks." PASSED\n";

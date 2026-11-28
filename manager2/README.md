@@ -2,6 +2,33 @@
 
 Owner-authorized production presentation at `/manager2/`, based on the agreed concept 03 from the manager design prototype.
 
+## Independent workspace stylesheet
+
+The Manager2 stylesheet can be selected and rolled back separately from the
+application checkout. The bundled URL is used until a version is selected.
+Each selected file has an immutable URL. An HTML response that already
+references an earlier approved stylesheet can still load those exact bytes
+after a switch. Both URLs keep the same stylesheet precedence anchor for the
+late-loaded tour selection editor.
+
+Use the accepted application SHA and the exact digest from the stylesheet
+review. The standalone package contains one self-contained UTF-8 stylesheet.
+The initial previous version is `bundled`; later releases name the exact
+selected version.
+
+```sh
+node tools/manager2_style_release.js activate \
+  "$APP" "$APP_SHA" "$PREVIOUS_VERSION" "$CSS" "$APPROVED_SHA256" "$OPERATION"
+node tools/manager2_style_release.js rollback \
+  "$APP" "$APP_SHA" "$ACTIVATION_OPERATION" "$ROLLBACK_OPERATION"
+```
+
+The release binds the CSS to its current shell, asset reader and presentation
+code. The common checkout lock prevents a simultaneous core switch. An
+incoming incompatible shell requires a coordinated style rollback first.
+Operation receipts are private. Reusing the same operation ID after an
+interrupted response recovers its recorded result.
+
 ## Runtime ownership
 
 `index.php` includes the real `manager/index.php` shell. The canonical auth/session, CSRF, protected APIs and all domain modules are retained. The Manager2 HTML shell never starts a session: the canonical cookie is deliberately scoped to `/manager/`, so starting it from `/manager2/` would replace an existing authenticated session. All authentication, cookie issuance and CSRF stay in the canonical protected APIs; cookie scope and security flags remain unchanged. A same-origin `/manager/` base keeps fetch, media, service-worker scope at their existing endpoints. The administration link explicitly opens `/manager2/admin.php`. No additional API, mock customer data, authentication implementation, schema or business-state store exists in this directory.
@@ -343,4 +370,3 @@ Only that zero-dispatch rejection may reconcile across a changed context for the
 same freshly authorized actual owner; confirmed/UNKNOWN receipts stay context
 fenced. The UI refreshes authorized detail before unlocking a new explicit send,
 retaining the intent fence if the refresh fails. No database lock spans transport.
-

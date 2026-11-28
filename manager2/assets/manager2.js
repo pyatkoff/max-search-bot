@@ -84,7 +84,7 @@
         node.onload=()=>resolve();
         node.onerror=()=>{assets.delete(url);node.remove();reject(new Error('selection_asset_network'))};
         // Keep the original stylesheet precedence when the editor arrives later.
-        const presentation=kind==='style'?document.querySelector('link[href^="/manager2/assets/manager2.css?"]'):null;
+        const presentation=kind==='style'?document.querySelector('link[data-manager2-style],link[href^="/manager2/assets/manager2.css?"]'):null;
         if(presentation?.parentNode===document.head)document.head.insertBefore(node,presentation);else document.head.appendChild(node);
       });
       assets.set(url,promise);return promise;
@@ -770,4 +770,3 @@
   window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,revealTaskPlanner,budgetFact,navigate,syncNavigation,listFilters,salesCoverage,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,syncSelectionLauncher,openPromiseSelectionForTask,revealInboxSearch,syncPersonalChrome};
   init();
 })();
-
