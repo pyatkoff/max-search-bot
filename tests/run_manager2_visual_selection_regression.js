@@ -76,7 +76,11 @@ try {
       const history='tests/visual/manager-transcript-history.spec.js';
       assert(parts[0].includes(history));
       assert(parts.slice(1).every(part=>!part.includes(history)));
-      assert.deepEqual(parts[3],['tests/visual/manager-tour-selection.spec.js']);
+      assert.deepEqual([...parts[3]].sort(),[
+        'tests/visual/manager-media-compose.spec.js',
+        'tests/visual/manager-request-profile.spec.js',
+        'tests/visual/manager-tour-selection.spec.js',
+      ]);
       for(const invalid of [-1,PART_COUNT,'0',null,0.5])assert.throws(()=>partitionSpecs(browser,invalid),/Invalid browser partition/);
     }
     assert(partitionSpecs('chromium',0).includes('tests/visual/workspace-v2-layout.spec.js'));

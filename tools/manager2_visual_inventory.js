@@ -40,9 +40,10 @@ const PART_SPECS = Object.freeze([
     'manager2-inbox-compact','manager-manual-groups','manager-admin-workspace',
     'workspace-send-feedback','manager-handoff-cancellation-shell'],
   ['manager2-workspace','manager2-customer-avatar','manager-personal-workspace',
-    'workspace-notification-diagnostics','manager-browser-push-state','manager-media-compose',
-    'workspace-timezone','workspace-emoji-picker','manager-client-events','manager-reply-queue','manager-handoff-cancellation','manager-request-profile','manager-promise-task','manager-promise-selection','manager-promise-calculation','manager-promise-plan'],
-  ['manager-tour-selection'],
+    'workspace-notification-diagnostics','manager-browser-push-state',
+    'workspace-timezone','workspace-emoji-picker','manager-client-events','manager-reply-queue','manager-handoff-cancellation','manager-promise-task','manager-promise-selection','manager-promise-calculation','manager-promise-plan'],
+  // Two whole specs balance the slower WebKit partition across the existing runners.
+  ['manager-tour-selection','manager-media-compose','manager-request-profile'],
 ].map(group=>Object.freeze(group.map(name=>'tests/visual/'+name+'.spec.js'))));
 const PART_COUNT = PART_SPECS.length;
 function partitionSpecs(browser, part) {
