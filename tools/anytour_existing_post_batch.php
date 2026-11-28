@@ -571,6 +571,86 @@ function transferPublicPreimage(array $row, array $source, array $target): void
         && $target['photo_marker_sha256'] === $row['target_photo_marker_sha256'], 'transfer_target_public_changed');
 }
 
+/** This exact recovery packet is bound to #1777's native read and the #1566 archive proof. */
+function telegramSourceBindings(string $root, string $applicationSha, string $evidenceDigest, bool $apply): array
+{
+    requirePost($evidenceDigest === '03a4db29b000b314f7af2dc32df99b96fce30590bfc09f674532267ba18be7c6',
+        'hotel_source_binding_evidence_changed');
+    transferRuntime($root, $applicationSha);
+    ob_start();
+    try {
+        require_once $root.'/config.php';
+        require_once $root.'/services/ChannelPostRegistryService.php';
+    } finally {
+        ob_end_clean();
+    }
+    requirePost(ProjectConfig::projectId() === 'anytour', 'hotel_source_binding_project_changed');
+    $pdo = ConversationDb::connection();
+    requirePost($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql', 'hotel_source_binding_runtime_changed');
+    $registry = new ChannelPostRegistryService($pdo);
+    $rows = [
+        [
+            'source_publication_id' => 102,
+            'source_version_id' => 16738,
+            'source_message_id' => '11',
+            'hotel_id' => 310,
+            'source_content_hash' => '031756e2299601e7e2f6045d5f64bf05a76e14cd8198efe8ecb52eed09dead2a',
+            'source_photo_sha256' => '1f48274348881480227b48bf03c7acbd35ae2678619ac19148e3aa1a9051494d',
+            'source_button_sha256' => 'a86e0b5391ae83de265fb6692ab16e28c8fc6ed487405596b286500e62825827',
+        ],
+        [
+            'source_publication_id' => 104,
+            'source_version_id' => 16750,
+            'source_message_id' => '13',
+            'hotel_id' => 381,
+            'source_content_hash' => '41991b91eaa8b2741fb02d66d88695eb820f3a1a3981aa33e0ed6876bd7545fb',
+            'source_photo_sha256' => 'f2460d06cb519bd8cffb6d1b80a6a073760492800b838377b2645a6819831a3d',
+            'source_button_sha256' => '27a147b396f57b7c16cab7a7dc9310a3d717608a7fc991cb259af7c3a1c26373',
+        ],
+        [
+            'source_publication_id' => 112,
+            'source_version_id' => 17511,
+            'source_message_id' => '21',
+            'hotel_id' => 241,
+            'source_content_hash' => '60f2b19957817a1436e50927687960e8cbb274efa186640bdefccd2cd2202b17',
+            'source_photo_sha256' => '75a4992da8334b1156ee8e6f4fe6b36266e59707cf5dd61fc738886e8eb23bdc',
+            'source_button_sha256' => '5b069226969d020d0c9317060c8c83e52193b55dbd9b8e32abaff045d78b49e0',
+        ],
+        [
+            'source_publication_id' => 114,
+            'source_version_id' => 17600,
+            'source_message_id' => '23',
+            'hotel_id' => 268,
+            'source_content_hash' => '9afc651126cc262b3ed6be06ccd0d44c3993bbd214087addb66b5248446b76fb',
+            'source_photo_sha256' => '26ec6fc2a2d3be7585af031de2335deeab4bd202c5f0553c88f843660500008a',
+            'source_button_sha256' => 'b471fd55fecfe2082fd7db23dc9d324f8eec4839bb7bc0ed694faf5c05657ea9',
+        ],
+    ];
+    $lease = null;
+    try {
+        if ($apply) {
+            require_once $root.'/services/AnyTourPublisherBotConnection.php';
+            $path = POST_OPS.'/monitor-price-after-collection-v1.jsonl';
+            requirePost(realpath($path) === $path && is_file($path) && !is_link($path), 'transfer_price_lease_unknown');
+            $lease = fopen($path, 'rb');
+            requirePost(is_resource($lease), 'transfer_price_lease_unknown');
+            requirePost(acquireRankedPriceLease($lease, $path, 0), 'transfer_content_editor_busy');
+            $connection = new \AnyTourPublisherBotConnection();
+            publisherKeyboardActor($pdo, static fn(int $actor): bool => $connection->mayConfigure($actor));
+            transferRuntime($root, $applicationSha);
+        }
+        $channel = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1002262666616');
+        requirePost($channel && (int)$channel['id'] === 10, 'hotel_source_binding_channel_changed');
+        $results = $registry->restoreTelegramHotelSourceBindings($rows, $evidenceDigest, $apply);
+        return ['schema'=>1, 'ok'=>true, 'operation'=>'telegram_hotel_source_binding_v1',
+            'mode'=>$apply ? 'registry_apply' : 'read_only', 'application_sha'=>$applicationSha,
+            'evidence_sha256'=>$evidenceDigest, 'provider_write_attempts'=>0, 'supplier_requests'=>0,
+            'bot_starts'=>0, 'results'=>$results, 'finished_at_utc'=>gmdate(DATE_ATOM)];
+    } finally {
+        if (is_resource($lease)) fclose($lease);
+    }
+}
+
 function transferRuntime(string $root, string $applicationSha): void
 {
     requirePost(PHP_SAPI === 'cli' && $root === '/var/www/anytoour/data/www/app.anytoour.ru'
@@ -2141,6 +2221,7 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     $command = $argv[1] ?? '';
     $packetCheck = $command === '--check-ranked-transfer-data' && count($argv) === 4;
     $packetApply = $command === '--apply-ranked-transfer-data' && count($argv) === 6;
+    $sourceBindings = in_array($command, ['--check-telegram-source-bindings','--apply-telegram-source-bindings'], true);
     $packetPlan = null;
     $publisherPilot = in_array($command, ['--check-publisher-keyboard-pilot','--apply-publisher-keyboard-pilot'], true);
     $publisherMediaPilot = in_array($command, ['--check-publisher-media-pilot','--apply-publisher-media-pilot'], true);
@@ -2164,7 +2245,9 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
             $next = $argv[2];
         }
         $parent = $rankedUnreached ? rankedUnreachedEvidence() : null;
-        if ($publisherMediaPilot && count($argv) === 3 && $command === '--check-publisher-media-pilot') {
+        if ($sourceBindings && count($argv) === 4) {
+            $result = telegramSourceBindings($root, $argv[2], $argv[3], $command === '--apply-telegram-source-bindings');
+        } elseif ($publisherMediaPilot && count($argv) === 3 && $command === '--check-publisher-media-pilot') {
             $plan = publisherMediaPlan($root, $argv[2]);
             $result = ['ok'=>true, 'operation'=>$plan['operation'], 'mode'=>'offline_plan_check',
                 'plan_sha256'=>$argv[2], 'production_writes'=>0, 'provider_writes'=>0,
@@ -2204,6 +2287,8 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
         $result = ['ok'=>false,'operation'=>$rankedUnreached ? RANKED_UNREACHED_OPERATION : ($rankedResume ? RANKED_RESUME_OPERATION : ($rankedContinuation ? RANKED_CONTINUATION_OPERATION
             : ($remaining ? REMAINING_TRANSFER_OPERATION : transferProfileOperation($next)))),'state'=>'requires_readback',
             'reason'=>transferReason($error)];
+        if ($sourceBindings) $result = ['ok'=>false, 'operation'=>'telegram_hotel_source_binding_v1',
+            'state'=>'requires_readback', 'reason'=>transferReason($error)];
         if ($publisherPilot) $result = ['ok'=>false, 'operation'=>'hotel_publisher_keyboard_pilot',
             'state'=>'requires_readback', 'full_transfer'=>false, 'message_id'=>'1047', 'reason'=>transferReason($error)];
         if ($publisherMediaPilot) $result = ['ok'=>false, 'operation'=>'hotel_publisher_media_pilot',
