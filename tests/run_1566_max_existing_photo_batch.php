@@ -10,6 +10,12 @@ function refuses(callable $test, string $reason): bool {
     try {$test();return false;} catch (RuntimeException $e) {return $e->getMessage()===$reason;}
 }
 
+$observed = '2026-11-28T06:20:00.500000+00:00';
+$instant = (float)(new DateTimeImmutable($observed))->format('U.u');
+maxEditRequireFreshRoute($observed, $instant + 720);
+foreach ([[$observed, $instant + 720.001], [$observed, $instant - 1], [null, $instant]] as [$value, $now]) {
+    check(refuses(fn() => maxEditRequireFreshRoute($value, $now), 'route_receipt_stale'), 'MAX2 write window must fail closed');
+}
 $raw=file_get_contents($dir.'/scope.json');
 $scope=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
 check(hash('sha256',$raw)===MAX_BATCH_SCOPE_SHA256,'scope digest');

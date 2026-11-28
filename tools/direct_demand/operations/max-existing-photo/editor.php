@@ -226,6 +226,16 @@ function maxEditBatchLease(string $path, bool $writing)
     return $lease;
 }
 
+function maxEditRequireFreshRoute(mixed $observedUtc, float $now): void
+{
+    maxEditNeed(is_string($observedUtc)
+        && preg_match('/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|\+00:00)\z/D', $observedUtc) === 1,
+        'route_receipt_stale');
+    $observed = new DateTimeImmutable($observedUtc);
+    $age = $now - (float)$observed->format('U.u');
+    maxEditNeed($age >= 0 && $age <= 720, 'route_receipt_stale');
+}
+
 function maxEditRun(array $argv, ?array $batchApproval = null): int
 {
     $lease = null;
@@ -311,6 +321,9 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
         maxEditNeed(maxEditTarget($pdo, $plan) === $proof['target_photo_ids'], 'original_target_changed_before_edit');
         if (is_resource($lease)) {
             maxEditAssertLeaseIdentity($lease, $leasePath);
+        }
+        if ($batchApproval !== null && array_key_exists('route_observed_utc', $batchApproval)) {
+            maxEditRequireFreshRoute($batchApproval['route_observed_utc'], microtime(true));
         }
         maxEditNeed(mkdir($directory, 0700), 'target_receipt_exists_no_replay');
         $file = fopen($directory . '/receipt.jsonl', 'x');

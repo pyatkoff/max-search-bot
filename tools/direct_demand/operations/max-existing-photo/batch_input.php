@@ -74,6 +74,9 @@ function maxBatchInput(string $approvedBytes, string $approvedHash, string $arch
             $out['ready'][$id] = ['plan'=>$plan, 'sha256'=>hash('sha256', maxEditJson($plan)),
                 'source_photo_sha256'=>$observed['source_photo_sha256'], 'source_caption_sha256'=>$observed['source_caption_sha256'],
                 'config_version'=>(int)$source['channel_config_version'], 'approved_row'=>$row];
+            if (array_key_exists('route_readback', $scope)) {
+                $out['ready'][$id]['route_observed_utc'] = $scope['route_readback']['observed_utc'] ?? null;
+            }
         } catch (RuntimeException $e) {
             $out['held'][$id] = $e->getMessage();
         }
