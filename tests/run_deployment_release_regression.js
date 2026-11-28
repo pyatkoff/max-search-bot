@@ -272,6 +272,10 @@ async function gitBridge(){
     await commonValueStateConsumer(f, a, a);
     await publicationOperationConsumer(f, a, a);
     await hotelRegistryReadConsumer(f, a, a);
+    await hotelRegistryReadConsumer(f, a, a, {
+      branch:'ops/anytour-hotel-source-bindings-read-20261128',
+      operation:'telegram_hotel_source_binding_v1',
+    });
     await max2HoldPairReadConsumer(f, a, a);
     await hotelFourTransferConsumer(f, a, a);
     await hotelPublisherKeyboardConsumer(f, a, a);
@@ -332,6 +336,10 @@ async function gitBridge(){
     await commonValueStateConsumer(f, r, a);
     await publicationOperationConsumer(f, r, a);
     await hotelRegistryReadConsumer(f, r, a);
+    await hotelRegistryReadConsumer(f, r, a, {
+      branch:'ops/anytour-hotel-source-bindings-read-20261128',
+      operation:'telegram_hotel_source_binding_v1',
+    });
     await max2HoldPairReadConsumer(f, r, a);
     await hotelFourTransferConsumer(f, r, a);
     await hotelPublisherKeyboardConsumer(f, r, a);
@@ -496,11 +504,18 @@ function hotelRegistryReadWorkflow(){
     .map(m=>m.slice(1)),[['17595','455','862'],['358','65','328'],['393','85','1083'],['1260','548','288']],
     'exactly the four unconfirmed source and target pairs can be observed');
   const admission=workflow.indexOf('node tools/deployment_release.js resolve-consumer'),
-    marker=workflow.indexOf('test "$READ_OPERATION" = hotel_four_registry'),secret=workflow.indexOf('$'+'{{ secrets.');
+    marker=workflow.indexOf('refs/heads/ops/anytour-hotel-source-bindings-read-20261128:telegram_hotel_source_binding_v1'),secret=workflow.indexOf('$'+'{{ secrets.');
   equal(admission>=0&&marker>admission&&secret>marker
     &&workflow.includes('test "$READY" = true')&&workflow.includes('test "$PERFORM_ACTIONS" = true')
     &&workflow.includes('test "$(git rev-parse HEAD)" = "$GITHUB_SHA"')
     &&!workflow.includes('continue-on-error:'),true,'canonical admission and exact checkout precede every SSH credential');
+  equal(workflow.includes('ops/anytour-hotel-source-bindings-read-20261128')
+    &&workflow.includes('--check-telegram-source-bindings')
+    &&workflow.includes('03a4db29b000b314f7af2dc32df99b96fce30590bfc09f674532267ba18be7c6')
+    &&workflow.includes("if: steps.release.outputs.read_operation == 'telegram_hotel_source_binding_v1'")
+    &&!workflow.includes('ops/anytour-hotel-source-bindings-read-20261128:hotel_four_registry')
+    &&!workflow.includes('--apply-telegram-source-bindings'),true,
+    'the new exact branch can invoke only the installed read-only source-binding command');
   const sql=[...program.matchAll(/\$pdo->(?:prepare|query|exec)\(\s*(['"])([\s\S]*?)\1/g)].map(m=>m[2]);
   equal(sql.length>=4&&sql.every(q=>/^SELECT\b/.test(q)||q==='SET SESSION TRANSACTION READ ONLY')
     &&program.includes("$pdo->exec('SET SESSION TRANSACTION READ ONLY');")&&program.includes('$pdo->rollBack();')
@@ -565,8 +580,9 @@ echo json_encode(['checks'=>$checks],JSON_THROW_ON_ERROR);
   equal(parsed.status,0,'the exact pure parser handles synthetic widgets with native HTTP disabled: '+parsed.stderr);
   equal(JSON.parse(parsed.stdout).checks>=19,true,'photo fixtures cover source/target identity, CDN, avatar, media and unsafe URLs');
 }
-async function hotelRegistryReadConsumer(f,repositorySha,applicationSha){
-  const branch='ops/anytour-hotel-four-read-20261123',ref='refs/heads/'+branch;
+async function hotelRegistryReadConsumer(f,repositorySha,applicationSha,
+  spec={branch:'ops/anytour-hotel-four-read-20261123',operation:'hotel_four_registry'}){
+  const branch=spec.branch,ref='refs/heads/'+branch;
   const workflow=R.PREFIX+'read-1566-main-hotel-registry.yml',owner={id:226193297,login:'pyatkoff'};
   const run={...copy(f.wave.parent),id:6505,path:workflow,event:'push',head_branch:branch,
     status:'in_progress',conclusion:null,actor:copy(owner),triggering_actor:copy(owner)};
@@ -587,7 +603,7 @@ async function hotelRegistryReadConsumer(f,repositorySha,applicationSha){
   try{
     const before=f.calls.length,result=await resolve();
     equal([result.repository_sha,result.application_sha,result.ready,result.perform_actions,result.read_operation],
-      [repositorySha,applicationSha,true,true,'hotel_four_registry'],
+      [repositorySha,applicationSha,true,true,spec.operation],
       'the first fixed read resolves the actual canonical application, including an unchanged application');
     equal(result.write_operation,undefined,'the read-only branch never grants a hotel transfer');
     equal(f.calls.slice(before).every(c=>c.method==='GET'),true,'read admission uses native observation only before SSH');
