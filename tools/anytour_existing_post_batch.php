@@ -572,7 +572,7 @@ function transferPublicPreimage(array $row, array $source, array $target): void
 }
 
 /** This exact recovery packet is bound to #1777's native read and the #1566 archive proof. */
-function telegramSourceBindings(string $root, string $applicationSha, string $evidenceDigest, bool $apply): array
+function checkTelegramSourceBindings(string $root, string $applicationSha, string $evidenceDigest): array
 {
     requirePost($evidenceDigest === '03a4db29b000b314f7af2dc32df99b96fce30590bfc09f674532267ba18be7c6',
         'hotel_source_binding_evidence_changed');
@@ -626,29 +626,16 @@ function telegramSourceBindings(string $root, string $applicationSha, string $ev
             'source_button_sha256' => 'b471fd55fecfe2082fd7db23dc9d324f8eec4839bb7bc0ed694faf5c05657ea9',
         ],
     ];
-    $lease = null;
-    try {
-        if ($apply) {
-            require_once $root.'/services/AnyTourPublisherBotConnection.php';
-            $path = POST_OPS.'/monitor-price-after-collection-v1.jsonl';
-            requirePost(realpath($path) === $path && is_file($path) && !is_link($path), 'transfer_price_lease_unknown');
-            $lease = fopen($path, 'rb');
-            requirePost(is_resource($lease), 'transfer_price_lease_unknown');
-            requirePost(acquireRankedPriceLease($lease, $path, 0), 'transfer_content_editor_busy');
-            $connection = new \AnyTourPublisherBotConnection();
-            publisherKeyboardActor($pdo, static fn(int $actor): bool => $connection->mayConfigure($actor));
-            transferRuntime($root, $applicationSha);
-        }
-        $channel = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1002262666616');
-        requirePost($channel && (int)$channel['id'] === 10, 'hotel_source_binding_channel_changed');
-        $results = $registry->restoreTelegramHotelSourceBindings($rows, $evidenceDigest, $apply);
-        return ['schema'=>1, 'ok'=>true, 'operation'=>'telegram_hotel_source_binding_v1',
-            'mode'=>$apply ? 'registry_apply' : 'read_only', 'application_sha'=>$applicationSha,
-            'evidence_sha256'=>$evidenceDigest, 'provider_write_attempts'=>0, 'supplier_requests'=>0,
-            'bot_starts'=>0, 'results'=>$results, 'finished_at_utc'=>gmdate(DATE_ATOM)];
-    } finally {
-        if (is_resource($lease)) fclose($lease);
-    }
+    requirePost(realpath(POST_OPS) === POST_OPS && is_dir(POST_OPS), 'hotel_source_binding_operations_changed');
+    foreach ($rows as $row) assertTransferSourceJournalClear($row['source_publication_id']);
+    $channel = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1002262666616');
+    requirePost($channel && (int)$channel['id'] === 10, 'hotel_source_binding_channel_changed');
+    $pdo->exec('SET TRANSACTION READ ONLY');
+    $results = $registry->restoreTelegramHotelSourceBindings($rows, $evidenceDigest);
+    return ['schema'=>1, 'ok'=>true, 'operation'=>'telegram_hotel_source_binding_v1',
+        'mode'=>'read_only', 'application_sha'=>$applicationSha, 'evidence_sha256'=>$evidenceDigest,
+        'provider_write_attempts'=>0, 'supplier_requests'=>0, 'bot_starts'=>0, 'results'=>$results,
+        'finished_at_utc'=>gmdate(DATE_ATOM)];
 }
 
 function transferRuntime(string $root, string $applicationSha): void
@@ -686,10 +673,15 @@ function transferSourceRevisionAdvanced(?array $source, array $row): bool
         && (int)($source['snapshot']['metadata']['hotel_catalog_id'] ?? 0) === $row['hotel_id'];
 }
 
+function assertTransferSourceJournalClear(int $sourcePublicationId): void
+{
+    $journal = POST_OPS.'/issue-1566-edit-existing-'.$sourcePublicationId.'.jsonl';
+    requirePost(!file_exists($journal) && !is_link($journal), 'transfer_source_editor_requires_readback');
+}
+
 function transferSource(PDO $pdo, ChannelPostRegistryService $registry, array $row, bool $checkAdvanced = false): array
 {
-    $journal = POST_OPS.'/issue-1566-edit-existing-'.$row['source_publication_id'].'.jsonl';
-    requirePost(!file_exists($journal) && !is_link($journal), 'transfer_source_editor_requires_readback');
+    assertTransferSourceJournalClear($row['source_publication_id']);
     $source = $registry->publication($row['source_publication_id']);
     if ($checkAdvanced && transferSourceRevisionAdvanced($source, $row)) {
         throw new RuntimeException('transfer_source_revision_advanced');
@@ -2221,7 +2213,7 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
     $command = $argv[1] ?? '';
     $packetCheck = $command === '--check-ranked-transfer-data' && count($argv) === 4;
     $packetApply = $command === '--apply-ranked-transfer-data' && count($argv) === 6;
-    $sourceBindings = in_array($command, ['--check-telegram-source-bindings','--apply-telegram-source-bindings'], true);
+    $sourceBindings = $command === '--check-telegram-source-bindings';
     $packetPlan = null;
     $publisherPilot = in_array($command, ['--check-publisher-keyboard-pilot','--apply-publisher-keyboard-pilot'], true);
     $publisherMediaPilot = in_array($command, ['--check-publisher-media-pilot','--apply-publisher-media-pilot'], true);
@@ -2246,7 +2238,7 @@ if (PHP_SAPI === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE
         }
         $parent = $rankedUnreached ? rankedUnreachedEvidence() : null;
         if ($sourceBindings && count($argv) === 4) {
-            $result = telegramSourceBindings($root, $argv[2], $argv[3], $command === '--apply-telegram-source-bindings');
+            $result = checkTelegramSourceBindings($root, $argv[2], $argv[3]);
         } elseif ($publisherMediaPilot && count($argv) === 3 && $command === '--check-publisher-media-pilot') {
             $plan = publisherMediaPlan($root, $argv[2]);
             $result = ['ok'=>true, 'operation'=>$plan['operation'], 'mode'=>'offline_plan_check',
