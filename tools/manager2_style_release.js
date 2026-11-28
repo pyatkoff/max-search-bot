@@ -38,17 +38,23 @@ function stage(releases, version, bytes) {
 }
 
 function main(args) {
+  const contractOption = '--contract-sha256=';
+  const hasApprovedContract = args.at(-1)?.startsWith(contractOption);
+  const approvedContract = hasApprovedContract ? args.pop().slice(contractOption.length) : null;
   const [action, app, application_sha, previous, file, package_sha256, activationOp] = args;
   const activate = action === 'activate';
   requireThat((activate && args.length === 7) || (action === 'rollback' && args.length === 5),
-    'usage: activate APP APP_SHA PREVIOUS CSS APPROVED_SHA OPERATION | rollback APP APP_SHA ACTIVATION OPERATION');
+    'usage: activate APP APP_SHA PREVIOUS CSS APPROVED_SHA OPERATION [--contract-sha256=SHA] | ' +
+    'rollback APP APP_SHA ACTIVATION OPERATION [--contract-sha256=SHA]');
   const operation = activate ? activationOp : file;
   requireThat(path.isAbsolute(app) && app !== '/' && fs.realpathSync(app) === app &&
     /^[a-f0-9]{40}$/.test(application_sha) && OPERATION.test(operation), 'invalid_manager2_style_operation');
   requireThat(activate ? (previous === 'bundled' || VERSION.test(previous)) && SHA256.test(package_sha256)
     : OPERATION.test(previous) && previous !== operation, 'invalid_manager2_style_operation');
-  const request = activate ? {action, operation, application_sha, previous, package_sha256}
-    : {action, operation, application_sha, activation:previous};
+  requireThat(approvedContract === null || SHA256.test(approvedContract), 'invalid_manager2_style_contract');
+  const scope = approvedContract === null ? {application_sha} : {contract_sha256:approvedContract};
+  const request = activate ? {action, operation, ...scope, previous, package_sha256}
+    : {action, operation, ...scope, activation:previous};
   const root = path.join(path.dirname(app), 'max-search-bot-private-logs');
   privateDirectory(root);
   const releases = path.join(root, 'manager2-style-releases');
@@ -60,6 +66,7 @@ function main(args) {
       path.join(app, 'services/Manager2WorkspaceStyle.php'), app],
     {encoding:'utf8', timeout:10000, stdio:['ignore','pipe','pipe']});
     requireThat(SHA256.test(contract_sha256), 'manager2_style_contract_unavailable');
+    requireThat(approvedContract === null || contract_sha256 === approvedContract, 'manager2_style_contract_changed');
     const actual = currentVersion(releases);
     let from, to, state;
     if (activate) {
@@ -90,7 +97,9 @@ function main(args) {
       requireThat(actual === from || (pending && actual === to), 'catalogue_baseline_changed');
       verifyVersion(releases, to, contract_sha256);
     }
-    return {contract:RECEIPT, request, from, to, state, contract_sha256};
+    const receipt = {contract:RECEIPT, request, from, to, state, contract_sha256};
+    if (approvedContract !== null) receipt.application_sha = application_sha;
+    return receipt;
   });
 }
 

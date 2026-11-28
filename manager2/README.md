@@ -23,6 +23,15 @@ node tools/manager2_style_release.js rollback \
   "$APP" "$APP_SHA" "$ACTIVATION_OPERATION" "$ROLLBACK_OPERATION"
 ```
 
+For approval that should survive unrelated application releases, record the
+style contract SHA-256 from the reviewed source with the CSS digest and append
+`--contract-sha256="$APPROVED_CONTRACT_SHA256"` to either command. The pin comes
+from `Manager2WorkspaceStyle::contractPin()` on the reviewed checkout. At
+execution, pass the current accepted `APP_SHA`. The command checks that SHA and
+the approved contract under the checkout lock. The operation ID remains bound
+to the same approved contract and request. Its receipt records the application
+SHA on which the operation ran.
+
 The release binds the CSS to its current shell, asset reader and presentation
 code. The common checkout lock prevents a simultaneous core switch. An
 incoming incompatible shell requires a coordinated style rollback first.

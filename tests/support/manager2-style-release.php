@@ -107,6 +107,42 @@ function manager2StyleReleaseChecks(string $repository): void
             && Manager2WorkspaceStyle::href($app) === $bundledLink
             && $http($bundledLink)[0] === $style && $http($assetUrl)[0] === $style
             && $git(['rev-parse','HEAD']) === $application && $git(['status','--porcelain']) === '');
+
+        $approvedPin = Manager2WorkspaceStyle::contractPin($app);
+        $contractOption = '--contract-sha256='.$approvedPin;
+        $contractApply = [...$cli,'activate',$app,$application,'bundled',$candidate,$hash,
+            'manager2-contract-style',$contractOption];
+        $git(['reset','--hard',$incompatible]);
+        $driftedApply = $contractApply;
+        $driftedApply[4] = $incompatible;
+        checkManager2('an exact application SHA does not override a changed approved style contract',
+            $run($driftedApply, 1)[1] === 'manager2_style_contract_changed'
+            && !is_link($pointer) && !file_exists($pending));
+        $git(['reset','--hard',$application]);
+        file_put_contents($app.'/unrelated-release.txt', "independent release\n");
+        $git(['add','unrelated-release.txt']);
+        $git([...$commit, 'unrelated release']);
+        $compatible = $git(['rev-parse','HEAD']);
+        checkManager2('an approved contract still requires the actual installed application SHA for a new activation',
+            $run($contractApply, 1)[1] === 'catalogue_application_changed'
+            && !is_link($pointer) && !file_exists($pending));
+        $contractApply[4] = $compatible;
+        $contractRelease = $receipt($contractApply);
+        checkManager2('an unrelated application release preserves stylesheet approval and records the actual application',
+            $contractRelease['application_sha'] === $compatible
+            && $contractRelease['request']['contract_sha256'] === $approvedPin
+            && $contractRelease['to'] === $version && Manager2WorkspaceStyle::href($app) === $assetUrl);
+
+        $git([...$commit, 'later compatible release', '--allow-empty']);
+        $later = $git(['rev-parse','HEAD']);
+        $contractApply[4] = $later;
+        $contractRollback = [...$cli,'rollback',$app,$later,'manager2-contract-style',
+            'manager2-contract-rollback',$contractOption];
+        $contractRolledBack = $receipt($contractRollback);
+        checkManager2('a compatible release preserves original activation evidence and permits independent rollback',
+            $receipt($contractApply) === $contractRelease && $contractRolledBack['application_sha'] === $later
+            && $contractRolledBack['state'] === 'rolled_back'
+            && !is_link($pointer) && $http($assetUrl)[0] === $style && $git(['rev-parse','HEAD']) === $later);
     } finally {
         if (is_resource($server)) {
             proc_terminate($server);
