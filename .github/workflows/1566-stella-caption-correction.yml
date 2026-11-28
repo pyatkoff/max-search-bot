@@ -1,0 +1,103 @@
+name: "#1566 Verify or correct the existing Stella caption"
+on:
+  pull_request:
+    branches: [audit/1566-main-hotel-registry-20261119]
+    paths: ['tools/direct_demand/operations/max-existing-photo/correct_stella_caption.php', '.github/workflows/1566-stella-caption-correction.yml']
+  push:
+    branches: [audit/1566-main-hotel-registry-20261119]
+    paths: ['tools/direct_demand/operations/max-existing-photo/stella-caption-correction.json']
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+  issues: read
+jobs:
+  lint:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - run: php -l tools/direct_demand/operations/max-existing-photo/correct_stella_caption.php
+  correct_existing:
+    if: >-
+      github.event_name == 'push' && github.repository == 'pyatkoff/max-search-bot' &&
+      github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 &&
+      github.actor == 'pyatkoff' && github.event.created == false && github.run_attempt == 1
+    concurrency:
+      group: anytour-authorized-channel-publication
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      FIX_PATH: tools/direct_demand/operations/max-existing-photo/stella-caption-correction.json
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: aad4de171966a7386e0293626f485d03003109f7
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          path: approved
+          persist-credentials: false
+      - name: Verify exact input and installed release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          BEFORE: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          node <<'JS'
+          const R=require('./tools/deployment_release')
+          const fs=require('node:fs')
+          const api=R.makeReadApi(process.env.GITHUB_TOKEN)
+          const get=path=>api('GET',R.API_ROOT+path)
+          const check=(ok,reason)=>{if(!ok)throw Error(reason)}
+          async function main() {
+            const req=JSON.parse(fs.readFileSync('approved/'+process.env.FIX_PATH,'utf8'))
+            check(R.keys(req,['app','observed_utc','route_run','route_job'])&&R.sha(req.app)&&R.stamp(req.observed_utc)
+              &&Number.isSafeInteger(req.route_run)&&req.route_run>0&&Number.isSafeInteger(req.route_job)&&req.route_job>0,'invalid_fix_request')
+            const commit=await get('/commits/'+process.env.GITHUB_SHA)
+            check(commit.parents?.length===1&&commit.parents[0].sha===process.env.BEFORE&&commit.files?.length===1
+              &&commit.files[0].filename===process.env.FIX_PATH,'fix_input_must_be_data_only')
+            const original=await get('/actions/runs/46121282067')
+            check(original.head_sha==='68ab79976acf847e38f95c5cf75fca811fe472c2'&&original.conclusion==='success','original_write_changed')
+            const location=await R.readRecord(api)
+            const {release}=R.validateRelease(location.record)
+            const current=await R.resolveCurrent(api,{sha:release.repository_sha},location)
+            check(current.ready===true&&current.application_sha===req.app,'current_release_changed')
+          }
+          main().catch(e=>{console.error(e.code||e.message);process.exitCode=1})
+          JS
+      - name: Pin the existing publisher host
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: bash approved/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh pin-host
+      - name: Apply the exact caption correction using the existing editor
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        run: |
+          set -euo pipefail
+          mkdir -p pub/stage
+          cp "approved/$FIX_PATH" pub/stage/request.json
+          cp approved/tools/direct_demand/operations/max-existing-photo/correct_stella_caption.php pub/stage/
+          cat > pub/stage/execute.sh <<'SH'
+          set -euo pipefail
+          test "$2" = apply
+          cd /var/www/anytoour/data/www/app.anytoour.ru
+          printf '%s  %s\n' "$3" "$1/request.json" | sha256sum --check --strict >&2
+          php "$1/correct_stella_caption.php"
+          SH
+          sha="$(sha256sum pub/stage/request.json | cut -d' ' -f1)"
+          tar -C pub/stage -cf pub/approved.tar request.json correct_stella_caption.php execute.sh
+          bash approved/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh apply "$sha" < pub/approved.tar | tee pub/result.txt
+      - name: Preserve the original correction receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-stella-caption-correction
+          path: pub/result.txt
+          retention-days: 7
+      - if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
