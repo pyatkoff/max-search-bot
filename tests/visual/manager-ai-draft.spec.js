@@ -560,6 +560,7 @@ for(const width of [390,1440])test(`current-trip panel keeps profile and ready r
   fs.mkdirSync('manager2-artifacts',{recursive:true});await page.screenshot({path:`manager2-artifacts/${browserName}-${width}-trip-profile.png`,animations:'disabled'});
   await page.getByRole('button',{name:'Готово',exact:true}).click();
   await expect(page.locator('#m2RequestProfilePanel')).not.toBeVisible();
+  await expect(page.locator('.m2ConversationMenu #m2RequestProfileOpen')).toBeFocused();
   await expect(page.locator('#replyText')).toHaveValue('Мой неотправленный ответ');
   expect(page.context().pages()).toHaveLength(tabs);
   await page.locator('#replyText').fill('');

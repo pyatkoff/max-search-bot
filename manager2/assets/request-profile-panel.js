@@ -5,6 +5,7 @@
   const {S,$}=W;
   let context=null,read=null,stamp='',sequence=0,openIntent=0,dialog=null,frame=null,nonce='',opener=null;
   let row=null,label=null,criteria=null,state=null,button=null,dialogState=null,overlayHeld=false,handoffSlot=null,handoffAnchor=null,content=null,profileInMenu=false;
+  let menu=null;
   function restoreHandoff(){const source=$('handoffContext');if(source&&handoffAnchor?.parentNode&&source.parentNode!==handoffAnchor.parentNode)handoffAnchor.parentNode.insertBefore(source,handoffAnchor.nextSibling);}
   function groupHandoff(){const source=$('handoffContext');if(!source||!handoffSlot)return;if(!handoffAnchor){handoffAnchor=document.createComment('Original request context position');source.before(handoffAnchor);}if(source.parentNode!==handoffSlot)handoffSlot.appendChild(source);}
   const capture=()=>{
@@ -22,7 +23,7 @@
     if(dialog?.open)dialog.close();
     if(destroy){frame?.remove();frame=null;nonce='';}
     if(restoreFocus&&current(context)&&opener?.isConnected){
-      if(opener===button&&profileInMenu)window.Manager2Presentation?.focusConversationTool(button.id);
+      if(opener===button&&profileInMenu)menu.focus(button.id);
       else opener.focus({preventScroll:true});
     }
   }
@@ -45,7 +46,16 @@
     handoffSlot=document.createElement('div');handoffSlot.className='m2RequestSource';content.appendChild(handoffSlot);row.appendChild(content);
     // The trip belongs to the conversation, never to an optional AI panel.
     head.after(row);
-    profileInMenu=window.Manager2Presentation?.registerConversationTool(button)===true;
+    registerMenuButton();
+  }
+  function bindMenu(controls){
+    menu=controls;
+    if(button)registerMenuButton();
+  }
+  function registerMenuButton(){
+    if(profileInMenu||menu?.register(button)!==true)return;
+    profileInMenu=true;
+    placeSummary();
   }
   function placeSummary(){
     row.hidden=!criteria.textContent&&profileInMenu;state.hidden=false;
@@ -162,6 +172,6 @@
   window.addEventListener('pagehide',reset);
   window.addEventListener('popstate',()=>{++openIntent;});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!dialog?.open)++openIntent;});
-  window.WorkspaceV2RequestProfile={open,sync,reset,close,refresh:()=>{sync();if(current(context)&&!read)void load();},conversationChanging:target=>{if(Number(target)!==context?.conversation)reset();}};
+  window.WorkspaceV2RequestProfile={bindMenu,open,sync,reset,close,refresh:()=>{sync();if(current(context)&&!read)void load();},conversationChanging:target=>{if(Number(target)!==context?.conversation)reset();}};
   sync();
 })();
