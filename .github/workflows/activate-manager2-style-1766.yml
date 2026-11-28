@@ -1,0 +1,127 @@
+name: Activate the approved Manager2 stylesheet
+
+on:
+  push:
+    branches: [ops/activate-manager2-style-1766-20261128]
+    paths: ['.github/workflows/activate-manager2-style-1766.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  activate:
+    if: github.repository == 'pyatkoff/max-search-bot' && github.actor == 'pyatkoff' && github.event.before == '82f852a9134ad7528f4bce7b464bccc556c3217e' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Use the installed style publisher and verify its HTTP reader
+        env:
+          DEPLOY_SSH_KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+          DEPLOY_HOST: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_file="$(mktemp "$RUNNER_TEMP/manager2-ssh.XXXXXXXX")"
+          trap 'rm -f -- "$key_file"' EXIT
+          raw="$DEPLOY_SSH_KEY_VALUE"
+          if [[ "$raw" != *'PRIVATE KEY'* ]]; then
+            raw="$(printf '%s' "$raw" | base64 --decode)"
+          fi
+          if [[ "$raw" == *'\n'* ]]; then
+            printf '%b\n' "$raw" | tr -d '\r' > "$key_file"
+          else
+            printf '%s\n' "$raw" | tr -d '\r' > "$key_file"
+          fi
+          ssh-keygen -y -f "$key_file" >/dev/null
+          ssh -i "$key_file" -o BatchMode=yes -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            -o ConnectTimeout=10 -o ServerAliveInterval=10 -o ServerAliveCountMax=2 \
+            "$DEPLOY_USER@$DEPLOY_HOST" 'bash -s -- 82f852a9134ad7528f4bce7b464bccc556c3217e' <<'REMOTE'
+          set -euo pipefail
+          cd -P /var/www/anytoour/data/www/app.anytoour.ru
+          app="$PWD"
+          application="$1"
+          approved=698966e6a632cae03a64c3464889f7f986bd69449facdd38bdf5f2c9f561b7c9
+          contract=91edaf8c32dfd758c85c01ce7aa8469aae4e135f58347527692e71d8ba63e704
+          version="$approved-$contract"
+          operation=manager2-style-adopt-698966e6-91edaf8c
+          css="$app/manager2/assets/manager2.css"
+          cli=tools/manager2_style_release.js
+          base_url=https://app.anytoour.ru
+          scratch="$(mktemp -d)"
+          trap 'rm -rf -- "$scratch"' EXIT
+
+          check_application() {
+            test "$(git rev-parse HEAD)" = "$application" && git diff --quiet && git diff --cached --quiet
+          }
+          component_versions() {
+            sha256sum knowledge/hotels/catalogue.json resources/appleservice39-pilot-entries.json || return
+            for component in hotel-catalogue appleservice39-catalogue; do
+              local pointer="../max-search-bot-private-logs/$component-releases/current"
+              if [[ -L "$pointer" ]]; then readlink "$pointer" || return
+              else test ! -e "$pointer" || return; printf '%s\n' bundled; fi
+            done
+          }
+          fetch() {
+            curl --silent --show-error --fail --proto '=https' --max-time 12 \
+              --retry 1 --retry-delay 1 --retry-max-time 15 \
+              -H 'Cache-Control: no-cache' "$base_url$1" --output "$2"
+          }
+          check_activation() {
+            check_application && test "$(component_versions)" = "$nearby" &&
+              fetch /manager2/ "$scratch/after.html" &&
+              node - "$scratch/before.html" "$scratch/after.html" "$version" <<'NODE'
+          const assert = require('node:assert/strict');
+          const fs = require('node:fs');
+          const [beforePath, afterPath, version] = process.argv.slice(2);
+          const styles = file => fs.readFileSync(file, 'utf8').match(/<link\b[^>]*\brel="stylesheet"[^>]*>/g) || [];
+          const before = styles(beforePath);
+          const after = styles(afterPath);
+          const oldStyle = before.filter(tag => tag.includes(' data-manager2-style '));
+          assert.equal(oldStyle.length, 1);
+          assert.match(oldStyle[0], /href="\/manager2\/assets\/manager2\.css\?v=[0-9]+"/);
+          const expected = before.map(tag => tag === oldStyle[0]
+            ? tag.replace(/href="[^"]+"/, `href="/manager2/workspace-style.php?v=${version}"`)
+            : tag);
+          assert.deepEqual(after, expected);
+          NODE
+          }
+
+          check_application
+          nearby="$(component_versions)"
+          fetch /manager2/ "$scratch/before.html"
+          grep -Eq 'data-manager2-style href="/manager2/assets/manager2\.css\?v=[0-9]+"' "$scratch/before.html"
+          preflight="$(node "$cli" preflight-bundled "$app" "$approved")"
+          node -e '
+            const assert = require("node:assert/strict");
+            const [value, application_sha, css, package_sha256, contract_sha256] = process.argv.slice(1);
+            assert.deepEqual(JSON.parse(value), {contract:"manager2-style-preflight-v1", application_sha,
+              previous:"bundled", css, package_sha256, contract_sha256,
+              candidate_version:package_sha256 + "-" + contract_sha256});
+          ' "$preflight" "$application" "$css" "$approved" "$contract"
+          receipt="$(node "$cli" activate "$app" "$application" bundled "$css" "$approved" \
+            "$operation" --contract-sha256="$contract")"
+          node -e '
+            const assert = require("node:assert/strict");
+            const [value, application, version, operation] = process.argv.slice(1);
+            const receipt = JSON.parse(value);
+            assert.equal(receipt.contract, "manager2-style-operation-v1");
+            assert.equal(receipt.application_sha, application);
+            assert.equal(receipt.from, "bundled");
+            assert.equal(receipt.to, version);
+            assert.equal(receipt.state, "activated");
+            assert.equal(receipt.request.operation, operation);
+          ' "$receipt" "$application" "$version" "$operation"
+          receipt_digest="$(printf '%s\n' "$receipt" | sha256sum | cut -d' ' -f1)"
+          printf 'manager2_style_activation_receipt_sha256=%s\n' "$receipt_digest"
+
+          if ! check_activation || ! fetch "/manager2/workspace-style.php?v=$version" "$scratch/style.css" ||
+              ! cmp -s "$css" "$scratch/style.css"; then
+            node "$cli" rollback "$app" "$application" "$operation" "${operation}-rollback" \
+              --contract-sha256="$contract" > "$scratch/rollback.json"
+            printf '%s\n' manager2_style_http_check_failed_rolled_back
+            exit 1
+          fi
+          printf 'manager2_style_http_verified sha256=%s bytes=%s application=%s\n' \
+            "$approved" "$(wc -c < "$scratch/style.css")" "$application"
+          REMOTE
