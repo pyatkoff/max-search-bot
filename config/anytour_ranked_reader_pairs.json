@@ -2,40 +2,13 @@
   "schema": 1,
   "pairs": [
     {
-      "hotel_id": 310,
-      "source_mid": "11",
-      "source_publication_id": 102,
-      "target_mid": "1016",
-      "target_published_unixtime": 1739520989,
-      "target_caption_sha256": "07838215ce99c5adeee6506365fc3516561d1b375fa22db478e6999f741c503f",
-      "target_photo_marker_sha256": "ff165cee1ef35086ed4644e34c895c7e6f51df2f5a1872f70c53aa3fe0c61fd2"
-    },
-    {
-      "hotel_id": 381,
-      "source_mid": "13",
-      "source_publication_id": 104,
-      "target_mid": "1042",
-      "target_published_unixtime": 1741690737,
-      "target_caption_sha256": "1df6b34c898c21e50ef3492e234432e1ab2a73d9a6f4970418adbc665ff3f663",
-      "target_photo_marker_sha256": "eb17c34a80e91eb2c74cca0a97d1f6c96635e058ccfe4401bbfe1dbb2adf3753"
-    },
-    {
-      "hotel_id": 241,
-      "source_mid": "21",
-      "source_publication_id": 112,
-      "target_mid": "220",
-      "target_published_unixtime": 1701950968,
-      "target_caption_sha256": "36bc553b6cf29d39a836b7e625f1969be9747c3ce34a9de0a43cab2dc8527e26",
-      "target_photo_marker_sha256": "9c8adda43b5bc0bcfa6be6d0f7a9fdca75fabba7ff7a8e5095ba8871ba5d4a7d"
-    },
-    {
-      "hotel_id": 268,
-      "source_mid": "23",
-      "source_publication_id": 114,
-      "target_mid": "1012",
-      "target_published_unixtime": 1739103805,
-      "target_caption_sha256": "6a5dc4cb420050babd236a87c1a7db9602da4021deb28220b585e2eb58f79e12",
-      "target_photo_marker_sha256": "f385512c4983f8562d62ae5f08d0757221f3cb47ef6317cc1a2d174598d50524"
+      "hotel_id": 61591,
+      "source_mid": "390",
+      "source_publication_id": null,
+      "target_mid": "1723",
+      "target_published_unixtime": 1789806371,
+      "target_caption_sha256": "80ee79942213ba727e2eb6e6ba8166dd8a57ae04b80b97cc792dbceebb4a5946",
+      "target_photo_marker_sha256": "d85aced32b96ce675cb067e10c4d41f8d283f4d1a21efdb2bc61f80eef73c267"
     }
   ]
 }

@@ -44,8 +44,17 @@ jobs:
 
           MANIFEST = 'config/anytour_ranked_reader_pairs.json'
           WORKFLOW = '.github/workflows/read-1566-telegram-46-20261123.yml'
-          WORKFLOW_UPGRADE_PARENT = '91bfa36d31f119918f21cb72e09b17860a9b009a'
-          WORKFLOW_UPGRADE_MANIFEST = 'c6628ed835b59ee990420a557f8ea625167e51da'
+          WORKFLOW_UPGRADE_PARENT = 'af4bf3b062986e848c2b81a13954435281c32e47'
+          WORKFLOW_UPGRADE_MANIFEST = '90a7ec7eba5029b59764b69d198c97ae5d4cae47'
+          SOURCE_IDENTITY_PAIR = {
+              'hotel_id': 61591,
+              'source_mid': '390',
+              'source_publication_id': None,
+              'target_mid': '1723',
+              'target_published_unixtime': 1789806371,
+              'target_caption_sha256': '80ee79942213ba727e2eb6e6ba8166dd8a57ae04b80b97cc792dbceebb4a5946',
+              'target_photo_marker_sha256': 'd85aced32b96ce675cb067e10c4d41f8d283f4d1a21efdb2bc61f80eef73c267',
+          }
           FIELDS = {
               'hotel_id', 'source_mid', 'source_publication_id', 'target_mid',
               'target_published_unixtime', 'target_caption_sha256', 'target_photo_marker_sha256',
@@ -70,7 +79,7 @@ jobs:
               assert git('rev-list', '--parents', '-n', '1', head).split() == [head, before]
               changes = set(git('diff-tree', '--no-commit-id', '--no-renames', '--name-status', '-r',
                                 before, head).splitlines())
-              expected = ({'M\t' + WORKFLOW} if before == WORKFLOW_UPGRADE_PARENT
+              expected = ({'M\t' + WORKFLOW, 'M\t' + MANIFEST} if before == WORKFLOW_UPGRADE_PARENT
                           else {'M\t' + MANIFEST})
               assert changes == expected, 'unexpected commit scope'
               assert re.fullmatch(r'100644 blob [a-f0-9]{40}\t' + re.escape(MANIFEST) + r'\n',
@@ -84,13 +93,18 @@ jobs:
               assert type(packet['schema']) is int and packet['schema'] == 1
               rows = packet['pairs']
               assert type(rows) is list and 1 <= len(rows) <= 5
+              identity_only = rows == [SOURCE_IDENTITY_PAIR]
               normalized = {}
               source_mids, target_mids, publications = set(), set(), set()
               for row in rows:
                   assert type(row) is dict and set(row) == FIELDS
                   hotel, publication, date = (row[key] for key in
                                               ('hotel_id', 'source_publication_id', 'target_published_unixtime'))
-                  assert all(type(n) is int and 0 < n <= 2147483647 for n in (hotel, publication, date))
+                  assert all(type(n) is int and 0 < n <= 2147483647 for n in (hotel, date))
+                  if identity_only:
+                      assert publication is None
+                  else:
+                      assert type(publication) is int and 0 < publication <= 2147483647
                   source, target = row['source_mid'], row['target_mid']
                   assert all(type(n) is str and re.fullmatch(r'[1-9][0-9]{0,9}', n)
                              for n in (source, target))
@@ -103,6 +117,8 @@ jobs:
                   publications.add(publication)
                   normalized[hotel] = dict(source=source, source_publication=publication, target=target,
                                            target_date=date, target_caption=caption, target_photo=photo)
+                  if identity_only:
+                      normalized[hotel]['source_identity_only'] = True
               digest = hashlib.sha256(raw).hexdigest()
               Path('pub/validated-pairs.json').write_text(json.dumps(normalized, separators=(',', ':')))
               with Path(os.environ['GITHUB_ENV']).open('a') as output:
@@ -279,6 +295,12 @@ jobs:
            'reader_packet_sha256'=>'__RANKED_READER_PACKET_SHA__','rows'=>[]];
           $pdo=null;$lock=null;$acquired=null;$rates=[];$start=hrtime(true);$stage='runtime';
           $pairs=json_decode(base64_decode('__VALIDATED_RANKED_PAIRS__',true),true,16,JSON_THROW_ON_ERROR);
+          $identityOnly=count($pairs)===1&&($pairs[61591]['source_identity_only']??false)===true;
+          if($identityOnly){
+           $out['source_identity_only']=true;
+           $out['observation_only']=true;
+           $out['baseline_current_for_writer']=false;
+          }
           try {
            runtimeRead();requireRead(realpath(OPERATIONS)===OPERATIONS,'operations_root_changed');
            for($sample=0;$sample<3;++$sample){
@@ -298,6 +320,32 @@ jobs:
            }
            requireRead($out['resource_budget']['allowed'],'server_resource_hold');
            runtimeRead();
+           if($identityOnly){
+            $stage='source_identity_390';
+            requireRead($pairs[61591]['source']==='390'&&$pairs[61591]['source_publication']===null,'source_identity_scope_changed');
+            ob_start();try{
+             require APP.'/config.php';
+             require_once APP.'/services/ProjectConfig.php';
+             require_once APP.'/services/ChannelPostRegistryService.php';
+             require_once APP.'/services/ChannelPostButtonTransport.php';
+            }finally{ob_end_clean();}
+            requireRead(ProjectConfig::projectId()==='anytour','project_changed');
+            $pdo=ConversationDb::connection();
+            $pdo->exec('SET SESSION TRANSACTION READ ONLY');
+            $pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ');
+            $pdo->beginTransaction();
+            $registry=new ChannelPostRegistryService($pdo);
+            $source=$registry->channel('anytour','telegram','anyru_bot','-1002262666616');
+            requireRead(is_array($source)&&(int)$source['id']===10,'channel_identity_changed');
+            $found=publicationRead($pdo,$registry,10,'390');
+            requireRead(is_array($found)&&$found['post_url']==='https://t.me/any_toour/390','source_native_publication_unavailable');
+            $catalog=$found['hotel_id'];
+            requireRead($catalog===null||(is_int($catalog)&&$catalog>0)||(is_string($catalog)&&preg_match('/\A[1-9][0-9]{0,11}\z/D',$catalog)===1),'invalid_native_hotel_identity');
+            $out['source_identity']=['hotel_id'=>61591,'source_message_id'=>'390',
+             'publication_id'=>$found['publication_id'],'version_id'=>$found['version_id'],'state'=>$found['state'],
+             'native_hotel_catalog_id'=>$catalog,'native_claim_held_or_unknown'=>$found['native_claim_held_or_unknown']];
+            $pdo->rollBack();
+           }else{
            $prior=[];$public=[];$stage='bounded_public';
            foreach($pairs as $hotel=>$pair){
             $prior[$hotel]=telegramMediaOperationRead($pair['target']);
@@ -387,7 +435,9 @@ jobs:
              'existing_large_channel_hotel_registry_matches'=>array_merge($assessment['target_native_ids']??['unobserved'],$assessment['hotel_duplicate_publication_ids']??['unobserved']),
              'prepared_assessment'=>$assessment,'preparation_ready'=>$admission['preparation_ready'],'preview_blockers'=>$admission['preview_blockers'],'preview_ready'=>$admission['preview_ready']];
            }
-           $pdo->rollBack();$out['mysql_after']=mysqlResourcesRead($pdo);runtimeRead();$out['ok']=true;
+           $pdo->rollBack();$out['mysql_after']=mysqlResourcesRead($pdo);
+           }
+           runtimeRead();$out['ok']=true;
           }catch(Throwable $e){$out['failure_stage']=$stage;$out['failure_reason']=reasonRead($e);}
           finally{if($pdo instanceof PDO&&$pdo->inTransaction())$pdo->rollBack();if(is_resource($lock)){if($acquired!==null)$out['price_lease_held_ms']=(int)((hrtime(true)-$acquired)/1000000);if($acquired!==null)flock($lock,LOCK_UN);fclose($lock);}}
           $out['public_retry_after_holds']=$rates;$out['resources_after']=resourcesRead();$out['read_at_utc']=gmdate(DATE_ATOM);$out['read_elapsed_ms']=(int)((hrtime(true)-$start)/1000000);
@@ -486,7 +536,22 @@ jobs:
           d=json.load(open('pub/registry.json'))
           assert d['operation']=='hotel_archive_telegram_ranked_registry' and d['issue']==1566
           assert d['production_writes']==d['provider_writes']==d['bot_starts']==0 and d['write_admission'] is False
-          print(json.dumps({'ok':d['ok'],'failure_stage':d.get('failure_stage'),'reason':d.get('failure_reason'),'rows':[{'hotel_id':r['hotel_id'],'ready':r['preview_ready'],'blockers':r['preview_blockers'],'checks':r['prepared_assessment']['checks'],'target_registry_or_duplicate':r['existing_large_channel_hotel_registry_matches']} for r in d['rows']]}))
+          packet = json.load(open('pub/validated-pairs.json'))
+          identity_only = packet.get('61591', {}).get('source_identity_only') is True
+          assert d.get('source_identity_only', False) is identity_only
+          if identity_only:
+              assert d['rows'] == [] and d['observation_only'] is True
+              assert d['baseline_current_for_writer'] is False and 'native_read_request_count' not in d
+              if d['ok']:
+                  row = d['source_identity']
+                  assert set(row) == {'hotel_id', 'source_message_id', 'publication_id', 'version_id', 'state',
+                                      'native_hotel_catalog_id', 'native_claim_held_or_unknown'}
+                  assert row['hotel_id'] == 61591 and row['source_message_id'] == '390'
+                  assert all(type(row[k]) is int and row[k] > 0 for k in ('publication_id', 'version_id'))
+              print(json.dumps({'ok':d['ok'],'failure_stage':d.get('failure_stage'),'reason':d.get('failure_reason'),
+                                'source_identity':d.get('source_identity')}))
+          else:
+              print(json.dumps({'ok':d['ok'],'failure_stage':d.get('failure_stage'),'reason':d.get('failure_reason'),'rows':[{'hotel_id':r['hotel_id'],'ready':r['preview_ready'],'blockers':r['preview_blockers'],'checks':r['prepared_assessment']['checks'],'target_registry_or_duplicate':r['existing_large_channel_hotel_registry_matches']} for r in d['rows']]}))
           PY
           test "$status" -eq 0
       - name: Preserve the original bounded pair observation
