@@ -352,11 +352,17 @@ jobs:
            $pdo->beginTransaction();
            if($snapshot)$out['registry_read_contract']=$observationOnly?'read_only_observation_v1':'read_only_snapshot_v1';
            foreach($pairs as $hotel=>$pair){
-            $stage='pair_'.$hotel;$assessment=telegramPreparedPairNativeRead($hotel,$pair,$public[$hotel],$prior[$hotel],($out['native_channel_rights']['state']??null)==='ready',$feed,$routes,
+            $stage='pair_'.$hotel;$sourceIdentity=null;
+            $assessment=telegramPreparedPairNativeRead($hotel,$pair,$public[$hotel],$prior[$hotel],($out['native_channel_rights']['state']??null)==='ready',$feed,$routes,
              static fn(int $h,array $p):array=>telegramPreparedPairTargetRead($pdo,$registry,$h,$p),
-             static function(int $h,array $p)use($pdo,$registry):array{
+             static function(int $h,array $p)use($pdo,$registry,&$sourceIdentity):array{
               if($p['source_publication']===null){$found=publicationRead($pdo,$registry,10,$p['source']);requireRead(is_array($found)&&is_int($found['publication_id']??null),'source_native_publication_unavailable');$p['source_publication']=$found['publication_id'];}
-              return telegramPreparedPairSourceRead($pdo,$registry,$h,$p);
+              $read=telegramPreparedPairSourceRead($pdo,$registry,$h,$p);
+              $source=$read['source'];
+              $catalogId=$source['snapshot']['metadata']['hotel_catalog_id']??null;
+              $sourceIdentity=['publication_id'=>$source['publication_id'],'version_id'=>$source['version_id'],
+               'state'=>$source['state'],'hotel_catalog_id'=>is_int($catalogId)||(is_string($catalogId)&&preg_match('/\\A[0-9]{1,12}\\z/D',$catalogId)===1)?$catalogId:null];
+              return $read;
              },'telegramMediaOperationRead');
             $blockers=[];$sn=null;$free=null;
             if(($assessment['prepared_checks_pass']??false)!==true)$blockers[]=$assessment['hold_reason']??'prepared_checks_not_confirmed';
@@ -371,7 +377,7 @@ jobs:
             $directory=OPERATIONS.'/'.$operation;
             $admission=rankedPreparationAdmission($blockers,$snapshot,$shared,$out['baseline_current_for_writer'],$observationOnly);
             $out['rows'][]=['hotel_id'=>$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
-             'source_native'=>$sn,'target_native'=>$assessment['target_native']??null,'source_public'=>$sp,'target_public'=>$tp,
+             'source_identity_readback'=>$sourceIdentity,'source_native'=>$sn,'target_native'=>$assessment['target_native']??null,'source_public'=>$sp,'target_public'=>$tp,
              'source_matches'=>$sm,'historical_target_matches'=>($assessment['checks']['target_preimage']??false)===true,
              'target_media_lock_free'=>$free!==false&&$free!==null&&(int)$free===1,'target_current_pin_matches'=>$currentPin===$pair['target'],
              'prior_media_operation_directory_exists'=>file_exists($directory)||is_link($directory),
