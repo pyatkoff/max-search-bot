@@ -84,7 +84,7 @@
         node.onload=()=>resolve();
         node.onerror=()=>{assets.delete(url);node.remove();reject(new Error('selection_asset_network'))};
         // Keep the original stylesheet precedence when the editor arrives later.
-        const presentation=kind==='style'?document.querySelector('link[href^="/manager2/assets/manager2.css?"]'):null;
+        const presentation=kind==='style'?document.querySelector('link[data-manager2-style],link[href^="/manager2/assets/manager2.css?"]'):null;
         if(presentation?.parentNode===document.head)document.head.insertBefore(node,presentation);else document.head.appendChild(node);
       });
       assets.set(url,promise);return promise;
@@ -276,12 +276,11 @@
     const route=hero.querySelector('.leadRoute');
     const tripDetails=root.querySelector('[data-trip-details]'),requestContext=root.querySelector('.leadRequestContext');
     const readonly=sales.querySelector('.leadReadonly');if(readonly)extra.appendChild(readonly);
-    // The saved repair request is the reason for the contact: show it before tasks.
-    if(requestContext&&window.WorkspaceV2LeadCard?.requestKind(p,c)==='device_repair')root.insertBefore(requestContext,tasks);
     // Keep the current owner visible without moving or replacing the bound reassignment editor.
     const assignedName=String(c?.manager_name||p.handoff?.manager_name||'').trim();
     if(assignedName){const ownerSummary=document.createElement('div');ownerSummary.className='leadOwnerSummary';ownerSummary.textContent='Ответственный: '+assignedName;hero.appendChild(ownerSummary)}
     root.insertBefore(tasks,hero.nextSibling);root.insertBefore(sales,tasks.nextSibling);
+    // The saved repair request is the reason for the contact: show it before tasks.
     if(requestContext&&window.WorkspaceV2LeadCard?.requestKind(p,c)==='device_repair')root.insertBefore(requestContext,tasks);
     if(window.WorkspaceV2LeadCard?.requestKind(p,c)==='travel'){
       const tripPanel=document.createElement('section');tripPanel.className='leadPanel m2TripPanel';
@@ -770,4 +769,3 @@
   window.Manager2Presentation={enhanceLeadCard,enhanceTasks,enhanceConversationActions,focusConversationTool,registerConversationTool,conversationHistoryTarget,revealTaskDraft,revealTaskPlanner,budgetFact,navigate,syncNavigation,listFilters,salesCoverage,enhanceInbox,enhanceInboxMarkers,ownershipSignal,formatInboxActivity,openClientCard,closeClientCard,syncClientCard,syncSelectionLauncher,openPromiseSelectionForTask,revealInboxSearch,syncPersonalChrome};
   init();
 })();
-

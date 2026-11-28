@@ -2,6 +2,58 @@
 
 Owner-authorized production presentation at `/manager2/`, based on the agreed concept 03 from the manager design prototype.
 
+## Independent workspace stylesheet
+
+The Manager2 stylesheet can be selected and rolled back separately from the
+application checkout. The bundled URL is used until a version is selected.
+Each selected file has an immutable URL. An HTML response that already
+references an earlier approved stylesheet can still load those exact bytes
+after a switch. Both URLs keep the same stylesheet precedence anchor for the
+late-loaded tour selection editor.
+
+Use the accepted application SHA and the exact digest from the stylesheet
+review. The standalone package contains one self-contained UTF-8 stylesheet.
+The initial previous version is `bundled`; later releases name the exact
+selected version.
+
+For the first switch from bundled CSS, use the existing tool to read the
+installation, validate the approved digest and print the activation inputs
+under the shared checkout lock. Compare its application SHA with the accepted
+installation before using the existing activation command.
+
+```sh
+node tools/manager2_style_release.js preflight-bundled "$APP" "$APPROVED_SHA256"
+```
+
+The preflight reads the same lock as activation and does not create a package
+or an operation receipt. A busy lock, pending operation, changed selection, or
+different stylesheet bytes stops preparation.
+
+```sh
+node tools/manager2_style_release.js activate \
+  "$APP" "$APP_SHA" "$PREVIOUS_VERSION" "$CSS" "$APPROVED_SHA256" "$OPERATION"
+node tools/manager2_style_release.js rollback \
+  "$APP" "$APP_SHA" "$ACTIVATION_OPERATION" "$ROLLBACK_OPERATION"
+```
+
+For approval that should survive unrelated application releases, record the
+style contract SHA-256 from the reviewed source with the CSS digest and append
+`--contract-sha256="$APPROVED_CONTRACT_SHA256"` to either command. The pin comes
+from `Manager2WorkspaceStyle::contractPin()` on the reviewed checkout. At
+execution, pass the current accepted `APP_SHA`. The command checks that SHA and
+the approved contract under the checkout lock. The operation ID remains bound
+to the same approved contract and request. Its receipt records the application
+SHA on which the operation ran.
+
+For a first switch prepared with `preflight-bundled`, compare the reported
+`contract_sha256` with the recorded approval before invoking activation.
+
+The release binds the CSS to its current shell, asset reader and presentation
+code. The common checkout lock prevents a simultaneous core switch. An
+incoming incompatible shell requires a coordinated style rollback first.
+Operation receipts are private. Reusing the same operation ID after an
+interrupted response recovers its recorded result.
+
 ## Runtime ownership
 
 `index.php` includes the real `manager/index.php` shell. The canonical auth/session, CSRF, protected APIs and all domain modules are retained. The Manager2 HTML shell never starts a session: the canonical cookie is deliberately scoped to `/manager/`, so starting it from `/manager2/` would replace an existing authenticated session. All authentication, cookie issuance and CSRF stay in the canonical protected APIs; cookie scope and security flags remain unchanged. A same-origin `/manager/` base keeps fetch, media, service-worker scope at their existing endpoints. The administration link explicitly opens `/manager2/admin.php`. No additional API, mock customer data, authentication implementation, schema or business-state store exists in this directory.
@@ -343,4 +395,3 @@ Only that zero-dispatch rejection may reconcile across a changed context for the
 same freshly authorized actual owner; confirmed/UNKNOWN receipts stay context
 fenced. The UI refreshes authorized detail before unlocking a new explicit send,
 retaining the intent fence if the refresh fails. No database lock spans transport.
-

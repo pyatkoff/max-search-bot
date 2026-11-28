@@ -28,6 +28,37 @@ deploy_appleservice39_catalogue_guard() (
   printf '%s\n' appleservice39_catalogue_guard=compatible
 )
 
+deploy_manager2_style_guard() (
+  set -o pipefail
+  local releases="$1" candidate="$2" pointer="$1/current"
+  if [[ -e "$releases/pending.json" || -L "$releases/pending.json" ]]; then
+    printf '%s\n' manager2_style_guard=release_pending >&2
+    return 1
+  fi
+  [[ -e "$pointer" || -L "$pointer" ]] || return 0
+  local target version expected_css expected_contract actual_css incoming_contract paths file pin
+  target="$(readlink -- "$pointer")" || return
+  version="${target##*/}"
+  [[ "$version" =~ ^([a-f0-9]{64})-([a-f0-9]{64})$ ]] || return 1
+  expected_css="${BASH_REMATCH[1]}" expected_contract="${BASH_REMATCH[2]}"
+  [[ "$target" == "$releases/$version" && "$(realpath -e -- "$target")" == "$target" &&
+     -f "$target/style.css" && ! -L "$target/style.css" ]] || return 1
+  actual_css="$(sha256sum -- "$target/style.css")" || return
+  paths="$(php -r 'require "services/Manager2WorkspaceStyle.php"; echo implode("\n", Manager2WorkspaceStyle::CONTRACT_FILES);')" || return
+  [[ -n "$paths" ]] || return 1
+  incoming_contract="$(
+    while IFS= read -r file; do
+      pin="$(git show "$candidate:$file" | sha256sum)" || exit 1
+      printf '%s:%s\n' "$file" "${pin%% *}"
+    done <<< "$paths" | sha256sum
+  )" || return
+  if [[ "${actual_css%% *}" != "$expected_css" || "${incoming_contract%% *}" != "$expected_contract" ]]; then
+    printf '%s\n' manager2_style_guard=incompatible_release >&2
+    return 1
+  fi
+  printf '%s\n' manager2_style_guard=compatible
+)
+
 deploy_hotel_catalogue_guard() {
   local app="$1" candidate="$2"
   local private_root="${app%/*}/max-search-bot-private-logs"
@@ -58,6 +89,8 @@ deploy_hotel_catalogue_guard() {
 
   deploy_appleservice39_catalogue_guard "$private_root/appleservice39-catalogue-releases" "$candidate" ||
     { printf '%s\n' 'appleservice39_catalogue_guard=refused' >&2; return 1; }
+  deploy_manager2_style_guard "$private_root/manager2-style-releases" "$candidate" ||
+    { printf '%s\n' 'manager2_style_guard=refused' >&2; return 1; }
   if [[ -e "$releases/pending.json" || -L "$releases/pending.json" ]]; then
     printf '%s\n' 'hotel_catalogue_guard=release_pending' >&2
     return 1

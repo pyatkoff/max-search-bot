@@ -218,6 +218,29 @@ function runCases(): void
     verify('failed read in the middle preserves both earlier and later destinations',
         array_column($partial['verified_destinations'], 'hotel_id') === $expectedHotels && $partial['public_unverified'] === 1);
 
+    $waits = []; $reads = [];
+    $readTransient = static function (string $message) use ($pages, $thirdMessage, &$reads): string {
+        $reads[$message] = ($reads[$message] ?? 0) + 1;
+        if ($message === $thirdMessage && $reads[$message] === 1) {
+            throw new RuntimeException('public_history_transient');
+        }
+        return $pages[$message];
+    };
+    $recovered = inspectPublic($candidates, $digest, $readTransient, $recordWait);
+    verify('only the temporarily unavailable public post is read once more',
+        $recovered['verified_destinations'] === $all['verified_destinations'] && $waits === [5]
+        && $reads[$thirdMessage] === 2 && array_sum($reads) === count($candidates) + 1
+        && !isset($recovered['results'][2]['earlier_public_html_sha256']));
+
+    $waits = []; $reads = 0;
+    $stillUnavailable = inspectPublic([$candidates[2]], $digest, static function () use (&$reads): string {
+        ++$reads;
+        throw new RuntimeException('public_history_transient');
+    }, $recordWait);
+    verify('a persistent transport failure has a single retry and no route',
+        $stillUnavailable['public_unverified'] === 1 && $stillUnavailable['verified_destinations'] === []
+        && $stillUnavailable['results'][0]['reason'] === 'public_history_transient' && $reads === 2 && $waits === [5]);
+
     $changes = [
         'button'=>fn(string $page): string => str_replace('anyru_bot', 'another_bot', $page),
         'caption'=>fn(string $page): string => str_replace('class="tgme_widget_message_text">', 'class="tgme_widget_message_text">X', $page),

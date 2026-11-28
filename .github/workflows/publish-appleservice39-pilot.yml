@@ -1,38 +1,10 @@
 name: Publish approved AppleService39 pilot
 
 on:
+  # Required regression owns pull request validation. Keep the
+  # publisher-specific preflight on actual publication entry points.
   push:
     branches: [ops/appleservice39-coverage-20261112, ops/appleservice39-device-v1-20261119, ops/appleservice39-device-recovery-20261119, ops/appleservice39-telegram-catalogue-20261119]
-  pull_request:
-    branches: [main]
-    paths:
-      - 'services/AppleService39Pilot*.php'
-      - 'services/ProjectMaxConnection.php'
-      - 'integrations/AppleService39ChannelTransport.php'
-      - 'resources/appleservice39/pilot/**'
-      - 'resources/appleservice39/landing-v2/**'
-      - 'resources/appleservice39/catalogue-v1/**'
-      - 'resources/appleservice39/search-intent-v1/**'
-      - 'resources/appleservice39/coverage-v1/**'
-      - 'resources/appleservice39/device-v1/**'
-      - 'services/AppleService39DeviceRevision.php'
-      - 'services/AppleService39Telegram*.php'
-      - 'resources/appleservice39/telegram-catalogue-v1/**'
-      - 'tests/run_appleservice39_telegram_device_publisher_regression.php'
-      - 'tests/run_appleservice39_device_publisher_regression.php'
-      - 'services/AppleService39Coverage*.php'
-      - 'tests/run_appleservice39_coverage_regression.php'
-      - 'resources/project-funnel/appleservice39.json'
-      - 'resources/appleservice39-pilot-entries.json'
-      - 'migrations/095_appleservice39_pilot_publications.sql'
-      - 'tools/publish_appleservice39_pilot.php'
-      - 'tools/deployment_release.js'
-      - 'tests/run_appleservice39_publisher_regression.php'
-      - 'tests/run_appleservice39_search_plan_regression.php'
-      - 'tests/run_appleservice39_search_publisher_regression.php'
-      - 'tests/mysql/appleservice39-publisher.php'
-      - 'tests/required_checks_manifest.php'
-      - '.github/workflows/publish-appleservice39-pilot.yml'
   workflow_dispatch:
     inputs:
       operation:
