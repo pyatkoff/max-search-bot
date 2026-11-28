@@ -70,6 +70,20 @@ for name, jobs in [('workspace-v2-visual-qa.yml',['selection','firefox-history',
     for job in jobs:
         check(load(name)['jobs'][job]['if'] == "needs.change-scope.outputs.mode == 'full'", name + '/' + job + ' must require full mode')
         check('change-scope' in load(name)['jobs'][job]['needs'], name + '/' + job + ' must await selector')
+sound = load('workspace-sound.yml')['jobs']['sound']
+check(set(sound['strategy']['matrix']['browser']) == {'chromium', 'webkit'}, 'sound keeps both browser engines')
+sound_steps = {step['name']: step for step in sound['steps'] if 'name' in step}
+for name, command in [
+    ('Sound controller unit regression', 'node tests/notification-sound/client.unit.js'),
+    ('Read-only authentication bootstrap regression', 'php tests/notification-sound/bootstrap-readonly.php'),
+    ('Read-only feed regression', 'php tests/notification-sound/feed.php'),
+]:
+    step = sound_steps[name]
+    check(step['run'] == command and step.get('if') == "matrix.browser == 'chromium'"
+          and not step.get('continue-on-error', False), name + ' must run once and remain fatal')
+browser_sound = sound_steps['Touch, audio scheduling and deduplication']
+check(browser_sound.get('if') == 'success() || failure()' and '--browser=${{ matrix.browser }}' in browser_sound['run']
+      and not browser_sound.get('continue-on-error', False), 'sound must exercise both browsers even after a regression fails')
 for job in ['required','prepared-mysql','appleservice39-mysql']:
     check('change-scope' in regression[job]['needs'],job+' awaits canonical selector')
 check(regression['required']['if'] == "needs.change-scope.outputs.mode == 'full' || needs.change-scope.outputs.mode == 'tour-selection'", 'every selection profile retains architecture')
