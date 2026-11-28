@@ -69,7 +69,8 @@ if (($argv[1]??'')==='--development-retire-race-child') {
         } else exit(4);
     } catch (DevelopmentWorkQueueConflict $error) {$result='conflict';}
     catch (DomainException $error) {$result='access_denied';}
-    file_put_contents($out,$result);exit(0);
+    devPublishRaceResult($out,$result);
+    exit(0);
 }
 
 if (($argv[1]??'')==='--development-race-child') {
@@ -107,7 +108,8 @@ if (($argv[1]??'')==='--development-race-child') {
         } else exit(4);
     } catch (DevelopmentWorkQueueConflict $error) {$result='conflict';}
     catch (DomainException $error) {$result='access_denied';}
-    file_put_contents($out,$result);exit(0);
+    devPublishRaceResult($out,$result);
+    exit(0);
 }
 
 $checks=0;
