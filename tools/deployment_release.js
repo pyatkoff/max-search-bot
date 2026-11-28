@@ -48,6 +48,9 @@ const SCHEDULES = new Map([[PREFIX+'live-session-diagnostics.yml','25 * * * *'],
 const HOTEL_REGISTRY_READ = Object.freeze({branch:'ops/anytour-hotel-four-read-20261123',
   workflow:PREFIX+'read-1566-main-hotel-registry.yml',job:'registry',operation:'hotel_four_registry',
   owner:'pyatkoff',owner_id:226193297,repository_id:1342493152});
+const HOTEL_SOURCE_BINDINGS_READ = Object.freeze({...HOTEL_REGISTRY_READ,
+  branch:'ops/anytour-hotel-source-bindings-read-20261128',
+  operation:'telegram_hotel_source_binding_v1'});
 const MAX2_HOLD_PAIR_READ = Object.freeze({branch:'ops/max2-hold-pair-read-20261123',
   workflow:PREFIX+'max2-hold-pair-read.yml',job:'diagnose',operation:'max2_hold_pair_20261123',
   owner:'pyatkoff',owner_id:226193297,repository_id:1342493152});
@@ -1968,8 +1971,8 @@ async function resolveMax2HoldPairRead({env,event,api}) {
   return {...await finalResolution(api,c,location,result),read_operation:p.operation};
 }
 /** One initial owner push admits only the four-hotel observation, before SSH. */
-async function resolveHotelRegistryRead({env,event,api}) {
-  const p=HOTEL_REGISTRY_READ,ref='refs/heads/'+p.branch;
+async function resolveHotelRegistryRead({env,event,api},p=HOTEL_REGISTRY_READ) {
+  const ref='refs/heads/'+p.branch;
   requireValue(env.GITHUB_REPOSITORY===REPOSITORY&&env.GITHUB_REF===ref
     &&env.GITHUB_WORKFLOW_REF===REPOSITORY+'/'+p.workflow+'@'+ref
     &&env.GITHUB_EVENT_NAME==='push'&&env.GITHUB_JOB===p.job
@@ -2458,6 +2461,8 @@ async function resolveConsumer({env,event,api,sleep=ms=>new Promise(resolve=>set
     return resolution(x.source,GATE_RECOVERY.sha,'installed');
   }
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_REGISTRY_READ.branch)return resolveHotelRegistryRead({env,event,api});
+  if(env.GITHUB_REF==='refs/heads/'+HOTEL_SOURCE_BINDINGS_READ.branch)
+    return resolveHotelRegistryRead({env,event,api},HOTEL_SOURCE_BINDINGS_READ);
   if(env.GITHUB_REF==='refs/heads/'+MAX2_HOLD_PAIR_READ.branch)return resolveMax2HoldPairRead({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_FOUR_TRANSFER.branch)return resolveHotelTransfer({env,event,api});
   if(env.GITHUB_REF==='refs/heads/'+HOTEL_NEXT_TRANSFER.branch)return resolveHotelTransfer({env,event,api},HOTEL_NEXT_TRANSFER);
