@@ -517,6 +517,35 @@ module.exports = async function verifyPublisherAdmission(check = assert.equal) {
   reset();other.body='';previous=await acceptedPrevious();let backwards=0;
   await rejects(()=>run({clock:()=>backwards++?-1:0}),'invalid_clock','backwards monotonic clock refuses admission');
 
+  const {profile, authorizeEvent, publish} = require('../tools/release_slot_1758_receipt');
+  const recoveryRef = 'refs/heads/' + profile.branch;
+  const recoverySource = '5'.repeat(40);
+  const recoveryEnv = {
+    GITHUB_REPOSITORY: repository, GITHUB_EVENT_NAME:'push', GITHUB_REF:recoveryRef,
+    GITHUB_WORKFLOW_REF:repository + '/' + C.CLOSER + '@' + recoveryRef,
+    GITHUB_JOB:'release-slot-recovery', GITHUB_RUN_ATTEMPT:'1',
+    GITHUB_ACTOR:'pyatkoff', GITHUB_TRIGGERING_ACTOR:'pyatkoff',
+    GITHUB_SHA:recoverySource, GITHUB_RUN_ID:'46123456789',
+  };
+  const recoveryEvent = {
+    repository:{full_name:repository,id:1342493152},
+    sender:{login:'pyatkoff',id:profile.owner}, ref:recoveryRef, before:'0'.repeat(40),
+    after:recoverySource, created:true, deleted:false, forced:false,
+  };
+  check(authorizeEvent(recoveryEnv,recoveryEvent), undefined, 'the original authorized PR1758 receipt event is accepted');
+  for (const changed of [{created:false}, {forced:true}, {sender:{login:'pyatkoff',id:1}}]) {
+    await rejects(() => publish({
+      env:recoveryEnv, event:{...recoveryEvent,...changed}, api:() => {
+        throw new Error('a rejected event must never read or write the API');
+      },
+    }), 'unbound_receipt_event_invalid', 'a different PR1758 recovery event is refused before any API operation');
+  }
+  await rejects(() => publish({
+    env:{...recoveryEnv,GITHUB_RUN_ATTEMPT:'2'}, event:recoveryEvent, api:() => {
+      throw new Error('a rerun must never read or write the API');
+    },
+  }), 'unbound_receipt_event_invalid', 'a second PR1758 attempt cannot create a terminal receipt');
+
   const tool = path.resolve(__dirname, '../tools/release_priority.js');
   const cli = spawnSync(process.execPath, [tool, '--admit', '1438', head, base, '--publisher',
     '648', '17', acquired], { encoding: 'utf8', env: { GITHUB_REPOSITORY: repository } });

@@ -254,6 +254,20 @@ Removing a reservation is an explicit metadata release by its owner, not a way
 to bypass a failed source check.
 
 
+## PR1758 unbound terminal receipt
+
+PR1758 installed as `c05e0b84` in original Deploy 46104950782. Its original closer 46105952679
+completed the read-only preparation, then skipped terminal publication because the merged PR
+had no publisher binding. The approved one-time recovery uses the existing serialized
+`release-slot-recovery` job on the initial push of `ops/recover-pr1758-terminal-20261128`.
+Required source CI runs on `ops/prepare-pr1758-terminal-20261128` before that push.
+
+The recovery authenticates the exact installation and diagnostics, original required gates,
+and both explicitly skipped steps of the original closer. The new native artifact records
+the original skip and its separate producer. It leaves the installation receipt and publisher
+comment unchanged. Admission recognizes that exact proof only for PR1763 on the unchanged
+base. Normal publisher acquisition, expected-head merge and post-deploy closure apply to PR1763.
+
 ## One proved unstarted PR1506 TLS gate
 
 Original Deploy43250756234/a2 is successful with install/smoke/diagnostics_attempt1;

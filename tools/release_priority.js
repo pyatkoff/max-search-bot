@@ -176,6 +176,7 @@ async function continuePublisher(pulls, context, expected, token, fetchImpl) {
 // The original closer for PR1630 finished without a publisher binding. Only
 // PR1631 can use the original installation and explicitly skipped terminal.
 const UNBOUND_PREDECESSOR = Object.freeze({
+  pr: 1630,
   source: 'c9b4d97a945f88e068b71a9af6c948013434e050',
   head: '204afa0f455a227536f62196eb4f84762fe416b3',
   blob: '0ec2cf21fa655fc52670d701142529747f5361d3',
@@ -185,14 +186,13 @@ const UNBOUND_PREDECESSOR = Object.freeze({
   pullUpdatedAt: '2026-11-19T18:26:59Z',
 });
 
-async function verifyUnboundPredecessor(api, location, native) {
+async function verifyUnboundPredecessor(api, location, native, p = UNBOUND_PREDECESSOR) {
   const R = require('./deployment_release');
   const C = require('./release_slot_close');
-  const p = UNBOUND_PREDECESSOR;
   const get = resource => api('GET', R.API_ROOT + resource);
   const assertOriginalPull = async () => {
-    const pull = await get('/pulls/1630');
-    if (pull?.number !== 1630 || pull.head?.sha !== p.head || pull.updated_at !== p.pullUpdatedAt ||
+    const pull = await get('/pulls/' + p.pr);
+    if (pull?.number !== p.pr || pull.head?.sha !== p.head || pull.updated_at !== p.pullUpdatedAt ||
         C.binding(pull, p.source) !== null) refusal('previous_unbound_pull_changed');
   };
   const r = R.validateRelease(location.record).release;
@@ -245,6 +245,7 @@ async function verifyUnboundPredecessor(api, location, native) {
   if (fresh.blob !== location.blob || fresh.record_digest !== location.record_digest)
     refusal('previous_release_changed');
   if ((await get('/git/ref/heads/main'))?.object?.sha !== p.source) refusal('base_changed');
+  return C.gateReferences(snapshot.runs);
 }
 
 // Final admission alone authenticates the previous technical release. Ordinary
@@ -345,6 +346,11 @@ async function verifyPreviousRelease(context, token, fetchImpl) {
       binding = await recovery.verifyClosed(api, location);
       terminal = recovery.TERMINAL;
     } else {
+      const pr1758 = require('./release_slot_1758_receipt');
+      if (context.prNumber === pr1758.profile.successor && context.baseSha === pr1758.profile.source) {
+        await pr1758.verifyPublished(api, location, native);
+        return;
+      }
       if (context.prNumber !== 1631 || context.baseSha !== UNBOUND_PREDECESSOR.source)
         refusal('previous_release_unclosed');
       await verifyUnboundPredecessor(api, location, native);
@@ -451,7 +457,7 @@ async function runGuard({ env, readEvent, fetchImpl, admission, now = Date.now()
   return decision;
 }
 
-module.exports = { claimFor, decidePriority, readOpenPulls, runGuard, verifyPreviousRelease, MAX_WINDOW_MS };
+module.exports = { claimFor, decidePriority, readOpenPulls, runGuard, verifyPreviousRelease, verifyUnboundPredecessor, MAX_WINDOW_MS };
 if (typeof require === 'function' && require.main === module) {
   // --admit is the read-only last check before the existing publisher/CAS merge.
   // It has no merge permission and does not acquire a deployment lease.
