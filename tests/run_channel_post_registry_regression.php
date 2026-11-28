@@ -777,6 +777,60 @@ postCheck('source hotel binding replay returns the restored version without a se
     && $readBindingTables() === $bindingAfterTables);
 
 
+$publicBindingUrl = 'https://t.me/any_toour/21';
+$publicBindingButton = 'https://t.me/anyru_bot?start=p_'.str_repeat('a', 24);
+$publicBindingLabel = '✈️ Узнать стоимость тура';
+$publicBindingPhotoClass = 'tgme_widget_message_photo_wrap 123456';
+$publicBindingDate = '2026-11-02T08:00:00+00:00';
+$publicBindingPost = static function (array $buttons, string $caption = 'Exact source caption') use (
+    $publicBindingUrl, $publicBindingPhotoClass, $publicBindingDate
+): string {
+    $html = '<!doctype html><html><head><meta charset="utf-8"></head><body>'
+        .'<article data-post="any_toour/21"><div class="tgme_widget_message_text">'.$caption.'</div>'
+        .'<a class="'.$publicBindingPhotoClass.'" href="'.$publicBindingUrl
+        .'" style="background-image:url(https://cdn-telegram.org/photo.jpg)"></a>'
+        .'<time datetime="'.$publicBindingDate.'"></time>';
+    foreach ($buttons as [$label, $url]) {
+        $html .= '<a class="tgme_widget_message_inline_button" href="'.htmlspecialchars($url, ENT_QUOTES, 'UTF-8').'">'
+            .$label.'</a>';
+    }
+    return $html.'</article></body></html>';
+};
+$publicBindingRow = ['source_message_id'=>'21', 'source_public_unixtime'=>(new DateTimeImmutable($publicBindingDate))->getTimestamp(),
+    'source_public_caption_sha256'=>hash('sha256', 'Exact source caption'),
+    'source_public_photo_sha256'=>hash('sha256', $publicBindingPhotoClass),
+    'source_button_sha256'=>hash('sha256', $publicBindingButton)];
+$bindingButton = [[$publicBindingLabel, $publicBindingButton]];
+$bindingEmbedUrl = $publicBindingUrl.'?embed=1&mode=tme';
+$bindingArchiveUrl = 'https://t.me/s/any_toour?before=22';
+$bindingPublicRead = static function (string $embed, string $archive) use ($bindingEmbedUrl, $bindingArchiveUrl): Closure {
+    return static fn(string $url): string => match ($url) {
+        $bindingEmbedUrl => $embed,
+        $bindingArchiveUrl => $archive,
+        default => throw new RuntimeException('unexpected_public_binding_request'),
+    };
+};
+$publicBindingReadback = \AnyTour\ExistingPostBatch\observeTelegramSourceBindingPublic(
+    $publicBindingRow, $bindingPublicRead($publicBindingPost([]), $publicBindingPost($bindingButton)));
+postCheck('source binding verifies the exact legacy button in the archive even when the embed omits it',
+    $publicBindingReadback['button_sha256'] === $publicBindingRow['source_button_sha256']
+    && $publicBindingReadback['source_message_id'] === '21'
+    && $publicBindingReadback['archive_sha256'] === hash('sha256', $publicBindingPost($bindingButton)));
+postCheck('source binding refuses additional or changed public buttons',
+    manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\observeTelegramSourceBindingPublic($publicBindingRow,
+        $bindingPublicRead($publicBindingPost([]), $publicBindingPost([...$bindingButton, ...$bindingButton]))),
+        'hotel_source_binding_public_button_changed')
+    && manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\observeTelegramSourceBindingPublic($publicBindingRow,
+        $bindingPublicRead($publicBindingPost([[$publicBindingLabel, $publicBindingButton.'x']]), $publicBindingPost($bindingButton))),
+        'hotel_source_binding_public_button_changed'));
+postCheck('source binding refuses a changed public preimage or unrelated MID',
+    manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\observeTelegramSourceBindingPublic($publicBindingRow,
+        $bindingPublicRead($publicBindingPost([]), $publicBindingPost($bindingButton, 'Different caption'))),
+        'hotel_source_binding_public_preimage_changed')
+    && manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\observeTelegramSourceBindingPublic(
+        array_replace($publicBindingRow, ['source_message_id'=>'24']), fn()=>throw new RuntimeException('unexpected_public_binding_request')),
+        'hotel_source_binding_public_scope_invalid'));
+
 /** Real receive/registry/worker flow; the only provider is this in-memory fixture. */
 function historicalPublisherKeyboardFixture(array $changes = []): array
 {

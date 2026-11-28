@@ -459,6 +459,11 @@ function transferReadBytes(string $url, bool|string $next = false): string
         $allowed[] = 'https://t.me/any_toour/'.$pair['source'].'?embed=1&mode=tme';
     }
     requirePost(in_array($url, $allowed, true), 'transfer_read_scope_invalid');
+    return readTransferPublicUrl($url);
+}
+
+function readTransferPublicUrl(string $url): string
+{
     $body = '';
     $curl = curl_init($url);
     requirePost($curl !== false, 'transfer_read_unavailable');
@@ -491,6 +496,11 @@ function transferPublic(string $channel, string $message, bool|string $next = fa
 function parseTransferPublic(string $body, string $channel, string $message, bool|string $next = false): array
 {
     requirePost(transferPublicAllowed($channel, $message, $next), 'transfer_public_scope_invalid');
+    return parseTransferPublicWidget($body, $channel, $message);
+}
+
+function parseTransferPublicWidget(string $body, string $channel, string $message): array
+{
     requirePost(strlen($body) <= 1_000_000, 'transfer_public_body_unbounded');
     $url = 'https://t.me/' . $channel . '/' . $message;
     $doc = new DOMDocument('1.0', 'UTF-8');
@@ -713,6 +723,29 @@ function telegramSourceBindingRow(PDO $pdo, string $sql, array $params): ?array
     return $row ?: null;
 }
 
+/** Observe only the four source MIDs in the original read packet. */
+function observeTelegramSourceBindingPublic(array $row, callable $read): array
+{
+    $mid = $row['source_message_id'];
+    requirePost(in_array($mid, ['11', '13', '21', '23'], true), 'hotel_source_binding_public_scope_invalid');
+    $url = 'https://t.me/any_toour/'.$mid;
+    $embedded = parseTransferPublicWidget($read($url.'?embed=1&mode=tme'), 'any_toour', $mid);
+    $archive = parseTransferPublicWidget($read('https://t.me/s/any_toour?before='.((int)$mid+1)), 'any_toour', $mid);
+    foreach ([$embedded, $archive] as $public) {
+        requirePost($public['single_photo'] && $public['published_unixtime'] === $row['source_public_unixtime']
+            && $public['caption_sha256'] === $row['source_public_caption_sha256']
+            && $public['photo_marker_sha256'] === $row['source_public_photo_sha256'], 'hotel_source_binding_public_preimage_changed');
+    }
+    $buttons = $archive['buttons'];
+    $button = $buttons[0] ?? [];
+    requirePost(count($buttons) === 1 && is_string($button['hotel_url'] ?? null)
+        && $button['text'] === '✈️ Узнать стоимость тура' && $button['url_sha256'] === $row['source_button_sha256']
+        && ($embedded['buttons'] === [] || $embedded['buttons'] === $buttons), 'hotel_source_binding_public_button_changed');
+    return ['source_message_id'=>$mid, 'embed_sha256'=>$embedded['html_sha256'], 'archive_sha256'=>$archive['html_sha256'],
+        'caption_sha256'=>$embedded['caption_sha256'], 'photo_marker_sha256'=>$embedded['photo_marker_sha256'],
+        'published_unixtime'=>$embedded['published_unixtime'], 'button_sha256'=>$button['url_sha256']];
+}
+
 /** This exact recovery packet is bound to #1777's native read and the #1566 archive proof. */
 function checkTelegramSourceBindings(string $root, string $applicationSha, string $evidenceDigest): array
 {
@@ -727,14 +760,14 @@ function checkTelegramSourceBindings(string $root, string $applicationSha, strin
         ob_end_clean();
     }
     requirePost(ProjectConfig::projectId() === 'anytour', 'hotel_source_binding_project_changed');
-    $pdo = ConversationDb::connection();
-    requirePost($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql', 'hotel_source_binding_runtime_changed');
-    $registry = new ChannelPostRegistryService($pdo);
     $rows = [
         [
             'source_publication_id' => 102,
             'source_version_id' => 16738,
             'source_message_id' => '11',
+            'source_public_unixtime' => 1793555808,
+            'source_public_caption_sha256' => '947c9de04429339ea4c22d52f4920a171ecb2d0f9abb7c2ca52bb5a076cd27e4',
+            'source_public_photo_sha256' => '6c1d985912f75738ecb8bc86e01b84b02b58272f94ac4a903ff4ca5b52be674b',
             'hotel_id' => 310,
             'source_content_hash' => '031756e2299601e7e2f6045d5f64bf05a76e14cd8198efe8ecb52eed09dead2a',
             'source_photo_sha256' => '1f48274348881480227b48bf03c7acbd35ae2678619ac19148e3aa1a9051494d',
@@ -744,6 +777,9 @@ function checkTelegramSourceBindings(string $root, string $applicationSha, strin
             'source_publication_id' => 104,
             'source_version_id' => 16750,
             'source_message_id' => '13',
+            'source_public_unixtime' => 1793555817,
+            'source_public_caption_sha256' => '471fce363f50d843b5710e4900b806592e614481f96dcaf582f647b70e47c405',
+            'source_public_photo_sha256' => 'a815734cefbf5fed48a68b4e942003f74787cf51c3458fcd96fbbf830a82f0b4',
             'hotel_id' => 381,
             'source_content_hash' => '41991b91eaa8b2741fb02d66d88695eb820f3a1a3981aa33e0ed6876bd7545fb',
             'source_photo_sha256' => 'f2460d06cb519bd8cffb6d1b80a6a073760492800b838377b2645a6819831a3d',
@@ -753,6 +789,9 @@ function checkTelegramSourceBindings(string $root, string $applicationSha, strin
             'source_publication_id' => 112,
             'source_version_id' => 17511,
             'source_message_id' => '21',
+            'source_public_unixtime' => 1793599483,
+            'source_public_caption_sha256' => '1baff91d5605d0750c851a8b00802cfe5e096438612bdbf69fa82801fd3e722d',
+            'source_public_photo_sha256' => 'd72d2d6099f4eb6c4abff296be5bd5f73eb7fec4e2ab6af51e91f1e44ab9caee',
             'hotel_id' => 241,
             'source_content_hash' => '60f2b19957817a1436e50927687960e8cbb274efa186640bdefccd2cd2202b17',
             'source_photo_sha256' => '75a4992da8334b1156ee8e6f4fe6b36266e59707cf5dd61fc738886e8eb23bdc',
@@ -762,6 +801,9 @@ function checkTelegramSourceBindings(string $root, string $applicationSha, strin
             'source_publication_id' => 114,
             'source_version_id' => 17600,
             'source_message_id' => '23',
+            'source_public_unixtime' => 1793599492,
+            'source_public_caption_sha256' => '55c02bb38185a1c6778b1b90d94c17b31216e024ab782b93271c08eb364fb90c',
+            'source_public_photo_sha256' => '7117de8fb79dff8dd4e911433e0ae19b0e906b978077c03ebd647c7a9a6a1264',
             'hotel_id' => 268,
             'source_content_hash' => '9afc651126cc262b3ed6be06ccd0d44c3993bbd214087addb66b5248446b76fb',
             'source_photo_sha256' => '26ec6fc2a2d3be7585af031de2335deeab4bd202c5f0553c88f843660500008a',
@@ -769,7 +811,16 @@ function checkTelegramSourceBindings(string $root, string $applicationSha, strin
         ],
     ];
     requirePost(realpath(POST_OPS) === POST_OPS && is_dir(POST_OPS), 'hotel_source_binding_operations_changed');
+    $publicReadback = [];
+    foreach ($rows as $row) {
+        assertTransferSourceJournalClear($row['source_publication_id']);
+        $publicReadback[] = observeTelegramSourceBindingPublic($row, __NAMESPACE__.'\\readTransferPublicUrl');
+    }
     foreach ($rows as $row) assertTransferSourceJournalClear($row['source_publication_id']);
+    transferRuntime($root, $applicationSha);
+    $pdo = ConversationDb::connection();
+    requirePost($pdo->getAttribute(PDO::ATTR_DRIVER_NAME) === 'mysql', 'hotel_source_binding_runtime_changed');
+    $registry = new ChannelPostRegistryService($pdo);
     $channel = $registry->channel('anytour', 'telegram', 'anyru_bot', '-1002262666616');
     requirePost($channel && (int)$channel['id'] === 10, 'hotel_source_binding_channel_changed');
     $pdo->exec('SET TRANSACTION READ ONLY');
@@ -777,7 +828,7 @@ function checkTelegramSourceBindings(string $root, string $applicationSha, strin
     return ['schema'=>1, 'ok'=>true, 'operation'=>'telegram_hotel_source_binding_v1',
         'mode'=>'read_only', 'application_sha'=>$applicationSha, 'evidence_sha256'=>$evidenceDigest,
         'provider_write_attempts'=>0, 'supplier_requests'=>0, 'bot_starts'=>0, 'results'=>$results,
-        'finished_at_utc'=>gmdate(DATE_ATOM)];
+        'public_readback'=>$publicReadback, 'finished_at_utc'=>gmdate(DATE_ATOM)];
 }
 
 function transferRuntime(string $root, string $applicationSha): void
