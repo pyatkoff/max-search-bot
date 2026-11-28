@@ -1,7 +1,7 @@
 name: "#1566 Read four hotel transfer candidates"
 on:
   push:
-    branches: [ops/anytour-hotel-four-read-20261123]
+    branches: [ops/anytour-hotel-four-read-20261123, ops/anytour-hotel-source-bindings-read-20261128]
 permissions:
   contents: read
   actions: read
@@ -43,11 +43,16 @@ jobs:
           set -euo pipefail
           test "$READY" = true
           test "$PERFORM_ACTIONS" = true
-          test "$READ_OPERATION" = hotel_four_registry
+          case "$GITHUB_REF:$READ_OPERATION" in
+            refs/heads/ops/anytour-hotel-four-read-20261123:hotel_four_registry) ;;
+            refs/heads/ops/anytour-hotel-source-bindings-read-20261128:telegram_hotel_source_binding_v1) ;;
+            *) exit 2 ;;
+          esac
           test "$REPOSITORY_SHA" = "$GITHUB_SHA"
           test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
           [[ "$APPLICATION_SHA" =~ ^[a-f0-9]{40}$ ]]
       - name: Prepare the bounded SELECT-only observation
+        if: steps.release.outputs.read_operation == 'hotel_four_registry'
         env:
           REPOSITORY_SHA: ${{ steps.release.outputs.repository_sha }}
           APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
@@ -436,6 +441,7 @@ jobs:
           print('ESTABLISHED_HOST_PIN_VERIFIED')
           PY
       - name: Read four native snapshots and public photos without editing
+        if: steps.release.outputs.read_operation == 'hotel_four_registry'
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
@@ -455,12 +461,50 @@ jobs:
           assert [r['hotel_id'] for r in d['rows']]==[17595,358,393,1260]
           print(json.dumps({'checkpoint_sha256':d['checkpoint_sha256'],'read_at_utc':d['read_at_utc'],'rows':[{'hotel_id':r['hotel_id'],'target_message_id':r['target_message_id'],'preview_ready':r['preview_ready']} for r in d['rows']]}))
           PY
+      - name: Read four exact source bindings without editing
+        if: steps.release.outputs.read_operation == 'telegram_hotel_source_binding_v1'
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          APPLICATION_SHA: ${{ steps.release.outputs.application_sha }}
+          EVIDENCE_SHA256: 03a4db29b000b314f7af2dc32df99b96fce30590bfc09f674532267ba18be7c6
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          [[ "$APPLICATION_SHA" =~ ^[a-f0-9]{40}$ ]]
+          [[ "$EVIDENCE_SHA256" =~ ^[a-f0-9]{64}$ ]]
+          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
+                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
+                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
+          remote='set -eu; unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES; cd /var/www/anytoour/data/www/app.anytoour.ru'
+          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" "$remote; php tools/anytour_existing_post_batch.php --check-telegram-source-bindings '$APPLICATION_SHA' '$EVIDENCE_SHA256'" > pub/source-bindings.json
+          python3 - <<'PY'
+          import json
+          d=json.load(open('pub/source-bindings.json'))
+          assert d['schema']==1 and d['ok'] is True
+          assert d['operation']=='telegram_hotel_source_binding_v1' and d['mode']=='read_only'
+          assert d['provider_write_attempts']==d['supplier_requests']==d['bot_starts']==0
+          assert [r['hotel_id'] for r in d['results']]==[310,381,241,268]
+          assert all(r['state'] in {'ready','already_restored'} for r in d['results'])
+          assert [r['source_message_id'] for r in d['public_readback']]==['11','13','21','23']
+          print(json.dumps({'application_sha':d['application_sha'],'finished_at_utc':d['finished_at_utc'],
+              'results':d['results']}))
+          PY
       - name: Save the bounded native observation
-        if: always()
+        if: always() && steps.release.outputs.read_operation == 'hotel_four_registry'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: issue-1566-hotel-four-preflight
           path: pub/registry.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Save the bounded source-binding observation
+        if: always() && steps.release.outputs.read_operation == 'telegram_hotel_source_binding_v1'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-hotel-source-bindings-read
+          path: pub/source-bindings.json
           retention-days: 7
           if-no-files-found: warn
       - name: Remove runner connection material
