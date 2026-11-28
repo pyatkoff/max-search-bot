@@ -276,12 +276,11 @@
     const route=hero.querySelector('.leadRoute');
     const tripDetails=root.querySelector('[data-trip-details]'),requestContext=root.querySelector('.leadRequestContext');
     const readonly=sales.querySelector('.leadReadonly');if(readonly)extra.appendChild(readonly);
-    // The saved repair request is the reason for the contact: show it before tasks.
-    if(requestContext&&window.WorkspaceV2LeadCard?.requestKind(p,c)==='device_repair')root.insertBefore(requestContext,tasks);
     // Keep the current owner visible without moving or replacing the bound reassignment editor.
     const assignedName=String(c?.manager_name||p.handoff?.manager_name||'').trim();
     if(assignedName){const ownerSummary=document.createElement('div');ownerSummary.className='leadOwnerSummary';ownerSummary.textContent='Ответственный: '+assignedName;hero.appendChild(ownerSummary)}
     root.insertBefore(tasks,hero.nextSibling);root.insertBefore(sales,tasks.nextSibling);
+    // The saved repair request is the reason for the contact: show it before tasks.
     if(requestContext&&window.WorkspaceV2LeadCard?.requestKind(p,c)==='device_repair')root.insertBefore(requestContext,tasks);
     if(window.WorkspaceV2LeadCard?.requestKind(p,c)==='travel'){
       const tripPanel=document.createElement('section');tripPanel.className='leadPanel m2TripPanel';

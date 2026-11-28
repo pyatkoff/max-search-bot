@@ -227,6 +227,8 @@ for(const width of [390,430,768,1440])test('Manager2 business request card keeps
   await expect(repair.locator('.leadPanelTitle')).toHaveText('Контекст ремонта');
   await expect(repair.locator('.leadDetailRow .label')).toHaveText(['Модель','Услуга']);
   await expect(repair.locator('.leadDetailRow .value')).toHaveText(['iPhone 16','Замена дисплея']);
+  const repairPrecedesTasks=await repair.evaluate(block=>Boolean(block.compareDocumentPosition(document.getElementById('leadTasksSection'))&Node.DOCUMENT_POSITION_FOLLOWING));
+  expect(repairPrecedesTasks).toBe(true);
   await noTravelRequestFields(page);await businessCardFits(page,width);await capture(page,browserName,width,'business-card-repair');
   await showChat(page);await openLead(page,12);await editorReady(page);await noTravelTools(page);
   await expect(page.locator('#replyText')).toHaveValue('');expect(await page.evaluate(()=>WorkspaceV2Media.hasFile())).toBe(false);
