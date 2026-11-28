@@ -2,22 +2,40 @@
   "schema": 1,
   "pairs": [
     {
-      "hotel_id": 2673,
-      "source_mid": "425",
-      "source_publication_id": 948,
-      "target_mid": "1534",
-      "target_published_unixtime": 1778323970,
-      "target_caption_sha256": "8bb98a1e72a2890ca2201ad12bb084f4a180e33f2cf42984664fe21242c6383b",
-      "target_photo_marker_sha256": "4aa8ecf2ea9829c2f22aea0b7f3d3ceb55756e0d4c67a6a8b24e2779676ffe96"
+      "hotel_id": 241,
+      "source_mid": "21",
+      "source_publication_id": 112,
+      "target_mid": "220",
+      "target_published_unixtime": 1701950968,
+      "target_caption_sha256": "36bc553b6cf29d39a836b7e625f1969be9747c3ce34a9de0a43cab2dc8527e26",
+      "target_photo_marker_sha256": "9c8adda43b5bc0bcfa6be6d0f7a9fdca75fabba7ff7a8e5095ba8871ba5d4a7d"
     },
     {
-      "hotel_id": 28512,
-      "source_mid": "353",
-      "source_publication_id": 801,
-      "target_mid": "1461",
-      "target_published_unixtime": 1772958185,
-      "target_caption_sha256": "66a5fc4da0a62aca4d71b6561be0df7dd08bb6cde68f7135a5d3715165f781c9",
-      "target_photo_marker_sha256": "2d1d2e329678856de4f3f231d27cb2376bc1ad44042148a7a8be117d8515c3cf"
+      "hotel_id": 268,
+      "source_mid": "23",
+      "source_publication_id": 114,
+      "target_mid": "1012",
+      "target_published_unixtime": 1739103805,
+      "target_caption_sha256": "6a5dc4cb420050babd236a87c1a7db9602da4021deb28220b585e2eb58f79e12",
+      "target_photo_marker_sha256": "f385512c4983f8562d62ae5f08d0757221f3cb47ef6317cc1a2d174598d50524"
+    },
+    {
+      "hotel_id": 310,
+      "source_mid": "11",
+      "source_publication_id": 102,
+      "target_mid": "1016",
+      "target_published_unixtime": 1739520989,
+      "target_caption_sha256": "07838215ce99c5adeee6506365fc3516561d1b375fa22db478e6999f741c503f",
+      "target_photo_marker_sha256": "ff165cee1ef35086ed4644e34c895c7e6f51df2f5a1872f70c53aa3fe0c61fd2"
+    },
+    {
+      "hotel_id": 381,
+      "source_mid": "13",
+      "source_publication_id": 104,
+      "target_mid": "1042",
+      "target_published_unixtime": 1741690737,
+      "target_caption_sha256": "1df6b34c898c21e50ef3492e234432e1ab2a73d9a6f4970418adbc665ff3f663",
+      "target_photo_marker_sha256": "eb17c34a80e91eb2c74cca0a97d1f6c96635e058ccfe4401bbfe1dbb2adf3753"
     }
   ]
 }
