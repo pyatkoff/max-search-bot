@@ -16,11 +16,17 @@ if (!is_array($catalog) || $catalog === []) {
 
 $group = (string)($argv[1] ?? 'all');
 $profile = (string)($argv[2] ?? 'full');
-$appleLanes = [
+$prAppleLanes = [
     'ci-apple-coverage' => 'php tests/run_appleservice39_coverage_regression.php',
     'ci-apple-device' => 'php tests/run_appleservice39_device_publisher_regression.php',
 ];
-$architectureProfiles = ['hotel-catalogue-data', 'telegram-public-observer', 'ci-architecture-core', ...array_keys($appleLanes)];
+$deployAppleLanes = $prAppleLanes + [
+    'ci-deploy-apple-publisher' => 'php tests/run_appleservice39_publisher_regression.php',
+];
+$architectureProfiles = [
+    'hotel-catalogue-data', 'telegram-public-observer',
+    'ci-architecture-core', 'ci-deploy-architecture-core', ...array_keys($deployAppleLanes),
+];
 if ($profile !== 'full' && !($group === 'architecture' && in_array($profile, $architectureProfiles, true))) {
     fwrite(STDERR, "Invalid required-check profile for {$group}\n");
     exit(2);
@@ -37,7 +43,8 @@ $applePublisherChecks = [
 
 if ($group === 'architecture' && str_starts_with($profile, 'ci-')) {
     $commands = array_column($catalog['architecture'] ?? [], 'command');
-    foreach ($appleLanes as $command) {
+    $lanes = str_starts_with($profile, 'ci-deploy-') ? $deployAppleLanes : $prAppleLanes;
+    foreach ($lanes as $command) {
         if (count(array_keys($commands, $command, true)) !== 1) {
             fwrite(STDERR, "Architecture lane command missing or repeated: {$command}\n");
             exit(2);
@@ -83,9 +90,10 @@ foreach ($groups as $name) {
         $id = (string)$check['id'];
         $excluded = match ($profile) {
             'full' => false,
-            'ci-architecture-core' => in_array($command, $appleLanes, true),
-            default => isset($appleLanes[$profile])
-                ? $command !== $appleLanes[$profile]
+            'ci-architecture-core' => in_array($command, $prAppleLanes, true),
+            'ci-deploy-architecture-core' => in_array($command, $deployAppleLanes, true),
+            default => isset($deployAppleLanes[$profile])
+                ? $command !== $deployAppleLanes[$profile]
                 : in_array($command, $applePublisherChecks, true),
         };
         if ($excluded) {
