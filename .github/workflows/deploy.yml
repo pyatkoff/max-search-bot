@@ -69,7 +69,10 @@ jobs:
         run: |
           set -euo pipefail
           case "$DEPLOY_CHECK_PROFILE" in
-            full) php tests/run_required_group.php architecture ci-apple-coverage ;;
+            full)
+              php tests/run_required_group.php architecture ci-apple-coverage
+              php tests/run_required_group.php architecture ci-apple-device
+              ;;
             hotel-catalogue-data|telegram-public-observer)
               php tests/run_required_group.php architecture "$DEPLOY_CHECK_PROFILE"
               ;;
@@ -108,8 +111,8 @@ jobs:
         run: |
           set -euo pipefail
           case "$DEPLOY_CHECK_PROFILE:$DEPLOY_CHECK_LANE" in
-            full:application) php tests/run_required_group.php architecture ci-architecture-core ;;
-            full:diagnostics) php tests/run_required_group.php architecture ci-apple-device ;;
+            full:application) php tests/run_required_group.php architecture ci-deploy-architecture-core ;;
+            full:diagnostics) php tests/run_required_group.php architecture ci-deploy-apple-publisher ;;
             hotel-catalogue-data:diagnostics|telegram-public-observer:application|telegram-public-observer:diagnostics) ;;
             hotel-catalogue-data:application) DEPLOY_CHECK_GROUPS='dialogue website' ;;
             *) exit 1 ;;

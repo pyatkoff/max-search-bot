@@ -524,26 +524,26 @@ with tempfile.TemporaryDirectory() as stub_dir:
         check(probe.returncode == 0 and probe.stdout.strip() == expected,
               'required group command for '+profile+'/'+group)
     for profile, expected in [
-        ('full','architecture ci-apple-coverage'),
-        ('hotel-catalogue-data','architecture hotel-catalogue-data'),
-        ('telegram-public-observer','architecture telegram-public-observer'),
+        ('full',['architecture ci-apple-coverage','architecture ci-apple-device']),
+        ('hotel-catalogue-data',['architecture hotel-catalogue-data']),
+        ('telegram-public-observer',['architecture telegram-public-observer']),
         ('unknown', None),
         ('', None),
     ]:
         probe = subprocess.run(['bash','-e','-c',production_inventory['run']], capture_output=True, text=True,
             env={**probe_env, 'DEPLOY_CHECK_PROFILE':profile})
         check((probe.returncode == 1 and not probe.stdout) if expected is None else
-              (probe.returncode == 0 and probe.stdout.strip() == expected),
+              (probe.returncode == 0 and probe.stdout.splitlines() == expected),
               'production architecture command for '+profile)
     for profile, lane, groups, expected in [
         ('full','application','dialogue website manager',
-            ['architecture ci-architecture-core','dialogue','website','manager']),
+            ['architecture ci-deploy-architecture-core','dialogue','website','manager']),
         ('hotel-catalogue-data','application','dialogue website manager',
             ['dialogue','website','catalogue:tests/run_manager_ai_draft_context_regression.php',
              'catalogue:tests/run_manager_ai_draft_context_regression.php',
              'catalogue:tests/run_manager_ai_draft_service_regression.php',
              'catalogue:tests/run_manager_preparation_mcp_regression.php']),
-        ('full','diagnostics','diagnostics',['architecture ci-apple-device','diagnostics']),
+        ('full','diagnostics','diagnostics',['architecture ci-deploy-apple-publisher','diagnostics']),
         ('hotel-catalogue-data','diagnostics','diagnostics',['diagnostics']),
         ('telegram-public-observer','application','dialogue website manager',['dialogue','website','manager']),
         ('telegram-public-observer','diagnostics','diagnostics',['diagnostics']),
@@ -556,16 +556,17 @@ with tempfile.TemporaryDirectory() as stub_dir:
         check((probe.returncode == 1 and not probe.stdout) if expected is None else
               (probe.returncode == 0 and probe.stdout.splitlines() == expected),
               'actual deployment command routing for '+profile+'/'+lane)
-    for step, lane, groups, failed in [
-        (production_inventory, '', '', 'architecture ci-apple-coverage'),
-        (production_group, 'application', 'dialogue website manager', 'architecture ci-architecture-core'),
-        (production_group, 'diagnostics', 'diagnostics', 'architecture ci-apple-device'),
+    for step, lane, groups, commands in [
+        (production_inventory, '', '', ['architecture ci-apple-coverage','architecture ci-apple-device']),
+        (production_group, 'application', 'dialogue website manager', ['architecture ci-deploy-architecture-core']),
+        (production_group, 'diagnostics', 'diagnostics', ['architecture ci-deploy-apple-publisher']),
     ]:
-        probe = subprocess.run(['bash','-e','-c',step['run']], capture_output=True, text=True,
-            env={**probe_env, 'DEPLOY_CHECK_PROFILE':'full', 'DEPLOY_CHECK_LANE':lane,
-                 'DEPLOY_CHECK_GROUPS':groups, 'FAIL_CHECK':failed})
-        check(probe.returncode == 17 and probe.stdout.splitlines() == [failed],
-              'failed architecture lane stops its production job: '+failed)
+        for index, failed in enumerate(commands):
+            probe = subprocess.run(['bash','-e','-c',step['run']], capture_output=True, text=True,
+                env={**probe_env, 'DEPLOY_CHECK_PROFILE':'full', 'DEPLOY_CHECK_LANE':lane,
+                     'DEPLOY_CHECK_GROUPS':groups, 'FAIL_CHECK':failed})
+            check(probe.returncode == 17 and probe.stdout.splitlines() == commands[:index+1],
+                  'failed architecture lane stops its production job: '+failed)
 check(dj['verify']['needs'] == 'deploy', 'verification cannot precede installation')
 vs = dj['verify']['steps']
 admit = next(i for i,s in enumerate(vs) if s.get('id') == 'admission')

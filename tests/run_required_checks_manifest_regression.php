@@ -78,8 +78,9 @@ manifestCheck('deployment retains distinct source checks, aggregate and install 
     $uniqueJobs && $inventoryJob !== '' && $syntaxJob !== '' && $groupsJob !== '' && $verifyJob !== '' && $deployJob !== '');
 manifestCheck('deployment routes the full architecture suite to three lanes and keeps inventory first in core',
     substr_count($inventoryJob, 'php tests/run_required_group.php architecture ci-apple-coverage') === 1
-    && substr_count($groupsJob, 'php tests/run_required_group.php architecture ci-architecture-core') === 1
-    && substr_count($groupsJob, 'php tests/run_required_group.php architecture ci-apple-device') === 1
+    && substr_count($inventoryJob, 'php tests/run_required_group.php architecture ci-apple-device') === 1
+    && substr_count($groupsJob, 'php tests/run_required_group.php architecture ci-deploy-architecture-core') === 1
+    && substr_count($groupsJob, 'php tests/run_required_group.php architecture ci-deploy-apple-publisher') === 1
     && substr_count($inventoryJob, 'php tests/run_required_group.php architecture "$DEPLOY_CHECK_PROFILE"') === 1
     && ($manifest['architecture'][0] ?? null) === 'php tests/run_required_checks_inventory_regression.php');
 
@@ -109,6 +110,88 @@ manifestCheck('architecture and application lanes run independently with bounded
     && str_contains($groupsJob, 'DEPLOY_CHECK_GROUPS: ${{ matrix.groups }}')
     && str_contains($groupsJob, 'for check_group in $DEPLOY_CHECK_GROUPS; do')
     && str_contains($groupsJob, 'php tests/run_required_group.php "$check_group"'));
+
+function probeArchitectureProfile(string $fixture, string $profile): array
+{
+    $process = proc_open([PHP_BINARY, $fixture . '/tests/run_required_group.php', 'architecture', $profile],
+        [0 => ['pipe', 'r'], 1 => ['pipe', 'w'], 2 => ['file', '/dev/null', 'a']],
+        $pipes, $fixture, ['PATH' => $fixture . '/bin']);
+    if (!is_resource($process)) return [-1, []];
+    fclose($pipes[0]);
+    $output = stream_get_contents($pipes[1]);
+    fclose($pipes[1]);
+    $status = proc_close($process);
+    preg_match_all('/^CHECK_RESULT (\{.*\})$/m', $output, $matches);
+    $checks = array_map(static function (string $line): array {
+        $check = json_decode($line, true, flags: JSON_THROW_ON_ERROR);
+        return [$check['id'], $check['command']];
+    }, $matches[1]);
+    return [$status, $checks];
+}
+
+// Execute the real selector against the actual architecture inventory.
+// The fixture PATH prevents any catalog command from running its real tests.
+$fixture = sys_get_temp_dir() . '/arch-partition-' . bin2hex(random_bytes(12));
+$fixtureCatalog = $fixture . '/tests/required_checks_catalog.php';
+$executables = ['bash', 'node', 'php', 'python3'];
+try {
+    if (!mkdir($fixture . '/tests', 0700, true) || !mkdir($fixture . '/bin', 0700)) {
+        throw new RuntimeException('architecture_partition_fixture_unavailable');
+    }
+    copy($root . '/tests/run_required_group.php', $fixture . '/tests/run_required_group.php');
+    foreach ($executables as $executable) {
+        $stub = $fixture . '/bin/' . $executable;
+        file_put_contents($stub, "#!/bin/sh\nexit 0\n");
+        chmod($stub, 0700);
+    }
+    $architecture = $catalog['architecture'];
+    $writeFixture = static function (array $checks) use ($fixtureCatalog): void {
+        file_put_contents($fixtureCatalog, '<?php return ' . var_export(['architecture' => $checks], true) . ';');
+    };
+    $writeFixture($architecture);
+    $expectedChecks = array_map(static fn(array $check): array => [$check['id'], $check['command']], $architecture);
+    sort($expectedChecks);
+    foreach ([
+        'PR' => ['ci-architecture-core', 'ci-apple-coverage', 'ci-apple-device'],
+        'Deploy' => ['ci-deploy-architecture-core', 'ci-apple-coverage', 'ci-apple-device', 'ci-deploy-apple-publisher'],
+    ] as $scope => $profiles) {
+        $valid = true;
+        $selected = [];
+        foreach ($profiles as $profile) {
+            [$status, $checks] = probeArchitectureProfile($fixture, $profile);
+            $valid = $valid && $status === 0 && $checks !== [];
+            array_push($selected, ...$checks);
+        }
+        sort($selected);
+        manifestCheck($scope . ' architecture selectors execute every canonical ID and command exactly once',
+            $valid && $selected === $expectedChecks);
+    }
+    $publisher = 'php tests/run_appleservice39_publisher_regression.php';
+    [, $prCore] = probeArchitectureProfile($fixture, 'ci-architecture-core');
+    [, $deployPublisher] = probeArchitectureProfile($fixture, 'ci-deploy-apple-publisher');
+    manifestCheck('only Deploy moves the Apple publisher out of the core',
+        in_array($publisher, array_column($prCore, 1), true) && array_column($deployPublisher, 1) === [$publisher]);
+    $withoutPublisher = array_values(array_filter($architecture, static fn(array $check): bool => $check['command'] !== $publisher));
+    $publisherRows = array_values(array_filter($architecture, static fn(array $check): bool => $check['command'] === $publisher));
+    foreach ([$withoutPublisher, [...$architecture, ...$publisherRows]] as $invalidArchitecture) {
+        $writeFixture($invalidArchitecture);
+        [$coreStatus, $coreChecks] = probeArchitectureProfile($fixture, 'ci-deploy-architecture-core');
+        [$publisherStatus, $publisherChecks] = probeArchitectureProfile($fixture, 'ci-deploy-apple-publisher');
+        manifestCheck('Deploy selectors refuse an incomplete or repeated split command before execution',
+            $coreStatus === 2 && $publisherStatus === 2 && $coreChecks === [] && $publisherChecks === []);
+    }
+} finally {
+    foreach ($executables as $executable) {
+        if (is_file($fixture . '/bin/' . $executable)) unlink($fixture . '/bin/' . $executable);
+    }
+    foreach ([$fixtureCatalog, $fixture . '/tests/run_required_group.php'] as $file) {
+        if (is_file($file)) unlink($file);
+    }
+    foreach ([$fixture . '/bin', $fixture . '/tests', $fixture] as $directory) {
+        if (is_dir($directory)) rmdir($directory);
+    }
+}
+
 manifestCheck('deployment observer profile retains every application and diagnostics group',
     str_contains($groupsJob, 'hotel-catalogue-data:diagnostics|telegram-public-observer:application|telegram-public-observer:diagnostics) ;;')
     && in_array('php tests/run_channel_post_automation_regression.php', $manifest['manager'], true));
