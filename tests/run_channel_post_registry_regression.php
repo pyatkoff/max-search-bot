@@ -4,6 +4,7 @@ require_once dirname(__DIR__) . '/services/ChannelPostRegistryService.php';
 require_once dirname(__DIR__) . '/services/ChannelPostAutomationService.php';
 require_once dirname(__DIR__) . '/integrations/ChannelPostIncomingAdapter.php';
 require_once __DIR__ . '/fixtures/channel_post_registry_fixture.php';
+require_once dirname(__DIR__) . '/tools/anytour_existing_post_batch.php';
 
 $passed = 0;
 function postCheck(string $name, bool $condition): void
@@ -672,6 +673,163 @@ $sourceRaceRegistry->registerPublication('anytour','telegram','anyru_bot','-1002
 postCheck('a changed source version cannot be used by pre-write CAS or completion of an obsolete approved draft',
     manualPostThrows(fn()=>$sourceRaceRegistry->assertTelegramHotelTransferReservation($sourceRaceReservation,$sourceRaceRow,$sourceRacePlan),'hotel_transfer_source_changed')
     && manualPostThrows(fn()=>$sourceRaceRegistry->completeTelegramHotelTransfer($sourceRaceReservation,$sourceRaceRow,$sourceRacePlan,$sourceRaceResponse),'hotel_transfer_source_changed'));
+
+
+[$bindingDb, $bindingRegistry, $bindingTransferRow, , $bindingMessage] = hotelTransferFixture();
+$bindingDigest = hash('sha256', 'accepted-source-binding-evidence');
+$readBindingTables = static fn(): array => [
+    $bindingDb->query('SELECT * FROM post_publications ORDER BY id')->fetchAll(),
+    $bindingDb->query('SELECT * FROM post_versions ORDER BY id')->fetchAll(),
+    $bindingDb->query('SELECT * FROM post_observations ORDER BY publication_id,source_event_key')->fetchAll(),
+];
+$bindingVersion = $bindingTransferRow['source_version_id'];
+$bindingCurrent = $bindingRegistry->publication($bindingTransferRow['source_publication_id']);
+$bindingSnapshot = $bindingCurrent['snapshot'];
+unset($bindingSnapshot['metadata']['hotel_catalog_id']);
+$bindingDb->prepare('UPDATE post_versions SET snapshot_json=? WHERE id=?')
+    ->execute([json_encode($bindingSnapshot, JSON_THROW_ON_ERROR), $bindingVersion]);
+$bindingDb->prepare('UPDATE post_publications SET observed_revision_ms=?,telegram_sequence=? WHERE id=?')
+    ->execute([1700000000000, '90001', $bindingCurrent['publication_id']]);
+$bindingRow = [
+    'source_publication_id'=>$bindingCurrent['publication_id'],
+    'source_version_id'=>$bindingVersion,
+    'source_message_id'=>$bindingTransferRow['source_message_id'],
+    'hotel_id'=>$bindingTransferRow['hotel_id'],
+    'source_content_hash'=>$bindingCurrent['content_hash'],
+    'source_photo_sha256'=>$bindingTransferRow['source_file_unique_id_sha256'],
+    'source_button_sha256'=>hash('sha256', $bindingMessage['reply_markup']['inline_keyboard'][0][0]['url']),
+];
+
+$secondBindingToken = 'p_' . str_pad('source358', 24, 'x');
+$bindingDb->prepare('INSERT INTO post_publications (post_channel_id,source_id,external_message_id,start_payload)
+    VALUES (?,?,?,?)')->execute([$bindingCurrent['channel']['id'], $bindingCurrent['source_id'], '65', $secondBindingToken]);
+$secondBindingMessage = $bindingMessage;
+$secondBindingMessage['message_id'] = 65;
+$secondBindingMessage['caption'] = 'A different hotel from the small channel';
+$secondBindingMessage['photo'][0]['file_unique_id'] = 'source_unique_358';
+$secondBindingMessage['reply_markup']['inline_keyboard'][0][0]['url'] =
+    $bindingCurrent['channel']['bot_url'].'?start='.$secondBindingToken;
+$secondBindingSnapshot = ChannelPostIncomingAdapter::telegramSnapshot($secondBindingMessage);
+$secondBindingSnapshot['content_hash'] = ChannelPostIncomingAdapter::contentFingerprint($secondBindingSnapshot);
+$secondBinding = $bindingRegistry->registerPublication('anytour', 'telegram', 'anyru_bot',
+    '-1002262666616', '65', $secondBindingSnapshot);
+$bindingRegistry->confirmObservedButton($secondBinding['publication_id'], $secondBinding['version_id'],
+    ['verified'=>true,'button_verified'=>true]);
+$secondBindingRow = [
+    'source_publication_id'=>$secondBinding['publication_id'],
+    'source_version_id'=>$secondBinding['version_id'],
+    'source_message_id'=>'65',
+    'hotel_id'=>358,
+    'source_content_hash'=>$secondBinding['content_hash'],
+    'source_photo_sha256'=>hash('sha256', 'source_unique_358'),
+    'source_button_sha256'=>hash('sha256', $secondBindingMessage['reply_markup']['inline_keyboard'][0][0]['url']),
+];
+
+$bindingBefore = $readBindingTables();
+$bindingCheck = \AnyTour\ExistingPostBatch\restoreTelegramHotelSourceBindings($bindingDb, $bindingRegistry, [$bindingRow], $bindingDigest);
+postCheck('source hotel binding dry run returns its exact version without writing',
+    count($bindingCheck) === 1 && array_values($bindingCheck)[0]['state'] === 'ready'
+    && array_values($bindingCheck)[0]['publication_id'] === $bindingRow['source_publication_id']
+    && array_values($bindingCheck)[0]['version_id'] === $bindingVersion
+    && array_values($bindingCheck)[0]['hotel_id'] === $bindingRow['hotel_id']
+    && $readBindingTables() === $bindingBefore);
+$wrongBindingRow = array_replace($secondBindingRow, ['source_content_hash'=>str_repeat('f', 64)]);
+postCheck('source hotel binding refuses an invalid second row without restoring the first',
+    manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\restoreTelegramHotelSourceBindings($bindingDb, $bindingRegistry, 
+        [$bindingRow, $wrongBindingRow], $bindingDigest, true), 'hotel_source_binding_changed')
+    && $readBindingTables() === $bindingBefore);
+
+$bindingDb->prepare("INSERT INTO post_versions
+    (publication_id,version_number,content_hash,snapshot_json,state,write_attempts,created_at,updated_at)
+    SELECT publication_id,version_number+1,content_hash,snapshot_json,'unknown',1,created_at,updated_at
+    FROM post_versions WHERE id=?")->execute([$secondBindingRow['source_version_id']]);
+$unknownBindingVersion = (int)$bindingDb->lastInsertId();
+$heldBindingTables = $readBindingTables();
+postCheck('source hotel binding preserves an unresolved provider operation',
+    manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\restoreTelegramHotelSourceBindings($bindingDb, $bindingRegistry, 
+        [$bindingRow, $secondBindingRow], $bindingDigest, true), 'hotel_source_binding_held')
+    && $readBindingTables() === $heldBindingTables);
+$bindingDb->prepare('DELETE FROM post_versions WHERE id=?')->execute([$unknownBindingVersion]);
+
+$bindingStored = array_values(\AnyTour\ExistingPostBatch\restoreTelegramHotelSourceBindings($bindingDb, $bindingRegistry, 
+    [$bindingRow], $bindingDigest, true))[0];
+$bindingAfter = $bindingRegistry->publication($bindingRow['source_publication_id']);
+$bindingResolved = $bindingRegistry->resolveToken('anytour', 'telegram', 'anyru_bot', $bindingCurrent['start_payload']);
+$bindingAfterTables = $readBindingTables();
+$expectedBindingSnapshot = $bindingSnapshot;
+$expectedBindingSnapshot['metadata']['hotel_catalog_id'] = $bindingRow['hotel_id'];
+postCheck('source hotel binding writes only an immutable same-content sent successor and retains the token and clock',
+    $bindingStored['state'] === 'restored' && $bindingStored['version_id'] === $bindingAfter['version_id']
+    && $bindingAfter['version_id'] > $bindingVersion && $bindingAfter['state'] === 'sent'
+    && $bindingAfter['content_hash'] === $bindingRow['source_content_hash']
+    && $bindingAfter['snapshot']['metadata']['hotel_catalog_id'] === $bindingRow['hotel_id']
+    && array_intersect_key($bindingAfter['snapshot'], array_flip(['text','post_url','published_at','attachments','keyboard']))
+       === array_intersect_key($expectedBindingSnapshot, array_flip(['text','post_url','published_at','attachments','keyboard']))
+    && $bindingAfter['start_payload'] === $bindingCurrent['start_payload']
+    && $bindingResolved['version_id'] === $bindingAfter['version_id']
+    && $bindingAfterTables[1][0] === $bindingBefore[1][0]
+    && $bindingAfterTables[0][0] === array_replace($bindingBefore[0][0], ['current_version_id'=>$bindingAfter['version_id']])
+    && $bindingRegistry->pendingPublications('anytour', 'telegram', 'anyru_bot') === []);
+$bindingRepeat = array_values(\AnyTour\ExistingPostBatch\restoreTelegramHotelSourceBindings($bindingDb, $bindingRegistry, 
+    [$bindingRow], $bindingDigest, true))[0];
+postCheck('source hotel binding replay returns the restored version without a second observation or version',
+    $bindingRepeat['state'] === 'already_restored' && $bindingRepeat['version_id'] === $bindingAfter['version_id']
+    && $readBindingTables() === $bindingAfterTables);
+
+
+$publicBindingUrl = 'https://t.me/any_toour/21';
+$publicBindingButton = 'https://t.me/anyru_bot?start=p_'.str_repeat('a', 24);
+$publicBindingLabel = '✈️ Узнать стоимость тура';
+$publicBindingPhotoClass = 'tgme_widget_message_photo_wrap 123456';
+$publicBindingDate = '2026-11-02T08:00:00+00:00';
+$publicBindingPost = static function (array $buttons, string $caption = 'Exact source caption') use (
+    $publicBindingUrl, $publicBindingPhotoClass, $publicBindingDate
+): string {
+    $html = '<!doctype html><html><head><meta charset="utf-8"></head><body>'
+        .'<article data-post="any_toour/21"><div class="tgme_widget_message_text">'.$caption.'</div>'
+        .'<a class="'.$publicBindingPhotoClass.'" href="'.$publicBindingUrl
+        .'" style="background-image:url(https://cdn-telegram.org/photo.jpg)"></a>'
+        .'<time datetime="'.$publicBindingDate.'"></time>';
+    foreach ($buttons as [$label, $url]) {
+        $html .= '<a class="tgme_widget_message_inline_button" href="'.htmlspecialchars($url, ENT_QUOTES, 'UTF-8').'">'
+            .$label.'</a>';
+    }
+    return $html.'</article></body></html>';
+};
+$publicBindingRow = ['source_message_id'=>'21', 'source_public_unixtime'=>(new DateTimeImmutable($publicBindingDate))->getTimestamp(),
+    'source_public_caption_sha256'=>hash('sha256', 'Exact source caption'),
+    'source_public_photo_sha256'=>hash('sha256', $publicBindingPhotoClass),
+    'source_button_sha256'=>hash('sha256', $publicBindingButton)];
+$bindingButton = [[$publicBindingLabel, $publicBindingButton]];
+$bindingEmbedUrl = $publicBindingUrl.'?embed=1&mode=tme';
+$bindingArchiveUrl = 'https://t.me/s/any_toour?before=22';
+$bindingPublicRead = static function (string $embed, string $archive) use ($bindingEmbedUrl, $bindingArchiveUrl): Closure {
+    return static fn(string $url): string => match ($url) {
+        $bindingEmbedUrl => $embed,
+        $bindingArchiveUrl => $archive,
+        default => throw new RuntimeException('unexpected_public_binding_request'),
+    };
+};
+$publicBindingReadback = \AnyTour\ExistingPostBatch\observeTelegramSourceBindingPublic(
+    $publicBindingRow, $bindingPublicRead($publicBindingPost([]), $publicBindingPost($bindingButton)));
+postCheck('source binding verifies the exact legacy button in the archive even when the embed omits it',
+    $publicBindingReadback['button_sha256'] === $publicBindingRow['source_button_sha256']
+    && $publicBindingReadback['source_message_id'] === '21'
+    && $publicBindingReadback['archive_sha256'] === hash('sha256', $publicBindingPost($bindingButton)));
+postCheck('source binding refuses additional or changed public buttons',
+    manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\observeTelegramSourceBindingPublic($publicBindingRow,
+        $bindingPublicRead($publicBindingPost([]), $publicBindingPost([...$bindingButton, ...$bindingButton]))),
+        'hotel_source_binding_public_button_changed')
+    && manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\observeTelegramSourceBindingPublic($publicBindingRow,
+        $bindingPublicRead($publicBindingPost([[$publicBindingLabel, $publicBindingButton.'x']]), $publicBindingPost($bindingButton))),
+        'hotel_source_binding_public_button_changed'));
+postCheck('source binding refuses a changed public preimage or unrelated MID',
+    manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\observeTelegramSourceBindingPublic($publicBindingRow,
+        $bindingPublicRead($publicBindingPost([]), $publicBindingPost($bindingButton, 'Different caption'))),
+        'hotel_source_binding_public_preimage_changed')
+    && manualPostThrows(fn()=>\AnyTour\ExistingPostBatch\observeTelegramSourceBindingPublic(
+        array_replace($publicBindingRow, ['source_message_id'=>'24']), fn()=>throw new RuntimeException('unexpected_public_binding_request')),
+        'hotel_source_binding_public_scope_invalid'));
 
 /** Real receive/registry/worker flow; the only provider is this in-memory fixture. */
 function historicalPublisherKeyboardFixture(array $changes = []): array
