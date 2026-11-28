@@ -3,7 +3,12 @@ import importlib.util
 import io
 import json
 from pathlib import Path
+import sys
+import tempfile
+from datetime import datetime, timezone
+from types import SimpleNamespace
 import unittest
+from unittest.mock import patch
 import zipfile
 
 script = Path(__file__).resolve().parents[1] / 'tools' / 'collect_ranked_route_manifests.py'
@@ -40,6 +45,42 @@ class RouteCandidateOrigin(unittest.TestCase):
                       {'size_in_bytes':len(data)+1}]:
             with self.subTest(wrong=wrong), self.assertRaises(ValueError):
                 source.verified(meta | wrong, observer, data)
+
+    def test_late_recovery_suppresses_only_the_empty_early_candidate(self):
+        for changes, staged in [([], True), ([{'offer_id': 'tg_123'}], True), ([], False)]:
+            with self.subTest(changes=changes, staged=staged), tempfile.TemporaryDirectory() as work:
+                candidate = {'id': 789, 'name': 'ranked-route-candidate-123', 'expired': False, 'size_in_bytes': 1}
+                public = {'id': 101, 'name': 'ranked-public-readback-123', 'expired': False, 'digest': 'sha256:' + 'a'*64}
+                manifest = {'native': {'run_id': '123'}, 'public': {'artifact_id': '101', 'artifact_sha256': 'a'*64},
+                            'changes': changes, 'already_configured': [], 'held': []}
+                original = {'id': 456, 'event': 'workflow_run', 'path': source.OBSERVER, 'status': 'completed',
+                            'repository': {'full_name': source.REPO}, 'head_repository': {'full_name': source.REPO},
+                            'head_sha': 'a'*40}
+
+                def api(path, *, binary=False):
+                    if binary:
+                        return b'archive'
+                    if path.startswith('actions/workflows/'):
+                        return {'workflow_runs': [original]}
+                    return {'total_count': 2, 'artifacts': [candidate, public]}
+
+                def stage_original(*_):
+                    if not staged:
+                        raise ValueError('late archive unavailable')
+                    return {'public': {'artifact_id': '202'}}
+
+                merge = SimpleNamespace(LATE_PUBLIC_RECEIPTS={'567': {'early_observer': 456, 'native': '123'}},
+                                        stage_original=stage_original)
+                now = SimpleNamespace(now=lambda _: datetime(2026, 11, 28, tzinfo=timezone.utc))
+                with patch.dict(sys.modules, {'merge_ranked_telegram_routes': merge}), patch.object(source, 'datetime', now), \
+                        patch.object(source, 'api', side_effect=api), \
+                        patch.object(source, 'verified', return_value=json.dumps(manifest).encode()):
+                    output = Path(work) / 'collected'
+                    records = source.collect(output, Path(work) / 'feed.xml')
+                superseded = staged and not changes
+                self.assertEqual((output / '456-789.json').exists(), not superseded)
+                self.assertEqual((output / '567-late-original.json').exists(), staged)
+                self.assertEqual(records[-1].get('superseded_empty_candidate', False), superseded)
 
 
 if __name__ == '__main__':
