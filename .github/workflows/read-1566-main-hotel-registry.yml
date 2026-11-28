@@ -472,6 +472,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
+          mkdir -p pub
           [[ "$APPLICATION_SHA" =~ ^[a-f0-9]{40}$ ]]
           [[ "$EVIDENCE_SHA256" =~ ^[a-f0-9]{64}$ ]]
           options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10

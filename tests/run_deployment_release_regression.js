@@ -516,6 +516,11 @@ function hotelRegistryReadWorkflow(){
     &&!workflow.includes('ops/anytour-hotel-source-bindings-read-20261128:hotel_four_registry')
     &&!workflow.includes('--apply-telegram-source-bindings'),true,
     'the new exact branch can invoke only the installed read-only source-binding command');
+  const sourceRead=/      - name: Read four exact source bindings without editing\n([\s\S]*?)\n      - name: Save the bounded native observation/.exec(workflow);
+  equal(Boolean(sourceRead),true,'the source-binding operation remains an isolated workflow step');
+  const sourceBody=sourceRead[1],makePub=sourceBody.indexOf('mkdir -p pub'),redirect=sourceBody.indexOf('> pub/source-bindings.json');
+  equal(makePub>=0&&redirect>makePub,true,
+    'a clean checkout creates the artifact directory even when the legacy reader preparation is skipped');
   const sql=[...program.matchAll(/\$pdo->(?:prepare|query|exec)\(\s*(['"])([\s\S]*?)\1/g)].map(m=>m[2]);
   equal(sql.length>=4&&sql.every(q=>/^SELECT\b/.test(q)||q==='SET SESSION TRANSACTION READ ONLY')
     &&program.includes("$pdo->exec('SET SESSION TRANSACTION READ ONLY');")&&program.includes('$pdo->rollBack();')
