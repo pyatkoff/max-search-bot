@@ -16,12 +16,37 @@ review. The standalone package contains one self-contained UTF-8 stylesheet.
 The initial previous version is `bundled`; later releases name the exact
 selected version.
 
+For the first switch from bundled CSS, use the existing tool to read the
+installation, validate the approved digest and print the activation inputs
+under the shared checkout lock. Compare its application SHA with the accepted
+installation before using the existing activation command.
+
+```sh
+node tools/manager2_style_release.js preflight-bundled "$APP" "$APPROVED_SHA256"
+```
+
+The preflight reads the same lock as activation and does not create a package
+or an operation receipt. A busy lock, pending operation, changed selection, or
+different stylesheet bytes stops preparation.
+
 ```sh
 node tools/manager2_style_release.js activate \
   "$APP" "$APP_SHA" "$PREVIOUS_VERSION" "$CSS" "$APPROVED_SHA256" "$OPERATION"
 node tools/manager2_style_release.js rollback \
   "$APP" "$APP_SHA" "$ACTIVATION_OPERATION" "$ROLLBACK_OPERATION"
 ```
+
+For approval that should survive unrelated application releases, record the
+style contract SHA-256 from the reviewed source with the CSS digest and append
+`--contract-sha256="$APPROVED_CONTRACT_SHA256"` to either command. The pin comes
+from `Manager2WorkspaceStyle::contractPin()` on the reviewed checkout. At
+execution, pass the current accepted `APP_SHA`. The command checks that SHA and
+the approved contract under the checkout lock. The operation ID remains bound
+to the same approved contract and request. Its receipt records the application
+SHA on which the operation ran.
+
+For a first switch prepared with `preflight-bundled`, compare the reported
+`contract_sha256` with the recorded approval before invoking activation.
 
 The release binds the CSS to its current shell, asset reader and presentation
 code. The common checkout lock prevents a simultaneous core switch. An
