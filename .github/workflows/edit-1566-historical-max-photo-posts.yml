@@ -1,141 +1,284 @@
-name: "#1566 Apply only Rixos to the independently confirmed commercial MAX post"
+name: "#1566 Prepare and edit verified existing MAX posts"
 on:
+  pull_request:
+    branches: [audit/1566-main-hotel-registry-20261119]
   push:
     branches: [audit/1566-main-hotel-registry-20261119]
-    paths: ['.github/workflows/edit-1566-historical-max-photo-posts.yml']
+    paths: ['tools/direct_demand/operations/max-existing-photo/max-route-readback.json']
 permissions:
   contents: read
   actions: read
   issues: read
   pull-requests: read
-concurrency:
-  group: anytour-authorized-channel-publication
-  cancel-in-progress: false
+env:
+  MAX_PACKET_REF: 18415b7b748328d6f1bfcfb5faa98bd2ebd0cd46
+  MAX_PACKET_PATH: tools/direct_demand/operations/max-existing-photo/scope-stella-466-20261126.json
+  MAX_PACKET_SHA: 2427d3d0b9ba3179b6b4f91f7f1875028c8fc6c5a2e29b1fdca1fe2e71659870
+  MAX_REPOSITORY_SHA: bdc596e797992bf50de409f9ff6e094a4ccfd623
+  MAX_ARCHIVE_ID: '15032515599'
+  MAX_NATIVE_ID: '15160957946'
+  MAX_PREPARED_RUN_ID: '45913695738'
+  MAX_PREPARED_JOB_ID: '140227760046'
+  MAX_PREPARED_ARTIFACT_ID: '15161027942'
+  MAX_PREPARED_SOURCE: e67eeca9611ccae4a9153527a051495bdefed9b1
+  MAX_PREPARED_ZIP_SHA: 331ad3064f2b524827c8ea89c4989a467b3cc39533c1c9a4dac1a8b03bc4c69b
+  MAX_ACTIVATION_PATH: tools/direct_demand/operations/max-existing-photo/max-route-readback.json
 jobs:
-  edit_existing:
-    if: >-
-      github.repository == 'pyatkoff/max-search-bot' &&
-      github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
-      github.actor == 'pyatkoff' &&
-      github.event.before == '8e2b2fe1eaea7e4299e40a57a072e90c0c6a66da' &&
-      github.run_attempt == 1
+  validate_source:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 4
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: aceadeddd35a89307a9a307e891214d9c0be2af6
           persist-credentials: false
+      - name: Check the real batch input and the three-phase runner
+        run: |
+          php tests/run_1566_max_existing_photo_batch.php
+          python3 -B tests/run_1566_max_existing_photo_partial.py
+          bash -n tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh
+
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: f0ac8ff44afc64386be1802068102ccc9c0a55d4
-          path: approved-editor
+          ref: ${{ env.MAX_PACKET_REF }}
+          path: packet
           persist-credentials: false
-      - name: Authenticate the original reads and compile the single approved input
+      - name: Compile the sealed Stella Makadi packet without a production connection
+        if: github.event.pull_request.number == 1747
         env:
-          GITHUB_TOKEN: ${{ github.token }}
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
+          src=tools/direct_demand/operations/max-existing-photo
           mkdir -p pub/stage
+          install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_ARCHIVE_ID/zip" > pub/old.zip
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_NATIVE_ID/zip" > pub/native.zip
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_PREPARED_ARTIFACT_ID/zip" > pub/prepared.zip
+          python3 - "packet/$MAX_PACKET_PATH" <<'PYTHON'
+          from datetime import datetime, timedelta
+          import json, pathlib, sys
+          scope=json.loads(pathlib.Path(sys.argv[1]).read_bytes())
+          route=scope["route_readback"]
+          refreshed={"targets":[{"offer_id":"max_"+str(row["hotel_id"]),"target_mid":row["target_mid"]}
+                                for row in scope["rows"]],
+                     "run_id":route["run_id"]+1,"job_id":route["job_id"]+1,
+                     "observed_utc":(datetime.fromisoformat(route["observed_utc"])+timedelta(seconds=1)).isoformat()}
+          pathlib.Path("pub/test-route-readback.json").write_text(json.dumps(refreshed))
+          PYTHON
+          python3 "$src/stage_approved_scope.py" "packet/$MAX_PACKET_PATH" "$MAX_PACKET_SHA" pub/old.zip pub/native.zip pub/stage \
+            --preparation pub/prepared.zip "$MAX_PREPARED_ZIP_SHA" --route-readback pub/test-route-readback.json
+          php -l pub/stage/batch_entry.php
+          native_sha="$(sha256sum pub/stage/native-source.json | cut -d' ' -f1)"
+          app="$(python3 -c 'import json; print(json.load(open("pub/stage/scope.json"))["native_source"]["application_sha"])')"
+          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json \
+            "$native_sha" "$MAX_REPOSITORY_SHA" "$app" > pub/batch-plan.json
+          python3 - <<'PYTHON'
+          import json
+          with open('pub/batch-plan.json') as source:
+              result=json.load(source)
+          assert result['provider_writes']==0 and result['ready']==[466] and not result['held']
+          print('MAX_OFFLINE_PACKET_READY=466; provider_writes=0')
+          PYTHON
+
+  prepare:
+    if: >-
+      github.event_name == 'push' && github.repository == 'pyatkoff/max-search-bot' &&
+      github.event.repository.id == 1342493152 && github.event.sender.id == 226193297 && github.event.created == false &&
+      github.actor == 'pyatkoff' &&
+      github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    outputs:
+      prepared: ${{ steps.seal.outputs.prepared }}
+      write_requested: ${{ steps.input.outputs.write_requested }}
+      archive_sha: ${{ steps.seal.outputs.archive_sha }}
+      receipt_sha: ${{ steps.seal.outputs.receipt_sha }}
+      manifest_sha: ${{ steps.seal.outputs.manifest_sha }}
+      admission_sha: ${{ steps.seal.outputs.admission_sha }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ env.MAX_REPOSITORY_SHA }}
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: workflow-source
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ env.MAX_PACKET_REF }}
+          path: packet
+          persist-credentials: false
+      - name: Authenticate the original reads and compile the single approved input
+        id: input
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ github.token }}
+          MAX_ACTIVATION_PARENT: ${{ github.event.before }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p pub/stage
+          tool=workflow-source/tools/direct_demand/operations/max-existing-photo
+          gh api "/repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA" > pub/activation.json
+          reviewed="$(gh api "/repos/$GITHUB_REPOSITORY/pulls/1747" --jq 'select(.merged == true and .base.ref == "audit/1566-main-hotel-registry-20261119") | .merge_commit_sha')"
+          [[ "$reviewed" =~ ^[a-f0-9]{40}$ ]]
+          gh api "/repos/$GITHUB_REPOSITORY/compare/$reviewed...$GITHUB_SHA" > pub/approved-diff.json
+          export MAX_REVIEWED_PUBLISHER="$reviewed"
+          PYTHONPATH="$tool" python3 - <<'PYTHON'
+          import json, os, pathlib
+          from stage_approved_scope import verify_activation, verify_adopted_publisher
+          commit=json.loads(pathlib.Path("pub/activation.json").read_bytes())
+          comparison=json.loads(pathlib.Path("pub/approved-diff.json").read_bytes())
+          verify_activation(commit, os.environ["MAX_ACTIVATION_PARENT"], os.environ["GITHUB_SHA"], os.environ["MAX_ACTIVATION_PATH"])
+          verify_adopted_publisher(comparison, os.environ["MAX_REVIEWED_PUBLISHER"], os.environ["MAX_ACTIVATION_PATH"])
+          PYTHON
+          install -m600 "packet/$MAX_PACKET_PATH" pub/manifest.json
+          printf '%s  %s\n' "$MAX_PACKET_SHA" pub/manifest.json | sha256sum --check --strict
+          PYTHONPATH="$tool" python3 - "workflow-source/$MAX_ACTIVATION_PATH" <<'PYTHON'
+          import json, pathlib, sys
+          from stage_approved_scope import apply_activation
+          pub=pathlib.Path("pub")
+          manifest=pub/"manifest.json"
+          scope=json.loads(manifest.read_bytes())
+          with open(sys.argv[1], "rb") as route:
+              evidence=route.read(16_001)
+          if not 0 < len(evidence) <= 16_000:
+              raise ValueError("invalid activation evidence length")
+          activation=json.loads(evidence)
+          changed=apply_activation(scope, activation)
+          if activation.get("prepare_only"):
+              (pub/"prepare-only").touch()
+          if "preparation_source" in activation:
+              (pub/"preparation-source.json").write_text(json.dumps(activation["preparation_source"]))
+          manifest.write_text(json.dumps(scope, ensure_ascii=False, indent=2)+"\n", encoding="utf-8")
+          if changed:
+              (pub/"native-artifact-id").write_text(str(scope["native_source"]["artifact_id"])+"\n")
+          PYTHON
+          approved_sha="$(sha256sum pub/manifest.json | cut -d' ' -f1)"
+          if [[ -f pub/native-artifact-id ]]; then
+            export MAX_NATIVE_ID="$(<pub/native-artifact-id)"
+            export MAX_PREPARED_ARTIFACT_ID=''
+            echo 'MAX_NATIVE_PROOF_REFRESHED=1'
+          fi
+          if [[ -f pub/prepare-only ]]; then
+            export MAX_PREPARED_ARTIFACT_ID=''
+            echo 'write_requested=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'write_requested=true' >> "$GITHUB_OUTPUT"
+          fi
+          if [[ -f pub/preparation-source.json ]]; then
+            export MAX_PREPARED_ARTIFACT_ID="$(jq -r .artifact_id pub/preparation-source.json)"
+            export MAX_PREPARED_ZIP_SHA="$(jq -r .zip_sha256 pub/preparation-source.json)"
+          fi
           cat > pub/admit.cjs <<'NODE'
           const R=require('../tools/deployment_release')
-          const P=require('../tools/release_priority')
           const api=R.makeReadApi(process.env.GITHUB_TOKEN)
-          const root=R.API_ROOT, app='aceadeddd35a89307a9a307e891214d9c0be2af6'
+          const root=R.API_ROOT
+          const scope=JSON.parse(require('node:fs').readFileSync('pub/manifest.json','utf8'))
+          const native=scope.native_source
           function check(ok,reason){if(!ok)throw Error(reason)}
-          async function run(){
-            const fresh=Date.parse('2026-11-26T13:44:17+00:00')
+          async function requireWriteAdmission(){
+            const fresh=Date.parse(scope.route_readback.observed_utc)
             check(Date.now()>=fresh&&Date.now()-fresh<=720000,'route_receipt_stale')
-            const [main,hotelSlot,releaseSlot]=await Promise.all([api('GET',root+'/git/ref/heads/main'),
-              api('GET',root+'/issues/comments/6818332618'),api('GET',root+'/issues/comments/6682640708')])
-            check(main.object.sha===app&&hotelSlot.user.id===226193297&&hotelSlot.body==='PR1741: установлено, выпуск свободен'
-              &&releaseSlot.user.id===226193297&&releaseSlot.body==='PR1742: установлено, выпуск свободен','shared_release_changed')
-            const record=await R.readRecord(api)
-            const current=await R.resolveCurrent(api,{sha:app},record)
-            check(current.ready&&current.repository_sha===app&&current.application_sha===app,'current_release_changed')
-            await P.verifyPreviousRelease({repository:R.REPOSITORY,baseSha:app},process.env.GITHUB_TOKEN,fetch)
+            // Authenticate the accepted installation, regardless of main moving.
+            // The server rechecks this application under the installer's exact lock.
+            const location=await R.readRecord(api)
+            const {release}=R.validateRelease(location.record)
+            const repository=release.repository_sha
+            const current=await R.resolveCurrent(api,{sha:repository},location)
+            check(current.ready===true&&current.repository_sha===repository&&current.application_sha===native.application_sha
+              &&(repository===native.repository_sha||current.kind==='application_unchanged'),'current_release_changed')
+            const latest=await R.readRecord(api)
+            check(latest.blob===location.blob&&latest.record_digest===location.record_digest,'deployment_result_changed')
+            console.log('MAX_ACCEPTED_APPLICATION='+current.application_sha)
           }
-          async function receipt(id,head,path,jobId,artifactId,digest,name){
+          async function receipt(id,head,path,jobId,artifactId,digest,name,auditJob=null){
             const base=root+'/actions/runs/'+id
             const [r,j,a]=await Promise.all([api('GET',base),api('GET',base+'/attempts/1/jobs?per_page=100'),api('GET',base+'/artifacts?per_page=100')])
             check(r.id===id&&r.repository.id===1342493152&&r.actor.id===226193297&&r.head_sha===head&&r.path===path
               &&r.event==='push'&&r.run_attempt===1&&r.status==='completed'&&r.conclusion==='success','original_read_changed')
             check(j.total_count===1&&j.jobs[0].id===jobId&&j.jobs[0].conclusion==='success','original_job_changed')
+            if(auditJob!==null) check(r.head_branch==='audit/1566-main-hotel-registry-20261119'
+              &&j.jobs[0].name===auditJob,'original_audit_role_changed')
             const file=a.artifacts[0]
             check(a.total_count===1&&file.id===artifactId&&file.name===name&&file.expired===false
               &&file.digest==='sha256:'+digest&&file.workflow_run.id===id&&file.workflow_run.head_sha===head,'original_artifact_changed')
           }
+          async function verifyPreparation(proof){
+            const base=root+'/actions/runs/'+proof.run_id
+            const [run,jobs,artifacts]=await Promise.all([api('GET',base),api('GET',base+'/attempts/1/jobs?per_page=100'),api('GET',base+'/artifacts?per_page=100')])
+            check(run.id===proof.run_id&&run.repository.id===1342493152&&run.actor.id===226193297
+              &&run.head_sha===proof.workflow_head&&run.path==='.github/workflows/edit-1566-historical-max-photo-posts.yml'
+              &&run.head_branch==='audit/1566-main-hotel-registry-20261119'&&run.event==='push'
+              &&run.run_attempt===1&&run.status==='completed'&&run.conclusion==='success','original_preparation_run_changed')
+            check(jobs.total_count===jobs.jobs.length&&jobs.jobs.some(job=>job.id===proof.job_id&&job.name==='prepare'&&job.conclusion==='success')
+              &&jobs.jobs.filter(job=>job.name==='edit_existing'&&job.conclusion==='skipped').length===1,'original_preparation_job_changed')
+            const artifact=artifacts.artifacts.find(file=>file.id===proof.artifact_id)
+            check(artifacts.total_count===artifacts.artifacts.length&&artifact?.name==='issue-1566-max-read-only-preparation'
+              &&artifact.expired===false&&artifact.digest==='sha256:'+proof.zip_sha256
+              &&artifact.workflow_run.id===proof.run_id&&artifact.workflow_run.head_sha===proof.workflow_head,'original_preparation_artifact_changed')
+          }
           async function all(){
-            if(process.argv[2]==='verify-originals') await Promise.all([
-              receipt(45630394590,'3a9195debcfbeb703a220895871f5a40a61d3010','.github/workflows/read-1566-max-archive-20261123.yml',139261677044,15032515599,'354407dec77c2ffc3b8ed739e5a3f3aac422a0120578c0501183bbe36ea8d795','issue-1566-main-max-archive-inventory'),
-              receipt(45831791225,'8e2b2fe1eaea7e4299e40a57a072e90c0c6a66da','.github/workflows/read-1566-old-ordinary-max-posts.yml',139950158848,15122044230,'cf071668969c0fad12759f53aa241f8f76e5e512fd1cfd003c97c31cfa4a3f5f','max-commercial-album-sources')
-            ])
-            await run()
+            check(native.attempt===1&&scope.route_readback.write_calls===0
+              &&/^[a-f0-9]{40}$/.test(native.repository_sha)&&/^[a-f0-9]{40}$/.test(native.application_sha),'scope_evidence_identity_changed')
+            const mode=process.argv[2]
+            if(mode==='verify-originals'){
+              check(native.artifact_id===Number(process.env.MAX_NATIVE_ID),'scope_evidence_identity_changed')
+              const originalReads=[
+                receipt(Number(scope.archive_run_id),'3a9195debcfbeb703a220895871f5a40a61d3010','.github/workflows/read-1566-max-archive-20261123.yml',139261677044,Number(process.env.MAX_ARCHIVE_ID),scope.archive_sha256,'issue-1566-main-max-archive-inventory'),
+                receipt(native.run_id,native.workflow_head,'.github/workflows/read-1566-old-ordinary-max-posts.yml',native.job_id,Number(process.env.MAX_NATIVE_ID),native.zip_sha256,'max-commercial-album-sources','registry')
+              ]
+              const fs=require('node:fs')
+              if(fs.existsSync('pub/preparation-source.json')) {
+                originalReads.push(verifyPreparation(JSON.parse(fs.readFileSync('pub/preparation-source.json','utf8'))))
+              } else if(process.env.MAX_PREPARED_ARTIFACT_ID) originalReads.push(receipt(
+                Number(process.env.MAX_PREPARED_RUN_ID),process.env.MAX_PREPARED_SOURCE,
+                '.github/workflows/read-1566-old-ordinary-max-posts.yml',Number(process.env.MAX_PREPARED_JOB_ID),
+                Number(process.env.MAX_PREPARED_ARTIFACT_ID),process.env.MAX_PREPARED_ZIP_SHA,'issue-1566-max-native-prepare-proof','prepare_only'))
+              await Promise.all(originalReads)
+              return
+            }
+            check(mode==='authorize-write','invalid_admission_mode')
+            await requireWriteAdmission()
           }
           all().catch(error=>{console.error(error.code||error.message);process.exitCode=1})
           NODE
           node pub/admit.cjs verify-originals
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/15032515599/zip > pub/old.zip
-          gh api /repos/pyatkoff/max-search-bot/actions/artifacts/15122044230/zip > pub/native.zip
-          src=approved-editor/tools/direct_demand/operations/max-existing-photo
-          php approved-editor/tests/run_1566_max_existing_photo_batch.php
-          python3 approved-editor/tests/run_1566_max_existing_photo_partial.py
-          install -m600 "$src"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php,run_batch.py} pub/stage/
-          python3 - <<'PY'
-          import hashlib,json,pathlib,re,zipfile
-          stage=pathlib.Path('pub/stage')
-          def digest(raw):
-              return hashlib.sha256(raw).hexdigest()
-          def receipt(name,expected):
-              filename=pathlib.Path('pub',name+'.zip')
-              assert filename.stat().st_size<300000 and digest(filename.read_bytes())==expected
-              with zipfile.ZipFile(filename) as archive:
-                  assert archive.namelist()==['registry.json'] and archive.getinfo('registry.json').file_size<=2000000
-                  return archive.read('registry.json')
-          old_sha='354407dec77c2ffc3b8ed739e5a3f3aac422a0120578c0501183bbe36ea8d795'
-          native_sha='cf071668969c0fad12759f53aa241f8f76e5e512fd1cfd003c97c31cfa4a3f5f'
-          old=receipt('old',old_sha)
-          native=receipt('native',native_sha)
-          assert digest(native)=='347b85aab1607c2c03cf0b8d8b7fe303e5c4081ca762513d9ca30102ab16bb62'
-          read=json.loads(native)
-          row=json.loads(r'''{"hotel_id":2575,"name":"Rixos Al Mairid Ras Al Khaimah","source_id":1342,"source_mid":"mid.ffffb6caf0606fed01a1d46c23c52cc7","source_url":"https://max.ru/channel_anytour/AaHUbCPFLMc","target_mid":"mid.ffffc1752b045fed019aca84b9721cb5","target_url":"https://max.ru/anytour/AZrKhLlyHLU","target_ms":1764334287218,"target_fingerprint":"e3795cf0d15eac4e3ac05abea6a3d79d9b706416b7926a7d6234bd8f6c5658cc","caption_without_price":"✈️ Туры в Rixos Al Mairid Ras Al Khaimah\n📍 Рас-эль-Хайма, ОАЭ\nПесчаный пляж и номера в виллах для семейного отдыха у моря.","original_legacy_identity_sha256":"06c4ed395de06cf877c2b9e7332f7bbfa4f6f4fcc83cb9338c2400a607562b2b"}''')
-          app='aceadeddd35a89307a9a307e891214d9c0be2af6'
-          assert read['ok'] and read['target_editor_rights'] and read['archive_run']==45630394590
-          assert read['application_sha']==read['repository_sha']==app
-          assert read['provider_writes']==read['db_writes']==read['bot_starts']==0
-          assert read['button_text']=='✈️ Рассчитать на мои даты' and len(read['rows'])==1
-          proof=read['rows'][0]
-          assert all(proof[k]==row[k] for k in ('hotel_id','source_id','source_mid','target_mid','target_url','original_legacy_identity_sha256'))
-          assert proof['target_occupied']==proof['source_held']==proof['target_or_hotel_registry_conflicts']==0
-          assert proof['source_hotel_id_matches'] is False and proof['source_catalog_id']==0
-          assert proof['readable_source_hotel_identity'] and proof['source_button_resolves_publication']
-          assert proof['source_photo_matches_registry'] and proof['target_matches_native_archive']
-          route={'repository':'pyatkoff/tour-max','run_id':45832028822,'job_id':139950987300,'observed_utc':'2026-11-26T13:44:17+00:00','write_calls':0}
-          scope={'version':1,'archive_run_id':'45630394590','archive_sha256':old_sha,'archive_registry_sha256':digest(old),
-              'rows':[row],'native_source':{'operation':read['operation'],'run_id':45831791225,'attempt':1,'job_id':139950158848,
-              'workflow_head':'8e2b2fe1eaea7e4299e40a57a072e90c0c6a66da','artifact_id':15122044230,'zip_sha256':native_sha,'json_sha256':digest(native),
-              'repository_sha':app,'application_sha':app},'route_readback':route,
-              'price_review':{'mode':'caption_without_fixed_price'}}
-          encoded=(json.dumps(scope,ensure_ascii=False,indent=2)+'\n').encode()
-          (stage/'scope.json').write_bytes(encoded)
-          (stage/'native-targets.json').write_bytes(old)
-          (stage/'native-source.json').write_bytes(native)
-          pathlib.Path('pub/manifest.json').write_bytes(encoded)
-          entry=stage/'batch_entry.php'
-          code,count=re.subn(r"(const MAX_BATCH_SCOPE_SHA256 = ')[a-f0-9]{64}(')",lambda m:m[1]+digest(encoded)+m[2],entry.read_text())
-          assert count==1
-          entry.write_text(code)
-          PY
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_ARCHIVE_ID/zip" > pub/old.zip
+          gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_NATIVE_ID/zip" > pub/native.zip
+          install -m600 "$tool"/{editor.php,batch_input.php,batch_entry.php,observe_pair.php} pub/stage/
+          install -m600 "$tool/run_batch.py" pub/stage/
+          preparation=()
+          if [[ -n "$MAX_PREPARED_ARTIFACT_ID" ]]; then
+            gh api "/repos/$GITHUB_REPOSITORY/actions/artifacts/$MAX_PREPARED_ARTIFACT_ID/zip" > pub/prepared.zip
+            preparation=(--preparation pub/prepared.zip "$MAX_PREPARED_ZIP_SHA")
+          fi
+          python3 "$tool/stage_approved_scope.py" pub/manifest.json "$approved_sha" pub/old.zip pub/native.zip pub/stage "${preparation[@]}"
+          install -m600 pub/stage/scope.json pub/manifest.json
           php -l pub/stage/batch_entry.php
-          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json 347b85aab1607c2c03cf0b8d8b7fe303e5c4081ca762513d9ca30102ab16bb62 aceadeddd35a89307a9a307e891214d9c0be2af6 aceadeddd35a89307a9a307e891214d9c0be2af6 > pub/batch-plan.json
-          python3 - <<'PY'
+          native_sha="$(sha256sum pub/stage/native-source.json | cut -d' ' -f1)"
+          app="$(python3 -c 'import json; print(json.load(open("pub/manifest.json"))["native_source"]["application_sha"])')"
+          native_repo="$(python3 -c 'import json; print(json.load(open("pub/manifest.json"))["native_source"]["repository_sha"])')"
+          [[ "$app" =~ ^[a-f0-9]{40}$ && "$native_repo" =~ ^[a-f0-9]{40}$ ]]
+          php pub/stage/editor.php --batch-plan pub/stage/native-targets.json pub/stage/native-source.json \
+            "$native_sha" "$native_repo" "$app" > pub/batch-plan.json
+          PYTHONPATH="$tool" python3 - <<'PYTHON'
           import json
-          d=json.load(open('pub/batch-plan.json'))
-          assert d['provider_writes']==0 and {int(k) for k in d['ready']}=={2575} and not d['held']
-          PY
+          from pathlib import Path
+
+          from run_batch import plan_rows
+
+          plan = json.loads(Path("pub/batch-plan.json").read_bytes())
+          scope = json.loads(Path("pub/manifest.json").read_bytes())
+          hotels, held = plan_rows(scope, plan)
+          print(f"Offline preflight ready: {len(hotels) - len(held)}/{len(hotels)}")
+          PYTHON
           cat > pub/stage/execute.sh <<'SH'
           #!/usr/bin/env bash
           set -euo pipefail
@@ -143,58 +286,149 @@ jobs:
           unset GIT_DIR GIT_WORK_TREE GIT_COMMON_DIR GIT_INDEX_FILE GIT_CONFIG_PARAMETERS GIT_CONFIG_COUNT GIT_OBJECT_DIRECTORY GIT_ALTERNATE_OBJECT_DIRECTORIES
           stage="$(cd -- "$1" && pwd -P)"
           cd /var/www/anytoour/data/www/app.anytoour.ru
-          test "$(git rev-parse HEAD)" = 'aceadeddd35a89307a9a307e891214d9c0be2af6'
-          python3 "$stage/run_batch.py" "$stage"
+          app="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["native_source"]["application_sha"])' "$stage/scope.json")"
+          [[ "$app" =~ ^[a-f0-9]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$app"
+          case "$2" in
+            prepare)
+              python3 "$stage/run_batch.py" "$stage" --prepare
+              test "$(git rev-parse HEAD)" = "$app"
+              ;;
+            apply) python3 "$stage/run_batch.py" "$stage" --apply-prepared "$stage/preparation.json" "$3" ;;
+            *) exit 2 ;;
+          esac
           SH
           tar -C pub/stage -cf pub/approved.tar editor.php batch_input.php batch_entry.php observe_pair.php scope.json native-targets.json native-source.json run_batch.py execute.sh
+          if [[ -n "$MAX_PREPARED_ARTIFACT_ID" ]]; then
+            tar -C pub/stage -rf pub/approved.tar preparation-scope.json
+            install -m600 pub/stage/preparation.json pub/preparation.json
+            echo 'reuse_preparation=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Pin established SSH host continuity and authentication identity
+        if: steps.input.outputs.reuse_preparation != 'true'
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
+        run: bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh pin-host
+      - name: Prepare native checkpoints without editing posts
+        if: steps.input.outputs.reuse_preparation != 'true'
+        env:
+          HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
+          USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh prepare - \
+            < pub/approved.tar > pub/preparation.json
+      - name: Bind the preparation to its exact package
+        id: seal
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,os,pathlib
+          pub=pathlib.Path('pub')
+          manifest=json.loads((pub/'manifest.json').read_bytes())
+          receipt=json.loads((pub/'preparation.json').read_bytes())
+          assert receipt['contract']=='anytour-max-transfer-preparation-v1' and receipt['provider_writes']==0
+          rows=receipt['rows']
+          assert [r['hotel_id'] for r in rows]==[r['hotel_id'] for r in manifest['rows']]
+          ready=sum(r['state']=='ready_read_only' for r in rows)
+          print(f'Native checkpoints ready: {ready}/{len(rows)}')
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              print('prepared='+str(ready>0).lower(),file=out)
+              for key,name in (('archive_sha','approved.tar'),('receipt_sha','preparation.json'),
+                               ('manifest_sha','manifest.json'),('admission_sha','admit.cjs')):
+                  print(key+'='+hashlib.sha256((pub/name).read_bytes()).hexdigest(),file=out)
+          PY
+      - name: Store the reusable read-only preparation
+        if: steps.input.outputs.write_requested == 'false'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-max-read-only-preparation
+          path: |
+            pub/manifest.json
+            pub/batch-plan.json
+            pub/preparation.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Store the exact inputs and native preparation receipt
+        if: steps.input.outputs.write_requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-max-prepared-${{ github.run_attempt }}
+          path: |
+            pub/approved.tar
+            pub/admit.cjs
+            pub/manifest.json
+            pub/preparation.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Remove runner-only connection material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+  edit_existing:
+    needs: prepare
+    if: needs.prepare.outputs.prepared == 'true' && needs.prepare.outputs.write_requested == 'true'
+    concurrency:
+      group: anytour-authorized-channel-publication
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          # Authenticates the terminal receipt issued by the original PR1751 recovery.
+          ref: aad4de171966a7386e0293626f485d03003109f7
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          path: workflow-source
+          persist-credentials: false
+      - name: Retrieve this run's prepared batch
+        uses: actions/download-artifact@v4
+        with:
+          name: issue-1566-max-prepared-${{ github.run_attempt }}
+          path: pub
+      - name: Verify the prepared bytes before loading the publisher credentials
+        env:
+          ARCHIVE_SHA: ${{ needs.prepare.outputs.archive_sha }}
+          RECEIPT_SHA: ${{ needs.prepare.outputs.receipt_sha }}
+          MANIFEST_SHA: ${{ needs.prepare.outputs.manifest_sha }}
+          ADMISSION_SHA: ${{ needs.prepare.outputs.admission_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for digest in "$ARCHIVE_SHA" "$RECEIPT_SHA" "$MANIFEST_SHA" "$ADMISSION_SHA"; do
+            [[ "$digest" =~ ^[a-f0-9]{64}$ ]]
+          done
+          cd pub
+          printf '%s  %s\n' "$ARCHIVE_SHA" approved.tar "$RECEIPT_SHA" preparation.json \
+            "$MANIFEST_SHA" manifest.json "$ADMISSION_SHA" admit.cjs | sha256sum --check --strict
+          tar -rf approved.tar preparation.json
       - name: Pin established SSH host continuity and authentication identity
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
           KEY_VALUE: ${{ secrets.STANDBY_DEPLOY_SSH_KEY }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          umask 077
-          python3 - <<'PY'
-          import os,re
-          assert re.fullmatch(r'[A-Za-z0-9_.:-]+',os.environ['HOST_VALUE'] or '')
-          assert re.fullmatch(r'[A-Za-z0-9_-]+',os.environ['USER_VALUE'] or '')
-          PY
-          if [[ "$KEY_VALUE" == *"PRIVATE KEY"* ]]; then
-            if [[ "$KEY_VALUE" == *'\n'* ]]; then printf '%b\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; else printf '%s\n' "$KEY_VALUE" | tr -d '\r' > "$RUNNER_TEMP/channel_key"; fi
-          else printf '%s' "$KEY_VALUE" | base64 --decode > "$RUNNER_TEMP/channel_key"; fi
-          chmod 600 "$RUNNER_TEMP/channel_key"
-          ssh-keygen -y -f "$RUNNER_TEMP/channel_key" >/dev/null
-          python3 - <<'PY'
-          import base64,hashlib,os,pathlib,subprocess
-          scan=subprocess.run(['ssh-keyscan','-T','10','-t','ed25519,ecdsa,rsa',os.environ['HOST_VALUE']],capture_output=True,text=True,timeout=35);found=[]
-          for s in scan.stdout.splitlines():
-              q=s.split()
-              if len(q)<3 or q[0].startswith('#'):continue
-              try:fp='SHA256:'+base64.b64encode(hashlib.sha256(base64.b64decode(q[2])).digest()).decode().rstrip('=')
-              except Exception:continue
-              if fp=='SHA256:/5mPWmGBQ6UPnNQDEHLOCy7dCpxdz+FxQ4zVOjqE0F0':found.append(s)
-          assert found,'HOST_PIN_MISMATCH_STOP'
-          pathlib.Path(os.environ['RUNNER_TEMP']+'/channel_known_hosts').write_text('\n'.join(found)+'\n')
-          print('ESTABLISHED_HOST_PIN_VERIFIED')
-          PY
-      - name: Recheck accepted release and slot immediately before the existing writer
+        run: bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh pin-host
+      - name: Authenticate the accepted installation before the server-side write lock
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node pub/admit.cjs
+        run: node pub/admit.cjs authorize-write
       - name: Edit only each verified existing ID and capture its independent receipt
         env:
           HOST_VALUE: ${{ secrets.STANDBY_DEPLOY_HOST }}
           USER_VALUE: ${{ secrets.STANDBY_DEPLOY_USER }}
+          RECEIPT_SHA: ${{ needs.prepare.outputs.receipt_sha }}
         shell: bash
         run: |
           set -euo pipefail
           umask 077
-          options=(-i "$RUNNER_TEMP/channel_key" -o BatchMode=yes -o ConnectTimeout=10
-                   -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o GlobalKnownHostsFile=/dev/null
-                   -o UserKnownHostsFile="$RUNNER_TEMP/channel_known_hosts")
-          ssh "${options[@]}" "$USER_VALUE@$HOST_VALUE" 'bash -c '"'"'set -euo pipefail; umask 077; stage=$(mktemp -d /tmp/anytour-1566-old-max.XXXXXXXX); trap "rm -f -- \"$stage\"/*; rmdir -- \"$stage\"" EXIT; tar --no-same-owner --no-same-permissions -C "$stage" -xf -; bash "$stage/execute.sh" "$stage"'"'"'' < pub/approved.tar | tee pub/native-results.txt
+          bash workflow-source/tools/direct_demand/operations/max-existing-photo/run_remote_batch.sh apply "$RECEIPT_SHA" \
+            < pub/approved.tar | tee pub/native-results.txt
           python3 - <<'PY'
           import json,pathlib
           expected = [r['hotel_id'] for r in json.loads(pathlib.Path('pub/manifest.json').read_bytes())['rows']]
@@ -213,12 +447,40 @@ jobs:
           pathlib.Path('pub/summary.json').write_text(json.dumps(summary,indent=2))
           print('Native confirmations', len(accepted), 'of', len(expected), accepted)
           PY
-      - name: Read each same public MAX address independently
+      - name: Preserve exact native writer receipts
         if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: issue-1566-max-native-${{ github.run_attempt }}
+          path: |
+            pub/manifest.json
+            pub/native-results.txt
+            pub/summary.json
+          retention-days: 7
+          if-no-files-found: warn
+      - name: Remove runner-only connection material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"
+  observe_public:
+    needs: [prepare, edit_existing]
+    if: always() && needs.prepare.result == 'success' && (needs.edit_existing.result == 'success' || needs.edit_existing.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Retrieve only the native writer receipts
+        uses: actions/download-artifact@v4
+        with:
+          name: issue-1566-max-native-${{ github.run_attempt }}
+          path: pub
+      - name: Read each same public MAX address independently
+        env:
+          MANIFEST_SHA: ${{ needs.prepare.outputs.manifest_sha }}
         run: |
           set -euo pipefail
           umask 077
           test -f pub/native-results.txt || exit 0
+          [[ "$MANIFEST_SHA" =~ ^[a-f0-9]{64}$ ]]
+          printf '%s  %s\n' "$MANIFEST_SHA" pub/manifest.json | sha256sum --check --strict
           python3 - <<'PY'
           import json,urllib.request,urllib.error,hashlib,re,time
           from html.parser import HTMLParser
@@ -227,8 +489,11 @@ jobs:
           from datetime import datetime,timezone
           original=json.loads(Path('pub/manifest.json').read_text())['rows']
           native=[json.loads(line.split(' ',2)[2]) for line in Path('pub/native-results.txt').read_text().splitlines() if line.startswith('RESULT ')]
-          accepted={r['hotel'] for r in native if r.get('state')=='existing_max_message_updated_and_verified'}
-          plans=[{'id':r['hotel_id'],'url':r['target_url'],'title':r['name'],'caption':r['caption_without_price']} for r in original if r['hotel_id'] in accepted]
+          confirmed='existing_max_message_updated_and_verified'
+          observable={confirmed,'held_no_retry','unobserved'}
+          states={r['hotel']:r['state'] for r in native if r.get('state') in observable}
+          plans=[{'id':r['hotel_id'],'url':r['target_url'],'title':r['name'],'caption':r['caption_without_price']}
+                 for r in original if r['hotel_id'] in states]
           class Page(HTMLParser):
               def __init__(self):
                   super().__init__(convert_charrefs=True)
@@ -263,13 +528,46 @@ jobs:
                        'escaped_variant_visible': '&amp;' in visible or '&amp;' in declared}
                   out['verified']=out['named'] and out['caption_matches'] and out['photo_preview']
                   return out
-              except (OSError,ValueError,AssertionError) as e:
-                  return {'hotel_id':row['id'],'url':row['url'],'error':type(e).__name__,'verified':False}
+              except urllib.error.HTTPError as error:
+                  retry_after = error.headers.get('Retry-After')
+                  error.close()
+                  limited = error.code == 429 or retry_after is not None
+                  result = {'hotel_id':row['id'],'url':row['url'],'http':error.code,
+                            'error':'provider_backoff' if limited else 'HTTPError','verified':False}
+                  if limited:
+                      result['retry_after'] = retry_after[:128] if retry_after else None
+                  return result
+              except (OSError,ValueError,AssertionError) as error:
+                  return {'hotel_id':row['id'],'url':row['url'],'error':type(error).__name__,'verified':False}
+          def held(row, limit):
+              return {'hotel_id':row['id'],'url':row['url'],'error':'held_for_provider_backoff',
+                      'retry_after':limit['retry_after'],'verified':False}
+          results = []
+          limit = None
           with ThreadPoolExecutor(max_workers=3) as pool:
-              results=list(pool.map(read,plans))
-          if not all(r['verified'] for r in results):
+              for offset in range(0, len(plans), 3):
+                  batch = plans[offset:offset + 3]
+                  if limit is not None:
+                      results.extend(held(row, limit) for row in batch)
+                      continue
+                  observed = list(pool.map(read, batch))
+                  results.extend(observed)
+                  limit = next((row for row in observed if row.get('error') == 'provider_backoff'), None)
+          if limit is None and any(not row['verified'] for row in results):
               time.sleep(5)
-              results=[r if r['verified'] else read(p) for r,p in zip(results,plans)]
+              for index, plan in enumerate(plans):
+                  if results[index]['verified']:
+                      continue
+                  if limit is not None:
+                      results[index] = held(plan, limit)
+                      continue
+                  results[index] = read(plan)
+                  if results[index].get('error') == 'provider_backoff':
+                      limit = results[index]
+          for row in results:
+              row['native_state']=states[row['hotel_id']]
+              row['public_matches']=row['verified']
+              row['verified']=row['public_matches'] and row['native_state']==confirmed
           out={'observed_utc':datetime.now(timezone.utc).isoformat(),'rows':results,'writes':0,'ad_clicks':0}
           Path('pub/observation.json').write_text(json.dumps(out,ensure_ascii=False))
           print('MAX_COMMERCIAL_ALBUM_PUBLIC_READ='+json.dumps(out,ensure_ascii=False,separators=(',',':')))
@@ -286,6 +584,3 @@ jobs:
             pub/observation.json
           retention-days: 7
           if-no-files-found: warn
-      - name: Remove runner-only connection material
-        if: always()
-        run: rm -f "$RUNNER_TEMP/channel_key" "$RUNNER_TEMP/channel_known_hosts"

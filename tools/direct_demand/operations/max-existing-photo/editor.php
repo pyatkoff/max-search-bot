@@ -207,6 +207,35 @@ function maxEditBodyOnce($file, array $plan, array $proof, callable $send, calla
     return $observed;
 }
 
+function maxEditAssertLeaseIdentity($lease, string $path): void
+{
+    clearstatcache(true, $path);
+    $named = lstat($path);
+    $held = fstat($lease);
+    maxEditNeed(is_array($named) && is_array($held) && ($named['mode'] & 0170000) === 0100000
+        && $named['dev'] === $held['dev'] && $named['ino'] === $held['ino'], 'editor_lock_unavailable');
+}
+
+function maxEditBatchLease(string $path, bool $writing)
+{
+    maxEditNeed(is_file($path) && !is_link($path), 'editor_lock_unavailable');
+    $lease = fopen($path, 'rb');
+    $mode = $writing ? LOCK_EX : LOCK_SH;
+    maxEditNeed(is_resource($lease) && flock($lease, $mode | LOCK_NB), 'editor_busy');
+    maxEditAssertLeaseIdentity($lease, $path);
+    return $lease;
+}
+
+function maxEditRequireFreshRoute(mixed $observedUtc, float $now): void
+{
+    maxEditNeed(is_string($observedUtc)
+        && preg_match('/\A\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?(?:Z|\+00:00)\z/D', $observedUtc) === 1,
+        'route_receipt_stale');
+    $observed = new DateTimeImmutable($observedUtc);
+    $age = $now - (float)$observed->format('U.u');
+    maxEditNeed($age >= 0 && $age <= 720, 'route_receipt_stale');
+}
+
 function maxEditRun(array $argv, ?array $batchApproval = null): int
 {
     $lease = null;
@@ -214,6 +243,7 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
     $pdo = null;
     $lock = '';
     $held = false;
+    $readOnlyTransaction = false;
     $started = false;
     $proof = [];
     try {
@@ -222,11 +252,19 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
         $planSha = $argv[3] ?? '';
         $sha = $argv[4] ?? '';
         $approved = $argv[5] ?? '';
-        maxEditNeed(in_array($mode, ['--check', '--apply'], true)
+        $preparing = $mode === '--prepare-check';
+        $checking = $mode === '--check' || ($preparing && $batchApproval !== null);
+        maxEditNeed(($checking || $mode === '--apply')
             && preg_match('/\A[a-f0-9]{64}\z/D', $planSha) === 1 && preg_match('/\A[a-f0-9]{40}\z/D', $sha) === 1
-            && ($mode === '--check' ? count($argv) === 5 : count($argv) === 6
+            && ($checking ? count($argv) === 5 : count($argv) === 6
                 && preg_match('/\A[a-f0-9]{64}\z/D', $approved) === 1), 'exact_mode_plan_and_release_required');
         $plan = maxEditPlan($path, $planSha, $batchApproval);
+        $base = '/var/www/anytoour/data/channel-post-operations';
+        $leasePath = $base . '/monitor-price-after-collection-v1.jsonl';
+        if ($batchApproval !== null && !$preparing) {
+            // The host installer holds this same inode through the checkout switch.
+            $lease = maxEditBatchLease($leasePath, $mode === '--apply');
+        }
         maxEditInstalled($sha);
         $root = getcwd();
         ob_start();
@@ -242,13 +280,11 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
         $pdo = ConversationDb::connection();
         $registry = new ChannelPostRegistryService($pdo);
         $key = substr(hash('sha256', MAIN_MAX . '|' . $plan['target_mid']), 0, 36);
-        $base = '/var/www/anytoour/data/channel-post-operations';
-        if ($batchApproval !== null) {
-            $leasePath = $base . '/monitor-price-after-collection-v1.jsonl';
-            maxEditNeed(is_file($leasePath) && !is_link($leasePath), 'editor_lock_unavailable');
-            $lease = fopen($leasePath, 'rb');
-            $lockMode = $mode === '--apply' ? LOCK_EX : LOCK_SH;
-            maxEditNeed(is_resource($lease) && flock($lease, $lockMode | LOCK_NB), 'editor_busy');
+        if ($preparing) {
+            // This snapshot is provisional. The writer re-reads the pair under the exclusive lease.
+            maxEditNeed($pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ, READ ONLY') !== false
+                && $pdo->beginTransaction(), 'read_only_snapshot_unavailable');
+            $readOnlyTransaction = true;
         }
         $lock = 'anytour-1566-main-max-' . $key;
         $directory = $base . '/' . $lock;
@@ -270,7 +306,12 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
             maxBatchVerifyCurrent($batchApproval, $current, $proof['target_config']);
         }
         $sealed = hash('sha256', maxEditJson(['plan_sha256' => $planSha] + $proof));
-        if ($mode === '--check') {
+        if ($checking) {
+            if ($preparing) {
+                maxEditNeed($pdo->rollBack(), 'read_only_snapshot_unavailable');
+                $readOnlyTransaction = false;
+                maxEditInstalled($sha);
+            }
             echo maxEditJson(['state' => 'ready_read_only', 'checkpoint_sha256' => $sealed,
                 'provider_writes' => 0, 'new_posts' => 0, 'ad_writes' => 0] + $proof), "\n";
             return 0;
@@ -278,6 +319,12 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
         maxEditNeed(hash_equals($approved, $sealed), 'approved_checkpoint_changed');
         maxEditInstalled($sha);
         maxEditNeed(maxEditTarget($pdo, $plan) === $proof['target_photo_ids'], 'original_target_changed_before_edit');
+        if (is_resource($lease)) {
+            maxEditAssertLeaseIdentity($lease, $leasePath);
+        }
+        if ($batchApproval !== null && array_key_exists('route_observed_utc', $batchApproval)) {
+            maxEditRequireFreshRoute($batchApproval['route_observed_utc'], microtime(true));
+        }
         maxEditNeed(mkdir($directory, 0700), 'target_receipt_exists_no_replay');
         $file = fopen($directory . '/receipt.jsonl', 'x');
         maxEditNeed(is_resource($file), 'durable_edit_receipt_create_failed');
@@ -358,6 +405,9 @@ function maxEditRun(array $argv, ?array $batchApproval = null): int
         echo maxEditJson($failure), "\n";
         return 2;
     } finally {
+        if ($readOnlyTransaction && $pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
         if (is_resource($lease)) {
             fclose($lease);
         }
@@ -379,7 +429,7 @@ if (($argv[1] ?? null) === '--correct-public-render-949') {
     require_once __DIR__ . '/public_render.php';
     exit(maxRenderMain($argv));
 }
-if (in_array($argv[1] ?? '', ['--batch-plan','--batch-check','--batch-apply'], true)) {
+if (in_array($argv[1] ?? '', ['--batch-plan','--batch-check','--batch-prepare-check','--batch-apply'], true)) {
     require_once __DIR__ . '/batch_input.php';
     require_once __DIR__ . '/batch_entry.php';
     exit(maxBatchEntry($argv));

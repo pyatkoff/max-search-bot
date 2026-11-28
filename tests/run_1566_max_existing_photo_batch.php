@@ -10,6 +10,12 @@ function refuses(callable $test, string $reason): bool {
     try {$test();return false;} catch (RuntimeException $e) {return $e->getMessage()===$reason;}
 }
 
+$observed = '2026-11-28T06:20:00.500000+00:00';
+$instant = (float)(new DateTimeImmutable($observed))->format('U.u');
+maxEditRequireFreshRoute($observed, $instant + 720);
+foreach ([[$observed, $instant + 720.001], [$observed, $instant - 1], [null, $instant]] as [$value, $now]) {
+    check(refuses(fn() => maxEditRequireFreshRoute($value, $now), 'route_receipt_stale'), 'MAX2 write window must fail closed');
+}
 $raw=file_get_contents($dir.'/scope.json');
 $scope=json_decode($raw,true,32,JSON_THROW_ON_ERROR);
 check(hash('sha256',$raw)===MAX_BATCH_SCOPE_SHA256,'scope digest');
@@ -108,6 +114,16 @@ try {
         $a['plan']['caption'].=' 100 ₽';$bytes=maxEditJson($a['plan']);$a['sha256']=hash('sha256',$bytes);file_put_contents($temp,$bytes);
         check(refuses(fn()=>maxEditPlan($temp,$a['sha256'],$a),'reviewed_caption_invalid'),'PRICE cannot enter CONTENT');
     }
+    foreach ([
+        [['editor.php', '--prepare-check', $temp, $approval['sha256'], $app], null],
+        [['editor.php', '--prepare-check', $temp, $approval['sha256'], $app, str_repeat('a',64)], $approval],
+    ] as [$arguments, $batchApproval]) {
+        ob_start();
+        $status=maxEditRun($arguments,$batchApproval);
+        $receipt=json_decode((string)ob_get_clean(),true,16,JSON_THROW_ON_ERROR);
+        check($status===2 && $receipt['reason']==='exact_mode_plan_and_release_required',
+            'prepare-only mode requires its approved row and accepts no write checkpoint');
+    }
     $log=fopen($temp,'w+b');
     $calls=0;$reads=0;$p=$approval['plan'];
     $proof=['target_ms'=>$p['target_ms'],'target_url'=>$p['target_url'],'source_photo_id'=>'19'];
@@ -123,4 +139,24 @@ try {
     check($calls===2 && $reads===2,'mismatched readback does not replay');
     fclose($log);
 } finally {unlink($temp);}
-echo "MAX seven input and no-replay source regression passed\n";
+// The same kind of exclusive lock used by checkout sync must exclude the native writer.
+$leasePath=tempnam(sys_get_temp_dir(),'max-editor-lease-');
+$installer=fopen($leasePath,'rb');
+$writer=null;
+try {
+    check(flock($installer,LOCK_EX|LOCK_NB),'fixture installer lock');
+    check(refuses(fn()=>maxEditBatchLease($leasePath,true),'editor_busy'),'installer excludes writer');
+    check(flock($installer,LOCK_UN),'release fixture installer lock');
+    $writer=maxEditBatchLease($leasePath,true);
+    check(!flock($installer,LOCK_EX|LOCK_NB),'writer excludes checkout switch');
+    rename($leasePath,$leasePath.'.previous');
+    touch($leasePath);
+    check(refuses(fn()=>maxEditAssertLeaseIdentity($writer,$leasePath),'editor_lock_unavailable'),
+        'replaced journal cannot authorize writing');
+} finally {
+    if (is_resource($writer)) fclose($writer);
+    fclose($installer);
+    if (file_exists($leasePath.'.previous')) unlink($leasePath.'.previous');
+    if (file_exists($leasePath)) unlink($leasePath);
+}
+echo "MAX seven input, publisher lease and no-replay source regression passed\n";
