@@ -48,6 +48,7 @@ jobs:
           WORKFLOW_UPGRADE_PARENT = 'af4bf3b062986e848c2b81a13954435281c32e47'
           WORKFLOW_UPGRADE_MANIFEST = '90a7ec7eba5029b59764b69d198c97ae5d4cae47'
           LEGACY_OBSERVATION_UPGRADE_PARENT = '496781f9b2978308a5d08a796588f112c6db0192'
+          TRIAD_IDENTITY_UPGRADE_PARENT = '63a9751b9f0b472eaefbfd00d3261e022eab187b'
           SOURCE_IDENTITY_PAIR = {
               'hotel_id': 61591,
               'source_mid': '390',
@@ -64,6 +65,21 @@ jobs:
               'price_href_sha256': '246a9ed6444e8978100b5adabb68f4c90bd924380e018df647a98e1d31d75b3b',
               'keyboard_href_sha256': '5a7e4f1dc3c08a29a685cbcaf0e01d6a190d0c1c7c192b00d766f245ee557e2a',
           }}
+          # 15109356481 records the exact prior sent versions, 15109465904 binds the target preimages.
+          TRIAD_SOURCE_IDENTITIES = [
+              {'hotel_id': 2481, 'source_mid': '711', 'prior_source_version_id': 15298, 'target_mid': '1713',
+               'target_published_unixtime': 1789301257,
+               'target_caption_sha256': '55f0facbc825e848220cbf93da14c61b0a2c467effffc63aad4f52df550a54e9',
+               'target_photo_marker_sha256': 'c4020a75f132d2580638b4b10a68e78fa2498d3d54d3e125487dc03807727d0c'},
+              {'hotel_id': 50261, 'source_mid': '713', 'prior_source_version_id': 17247, 'target_mid': '1725',
+               'target_published_unixtime': 1790061812,
+               'target_caption_sha256': 'e40c68f565cddcc9591d59d32f852bbaa926853622efd19a1587d4afd70ff55f',
+               'target_photo_marker_sha256': '6e6871c8723508f6ee53074ec7a67eb141148ac63068031138dd34c0f479b1e8'},
+              {'hotel_id': 54914, 'source_mid': '879', 'prior_source_version_id': 16462, 'target_mid': '1706',
+               'target_published_unixtime': 1788608259,
+               'target_caption_sha256': '41bfbee618216338e87499bb823780e84ede516a849f679b7d89c6452d7581c1',
+               'target_photo_marker_sha256': '9a6ad8fddcdd463f0751138e436a8653861797678460f427baa0968c21f0077c'},
+          ]
           FIELDS = {
               'hotel_id', 'source_mid', 'source_publication_id', 'target_mid',
               'target_published_unixtime', 'target_caption_sha256', 'target_photo_marker_sha256',
@@ -90,7 +106,7 @@ jobs:
                                 before, head).splitlines())
               expected = ({'M\t' + WORKFLOW, 'M\t' + MANIFEST} if before == WORKFLOW_UPGRADE_PARENT
                           else {'M\t' + MANIFEST})
-              if before == LEGACY_OBSERVATION_UPGRADE_PARENT:
+              if before in (LEGACY_OBSERVATION_UPGRADE_PARENT, TRIAD_IDENTITY_UPGRADE_PARENT):
                   expected |= {'M\t' + WORKFLOW, 'M\t' + READER}
               assert changes == expected, 'unexpected commit scope'
               assert re.fullmatch(r'100644 blob [a-f0-9]{40}\t' + re.escape(MANIFEST) + r'\n',
@@ -101,16 +117,27 @@ jobs:
               assert 0 < len(raw) <= 8192
               packet = json.loads(raw, object_pairs_hook=unique_object)
               assert type(packet) is dict and set(packet) == {'schema', 'pairs'}
-              assert type(packet['schema']) is int and packet['schema'] in (1, 2)
+              assert type(packet['schema']) is int and packet['schema'] in (1, 2, 3)
               legacy_target_only = packet['schema'] == 2
+              triad_source_identity_only = packet['schema'] == 3
               if before == LEGACY_OBSERVATION_UPGRADE_PARENT:
                   assert legacy_target_only
+              if before == TRIAD_IDENTITY_UPGRADE_PARENT:
+                  assert triad_source_identity_only
               rows = packet['pairs']
               assert type(rows) is list and 1 <= len(rows) <= 5
               identity_only = not legacy_target_only and rows == [SOURCE_IDENTITY_PAIR]
               normalized = {}
               source_mids, target_mids, publications = set(), set(), set()
+              if triad_source_identity_only:
+                  assert rows == TRIAD_SOURCE_IDENTITIES, 'unreviewed three-source identity scope'
               for row in rows:
+                  if triad_source_identity_only:
+                      hotel, version = row['hotel_id'], row['prior_source_version_id']
+                      assert type(hotel) is int and type(version) is int
+                      normalized[hotel] = dict(source=row['source_mid'], target=row['target_mid'],
+                                               prior_source_version_id=version, triad_source_identity_only=True)
+                      continue
                   assert type(row) is dict and set(row) == FIELDS
                   hotel, publication, date = (row[key] for key in
                                               ('hotel_id', 'source_publication_id', 'target_published_unixtime'))
@@ -143,6 +170,7 @@ jobs:
               with Path(os.environ['GITHUB_ENV']).open('a') as output:
                   output.write('RANKED_READER_PACKET_SHA=' + digest + '\n')
                   output.write('RANKED_LEGACY_TARGET_ONLY=' + ('1' if legacy_target_only else '0') + '\n')
+                  output.write('RANKED_TRIAD_SOURCE_IDENTITY_ONLY=' + ('1' if triad_source_identity_only else '0') + '\n')
               print(f'Authenticated candidate data {digest}: {len(normalized)} pair(s)')
 
           check()
@@ -234,10 +262,10 @@ jobs:
 
             const baselineCurrent = !observationOnly && resolved.repository_sha === repositorySha &&
               resolved.application_sha === repositorySha;
-            if (process.env.RANKED_LEGACY_TARGET_ONLY === '1' &&
+            if ((process.env.RANKED_LEGACY_TARGET_ONLY === '1' || process.env.RANKED_TRIAD_SOURCE_IDENTITY_ONLY === '1') &&
                 (!baselineCurrent || !readOnlySnapshot || accepted.phase !== 'pending_terminal' ||
                  !release.positive(accepted.closure?.run_id))) {
-              throw Error('legacy_observation_requires_current_closed_app');
+              throw Error('scoped_observation_requires_current_closed_app');
             }
             fs.mkdirSync('../pub', { recursive: true });
             fs.writeFileSync('../pub/accepted-read-admission.json', JSON.stringify({
@@ -268,7 +296,7 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = 'fb737675bd373f53195584bba01916484d133665'
+          test "$(git hash-object tools/direct_demand/operations/read-1566-telegram-46-20261123.php)" = '6e7846b14d7818eaab1383eb45723f33286055ad'
           mkdir -p pub
           python3 - <<'PY'
           import base64,os,pathlib,re
@@ -322,6 +350,7 @@ jobs:
           $pairs=json_decode(base64_decode('__VALIDATED_RANKED_PAIRS__',true),true,16,JSON_THROW_ON_ERROR);
           $identityOnly=count($pairs)===1&&($pairs[61591]['source_identity_only']??false)===true;
           $legacyTargetOnly=$pairs!==[]&&count(array_filter($pairs,static fn(array $pair):bool=>isset($pair['legacy_target_observation'])))===count($pairs);
+          $triadSourceIdentityOnly=count($pairs)===3&&count(array_filter($pairs,static fn(array $pair):bool=>($pair['triad_source_identity_only']??false)===true))===3;
           if($identityOnly){
            $out['source_identity_only']=true;
            $out['observation_only']=true;
@@ -330,6 +359,12 @@ jobs:
           if($legacyTargetOnly){
            $out['legacy_target_observation_only']=true;
            $out['legacy_evidence_complete']=false;
+           $out['observation_only']=true;
+           $out['baseline_current_for_writer']=false;
+          }
+          if($triadSourceIdentityOnly){
+           $out['triad_source_identity_only']=true;
+           $out['triad_source_evidence_complete']=false;
            $out['observation_only']=true;
            $out['baseline_current_for_writer']=false;
           }
@@ -352,7 +387,30 @@ jobs:
            }
            requireRead($out['resource_budget']['allowed'],'server_resource_hold');
            runtimeRead();
-           if($identityOnly){
+           if($triadSourceIdentityOnly){
+            $stage='three_source_native_identity';
+            requireRead(array_keys($pairs)===[2481,50261,54914]&&array_column($pairs,'source')===['711','713','879'],
+              'triad_source_observation_scope_changed');
+            ob_start();try{
+             require APP.'/config.php';
+             require_once APP.'/services/ProjectConfig.php';
+             require_once APP.'/services/ChannelPostRegistryService.php';
+            }finally{ob_end_clean();}
+            requireRead(ProjectConfig::projectId()==='anytour','project_changed');
+            $pdo=ConversationDb::connection();
+            requireRead($pdo->getAttribute(PDO::ATTR_DRIVER_NAME)==='mysql'&&!$pdo->inTransaction(),'triad_mysql_required');
+            $serverVersion=$pdo->getAttribute(PDO::ATTR_SERVER_VERSION);
+            requireRead(is_string($serverVersion)&&$serverVersion!=='','triad_sql_limit_unavailable');
+            $limit=stripos($serverVersion,'mariadb')!==false?'SET SESSION max_statement_time=0.6':'SET SESSION MAX_EXECUTION_TIME=600';
+            requireRead($pdo->exec($limit)!==false&&$pdo->exec('SET SESSION TRANSACTION READ ONLY')!==false
+              &&$pdo->exec('SET TRANSACTION ISOLATION LEVEL REPEATABLE READ')!==false&&$pdo->beginTransaction(),'triad_sql_limit_unavailable');
+            $registry=new ChannelPostRegistryService($pdo);
+            $source=$registry->channel('anytour','telegram','anyru_bot','-1002262666616');
+            requireRead(is_array($source)&&(int)$source['id']===10,'channel_identity_changed');
+            $out['identity_sql_statement_limit_ms']=600;
+            $out['source_identities']=triadSourceIdentityRead($pdo,$pairs);
+            $pdo->rollBack();
+           }elseif($identityOnly){
             $stage='source_identity_390';
             requireRead($pairs[61591]['source']==='390'&&$pairs[61591]['source_publication']===null,'source_identity_scope_changed');
             ob_start();try{
@@ -528,7 +586,12 @@ jobs:
            $pdo->rollBack();$out['mysql_after']=mysqlResourcesRead($pdo);
            }
            runtimeRead();
-           if($legacyTargetOnly){
+           if($triadSourceIdentityOnly){
+            $out['triad_source_evidence_complete']=count($out['source_identities'])===3
+              &&array_filter($out['source_identities'],static fn(array $row):bool=>!$row['source_identity_confirmed'])===[];
+            $out['ok']=$out['triad_source_evidence_complete'];
+            if(!$out['ok']){$out['failure_stage']='three_source_native_identity';$out['failure_reason']='triad_source_evidence_incomplete';}
+           }elseif($legacyTargetOnly){
             $out['legacy_evidence_complete']=count($out['rows'])===count($pairs)
               &&array_filter($out['rows'],static fn(array $row):bool=>$row['evidence_state']!=='complete')===[];
             $out['ok']=$out['legacy_evidence_complete'];
@@ -636,8 +699,10 @@ jobs:
           packet = json.load(open('pub/validated-pairs.json'))
           identity_only = packet.get('61591', {}).get('source_identity_only') is True
           legacy_target_only = bool(packet) and all('legacy_target_observation' in row for row in packet.values())
+          triad_source_identity_only = len(packet)==3 and all(row.get('triad_source_identity_only') is True for row in packet.values())
           assert d.get('source_identity_only', False) is identity_only
           assert d.get('legacy_target_observation_only', False) is legacy_target_only
+          assert d.get('triad_source_identity_only', False) is triad_source_identity_only
           if identity_only:
               assert d['rows'] == [] and d['observation_only'] is True
               assert d['baseline_current_for_writer'] is False and 'native_read_request_count' not in d
@@ -649,6 +714,23 @@ jobs:
                   assert all(type(row[k]) is int and row[k] > 0 for k in ('publication_id', 'version_id'))
               print(json.dumps({'ok':d['ok'],'failure_stage':d.get('failure_stage'),'reason':d.get('failure_reason'),
                                 'source_identity':d.get('source_identity')}))
+          elif triad_source_identity_only:
+              assert d['rows']==[] and d['observation_only'] is True and d['baseline_current_for_writer'] is False
+              assert 'native_read_request_count' not in d and not d.get('price_editor_shared_read_lease', False)
+              assert d['public_retry_after_holds']==[] and d['ok'] is d['triad_source_evidence_complete']
+              rows=d.get('source_identities',[])
+              if rows:
+                  assert [str(row['hotel_id']) for row in rows]==list(packet) and d['identity_sql_statement_limit_ms']==600
+              for row in rows:
+                  pair=packet[str(row['hotel_id'])]
+                  assert row['source_message_id']==pair['source'] and row['target_message_id']==pair['target']
+                  assert row['prior_source_version_id']==pair['prior_source_version_id']
+                  if row['source_identity_confirmed']:
+                      assert row['native_hotel_catalog_id']==row['hotel_id'] and row['state']=='sent'
+                      assert row['native_claim_held_or_unknown'] is False and row['canonical_source_url_matches'] is True
+                      assert all(type(row[k]) is int and row[k]>0 for k in ('publication_id','version_id'))
+              assert not d['ok'] or (len(rows)==3 and all(row['source_identity_confirmed'] for row in rows))
+              print(json.dumps({'ok':d['ok'],'failure_stage':d.get('failure_stage'),'reason':d.get('failure_reason'),'source_identities':rows}))
           elif legacy_target_only:
               assert d['observation_only'] is True and d['baseline_current_for_writer'] is False
               assert not d.get('price_editor_shared_read_lease', False)

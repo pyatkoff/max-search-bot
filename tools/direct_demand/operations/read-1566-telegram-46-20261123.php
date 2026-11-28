@@ -715,6 +715,59 @@ function telegramPreparedPairTargetRead(PDO $pdo,ChannelPostRegistryService $reg
         'target_native'=>$native,'target_native_projection_reason'=>$projectionReason];
 }
 
+/** Return a source identity only after the exact channel, current version and claim are read. */
+function triadSourceIdentityProjectionRead(array $records,array $pairs): array
+{
+    requireRead(count($pairs)===3&&count($records)<=3,'triad_source_inventory_ambiguous');
+    $byMid=[];
+    foreach($records as $record){
+        $mid=(string)($record['source_mid']??'');
+        requireRead(in_array($mid,array_column($pairs,'source'),true)&&!array_key_exists($mid,$byMid),'triad_source_identity_ambiguous');
+        $byMid[$mid]=$record;
+    }
+    $id=static function(mixed $value):?int {
+        return (is_string($value)||is_int($value))&&preg_match('/\A[1-9][0-9]{0,15}\z/D',(string)$value)===1?(int)$value:null;
+    };
+    $rows=[];$knownPublications=[];
+    foreach($pairs as $hotel=>$pair){
+        $record=$byMid[$pair['source']]??[];
+        $publication=$id($record['publication_id']??null);
+        if($publication!==null){
+            requireRead(!isset($knownPublications[$publication]),'triad_source_publication_ambiguous');
+            $knownPublications[$publication]=true;
+        }
+        $version=$id($record['version_id']??null);
+        $catalog=$id($record['hotel_catalog_id']??null);
+        $rawState=$record['state']??null;
+        $state=is_string($rawState)&&preg_match('/\A[a-z_]{1,40}\z/D',$rawState)===1?$rawState:null;
+        $held=match($record['claim_held_or_unknown']??null){0,'0'=>false,1,'1'=>true,default=>null};
+        $exactUrl=($record['stored_post_url']??null)==='https://t.me/any_toour/'.$pair['source'];
+        $known=$publication!==null&&$version!==null&&$catalog===(int)$hotel&&$state==='sent'&&$held===false&&$exactUrl;
+        $rows[]=['hotel_id'=>(int)$hotel,'source_message_id'=>$pair['source'],'target_message_id'=>$pair['target'],
+            'prior_source_version_id'=>$pair['prior_source_version_id'],'publication_id'=>$publication,'version_id'=>$version,
+            'state'=>$state,'native_hotel_catalog_id'=>$catalog,'native_claim_held_or_unknown'=>$held,
+            'canonical_source_url_matches'=>$exactUrl,'source_version_matches_prior'=>$version!==null?$version===$pair['prior_source_version_id']:null,
+            'source_identity_confirmed'=>$known];
+    }
+    return $rows;
+}
+
+/** Exactly one bounded registry query, in the caller's SQL read-only transaction. */
+function triadSourceIdentityRead(PDO $pdo,array $pairs): array
+{
+    requireRead($pdo->inTransaction()&&count($pairs)===3,'triad_source_observation_scope_changed');
+    $query=$pdo->prepare("SELECT p.external_message_id AS source_mid,p.id AS publication_id,v.id AS version_id,v.state,"
+        ."JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.metadata.hotel_catalog_id')) AS hotel_catalog_id,"
+        ."JSON_UNQUOTE(JSON_EXTRACT(v.snapshot_json,'$.post_url')) AS stored_post_url,"
+        ."EXISTS (SELECT 1 FROM post_versions history WHERE history.publication_id=p.id AND "
+        ."(history.state IN ('claimed','write_started','unknown') OR history.claim_token IS NOT NULL OR history.claimed_at IS NOT NULL) LIMIT 1) AS claim_held_or_unknown "
+        ."FROM post_publications p LEFT JOIN post_versions v ON v.id=p.current_version_id AND v.publication_id=p.id "
+        ."WHERE p.post_channel_id=10 AND p.external_message_id IN (?,?,?) LIMIT 4");
+    requireRead($query!==false&&$query->execute(array_column($pairs,'source')),'triad_source_observation_unavailable');
+    $records=$query->fetchAll(PDO::FETCH_ASSOC);$query->closeCursor();
+    return triadSourceIdentityProjectionRead($records,$pairs);
+}
+
 function legacyTargetOccupancyRead(PDO $pdo,ChannelPostRegistryService $registry,int $hotel,array $pair,
     array $feed,array $routes,?string $observedBotId): array
 {
